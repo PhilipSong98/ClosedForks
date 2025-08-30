@@ -30,7 +30,7 @@ const TopRestaurantsCarousel: React.FC<TopRestaurantsCarouselProps> = ({
 
   const getRestaurantImage = (restaurant: Restaurant) => {
     if (restaurant.google_data?.photos?.[0]) {
-      return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${restaurant.google_data.photos[0].photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}`;
+      return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${restaurant.google_data.photos[0].photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY}`;
     }
     return null;
   };

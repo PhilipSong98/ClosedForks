@@ -1,10 +1,10 @@
-# Restaurant Reviews - Private Network
+# DineCircle - Where Your Circle Dines
 
-A mobile-first, invite-only restaurant review site for friends & family. Share trusted restaurant recommendations within your private network.
+A mobile-first, invite-only restaurant review platform for friends & family. Share trusted restaurant recommendations within your private network with a beautiful, modern interface.
 
 ## Features
 
-- 🔐 **Private by Default** - Invite-only access with magic link authentication
+- 🔐 **Private by Default** - Exclusive invite-only access with 6-digit invite code system
 - 🍽️ **Smart Restaurant Discovery** - Google Places API integration with autocomplete search
 - ⭐ **Simplified Review System** - Clean, user-friendly single rating with detailed text reviews
 - 🎨 **Instagram-Style Feed** - Single-column social media feed with large images and clean card design
@@ -31,7 +31,36 @@ A mobile-first, invite-only restaurant review site for friends & family. Share t
 
 ## Recent Updates
 
-### 🔍 Global Search System (Latest - August 30, 2025)
+### 🎨 Modern Authentication System & Clean Design (Latest - August 30, 2025)
+
+Complete redesign of authentication flow with modern, clean aesthetic and invite code system:
+
+#### **✅ Exclusive Invite Code System**
+- **6-Digit Code Entry** - Beautiful landing page with individual digit inputs
+- **Modern Clean Design** - Light gray/white color palette inspired by contemporary apps
+- **DineCircle Branding** - "Where Your Circle Dines" with consistent logo and typography
+- **Test Code Available** - Use `123456` for immediate access during development
+
+#### **🎯 Streamlined User Experience**
+- **Landing Page** (`/welcome`) - Exclusive invite code entry with premium feel
+- **Account Creation** (`/signup`) - Complete form with password strength validation
+- **Member Login** (`/signin`) - Simple email/password authentication (no magic links)
+- **Cross-Navigation** - Smooth transitions between all authentication pages
+
+#### **🔧 Technical Implementation**
+- **Session Management** - Secure 30-minute invite code sessions with validation
+- **Database Schema** - New `invite_codes` and `invite_code_usage` tables with full audit trails
+- **Rate Limiting** - 5 attempts per IP per 15 minutes for security
+- **Admin Dashboard** - Complete invite code management at `/admin/invite-codes`
+- **Clean Architecture** - Removed magic link complexity, streamlined codebase
+
+#### **🎨 Design System Upgrade**
+- **Color Palette** - Professional gray-50/white backgrounds with gray-800 accents
+- **Typography** - Clean font hierarchy with proper spacing and contrast
+- **Components** - Consistent card design, input styling, and button treatments
+- **Responsive** - Mobile-first design with proper touch targets and accessibility
+
+### 🔍 Global Search System (August 30, 2025)
 
 Complete search functionality implementation with global accessibility and modal interface:
 
@@ -246,22 +275,26 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - `20250830094836_add_google_places_fields.sql` - Google Places integration fields
 - `20250830154739_update_reviews_schema_for_lovable.sql` - Simplified review schema (dish, review, recommend, tips)
 - `20250830180128_add_tags_to_reviews.sql` - Professional tagging system with 35 food-focused tags
+- `20250830203214_invite_code_system.sql` - Modern invite code system with 6-digit codes
 
 For future schema changes, see `supabase/README.md` for migration workflow.
 
 ### Authentication Setup
 
-The app uses Supabase Auth with magic links. **No additional setup required** - authentication is production-ready with:
+DineCircle uses a modern invite code system with clean, exclusive design. **New authentication flow features:**
 
-- ✅ PKCE flow for security
-- ✅ Automatic profile creation  
-- ✅ Session persistence across reloads
-- ✅ Robust error handling and fallbacks
+- ✅ **6-digit invite code system** - Exclusive access with hardcoded test code `123456`
+- ✅ **Clean modern design** - Light, professional interface matching contemporary apps
+- ✅ **Email/password authentication** - Simple, secure login for existing users
+- ✅ **Complete account creation flow** - Full name, email, password with real-time validation
+- ✅ **Session-based security** - Proper session management and invite code validation
+- ✅ **Admin management** - Built-in admin panel for invite code oversight
 
-**Callback URL Configuration:**
-In your Supabase project → Authentication → URL Configuration:
-- Site URL: `http://localhost:3000` (development) or your domain (production)
-- Redirect URLs: `http://localhost:3000/auth/callback` (add your production callback too)
+**Pages:**
+- `/welcome` - Landing page with invite code entry
+- `/signup` - Account creation with full validation  
+- `/signin` - Email/password login for existing users
+- `/admin/invite-codes` - Admin management of invite codes
 
 ### Installation
 

@@ -34,6 +34,7 @@ export interface Restaurant {
   google_maps_url?: string;
   google_data?: GooglePlaceData;
   last_google_sync?: string;
+  aggregated_tags?: string[]; // Tags aggregated from all reviews for this restaurant
 }
 
 export interface GooglePlaceData {

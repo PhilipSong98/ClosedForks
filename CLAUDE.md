@@ -20,7 +20,10 @@ This file provides comprehensive context for AI assistants working on the Restau
 ### Core Features (Fully Operational)
 - [x] Next.js 14 + TypeScript + App Router + Tailwind CSS + shadcn/ui
 - [x] Supabase integration (auth + database + RLS policies)
-- [x] Magic link authentication with PKCE flow
+- [x] **Modern invite code authentication system** with clean design
+- [x] **DineCircle branding** - "Where Your Circle Dines" 
+- [x] **6-digit invite code system** with exclusive landing page
+- [x] **Clean modern UI** - Light gray/white professional design
 - [x] Instagram-style single-column review feed 
 - [x] Dedicated restaurants page for discovery
 - [x] Google Places API integration with cost optimization
@@ -61,6 +64,10 @@ restaurant/
 ```
 
 ### Critical Files
+- `app/welcome/page.tsx`: **NEW** - Modern landing page with 6-digit invite code entry
+- `app/signup/page.tsx`: **NEW** - Complete account creation with validation
+- `app/signin/page.tsx`: **NEW** - Email/password authentication (no magic links)
+- `app/admin/invite-codes/page.tsx`: **NEW** - Admin invite code management
 - `app/home-client.tsx`: Instagram-style feed with filtering
 - `app/restaurants/page.tsx`: Restaurant discovery page
 - `components/filters/EnhancedFilters.tsx`: Professional filter system
@@ -72,13 +79,17 @@ restaurant/
 ## 🗄️ Database Schema
 
 ### Core Tables
-- `users`: User profiles with roles (user/admin)
+- `users`: User profiles with roles (user/admin) + `full_name` field
 - `restaurants`: Restaurant data + Google Places integration
   - `google_place_id`, `google_maps_url`, `google_data`, `last_google_sync`
 - `reviews`: Simplified rating system + tagging
   - `rating_overall`, `dish`, `review`, `recommend`, `tips`, `tags[]`
   - GIN index on tags for efficient filtering
-- `invites`: Invitation system with expiring codes
+- `invite_codes`: **NEW** - 6-digit code management system
+  - `code`, `max_uses`, `current_uses`, `is_active`, `expires_at`
+  - Rate limiting and usage tracking
+- `invite_code_usage`: **NEW** - Audit trail for code usage
+  - `invite_code_id`, `user_id`, `ip_address`, `user_agent`, `used_at`
 
 ### RLS Policies
 - Network-based review visibility
@@ -150,17 +161,26 @@ supabase db push                       # Apply to remote
 - **Auto-import**: Restaurant data, photos, hours on selection
 - **Smart caching**: Store Google data permanently, refresh periodically
 
-## 🔐 Authentication
+## 🔐 Authentication - Modern Invite Code System
 
-### Flow
-1. Magic link → `/auth/callback` → PKCE token exchange
-2. Server creates user profile automatically  
-3. Client auth hook with fallback handling
-4. Session stored in secure cookies
+### New Authentication Flow
+1. **Landing Page** (`/welcome`) → Enter 6-digit invite code (test: `123456`)
+2. **Code Validation** → Server-side validation with rate limiting (5 attempts/15min)
+3. **Account Creation** (`/signup`) → Full name, email, password with strength validation
+4. **Existing Users** (`/signin`) → Simple email/password login
+5. **Session Management** → Secure cookies with 30-minute invite code sessions
 
-### Security Features
-- PKCE flow, RLS policies, timeout protection
-- Cookie conflict detection, session refresh
+### Key Features
+- **Exclusive Design** - Clean, modern gray/white aesthetic
+- **Individual Digit Inputs** - 6 separate input boxes with auto-focus
+- **DineCircle Branding** - "Where Your Circle Dines" consistent across all pages
+- **Admin Management** - `/admin/invite-codes` for code oversight
+- **Security** - Rate limiting, session expiry, audit trails, RLS policies
+
+### Test Access
+- **Invite Code**: `123456` (50 uses, always active)
+- **Admin Access**: Users with `is_admin_user = true` can access admin panel
+- **Database Functions**: `validate_invite_code()` and `use_invite_code()` for server-side processing
 
 ## 📝 Common Tasks
 
