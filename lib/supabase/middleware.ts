@@ -27,8 +27,12 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // This will refresh session if expired - required for Server Components
-  await supabase.auth.getUser();
+  try {
+    // This will refresh session if expired - required for Server Components
+    await supabase.auth.getUser();
+  } catch (error) {
+    console.error('Error refreshing session in middleware:', error);
+  }
 
   return supabaseResponse;
 }

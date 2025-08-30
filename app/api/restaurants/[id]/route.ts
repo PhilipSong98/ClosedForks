@@ -2,22 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { restaurantSchema } from '@/lib/validations';
 
-interface Params {
-  id: string;
-}
-
 export async function GET(
   request: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    const resolvedParams = await params;
 
     // Get restaurant with average rating
     const { data: restaurant, error } = await supabase
       .rpc('get_restaurant_with_avg', {
-        restaurant_id: params.id,
+        restaurant_id: resolvedParams.id,
         viewer_id: user?.id || null,
       })
       .single();
@@ -48,10 +45,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
+    const resolvedParams = await params;
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -82,7 +80,7 @@ export async function PUT(
     const { data: restaurant, error } = await supabase
       .from('restaurants')
       .update(validatedData)
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .select()
       .single();
 
@@ -113,10 +111,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
+    const resolvedParams = await params;
     
     // Check authentication and admin role
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -143,7 +142,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('restaurants')
       .delete()
-      .eq('id', params.id);
+      .eq('id', resolvedParams.id);
 
     if (error) {
       console.error('Error deleting restaurant:', error);

@@ -5,18 +5,20 @@ A mobile-first, invite-only restaurant review site for friends & family. Share t
 ## Features
 
 - 🔐 **Private by Default** - Invite-only access with magic link authentication
-- 🍽️ **Restaurant Management** - Add restaurants manually or with optional Google Maps integration
+- 🍽️ **Smart Restaurant Discovery** - Google Places API integration with autocomplete search
 - ⭐ **Multi-dimensional Reviews** - Rate food, service, vibe, and value separately
 - 📱 **Mobile-First Design** - Responsive UI optimized for mobile devices
-- 🌍 **Location Aware** - Filter by city and cuisine types
+- 🌍 **Location Aware** - Stockholm-focused with 50km radius bias
 - 👥 **Network-Based** - Reviews visible only to your trusted network
 - 📧 **Email Notifications** - Powered by Resend for invites and updates
 - 🔒 **Secure** - Row-level security with Supabase
+- 🗺️ **Maps Integration** - Free Google Maps links for directions and venue details
 
 ## Tech Stack
 
 - **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui
 - **Backend**: Supabase (PostgreSQL + Auth + Storage)
+- **Maps & Places**: Google Places API (New) for restaurant discovery
 - **Email**: Resend
 - **Deployment**: Vercel
 - **Validation**: Zod
@@ -40,7 +42,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 # Feature Flags
-NEXT_PUBLIC_ENABLE_MAPS=false
+NEXT_PUBLIC_ENABLE_MAPS=true
+
+# Google Maps & Places API
+NEXT_PUBLIC_GOOGLE_PLACES_KEY=your_google_places_api_key
+GOOGLE_MAPS_EMBED_KEY=your_google_maps_embed_key
 
 # Email (Resend)
 RESEND_API_KEY=your_resend_api_key
@@ -58,25 +64,29 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ### Database Setup
 
-#### Option 1: Using Migrations (Recommended)
-
-1. Create a new Supabase project
+1. Create a new Supabase project at [supabase.com](https://supabase.com)
 2. Apply the migrations (see `supabase/README.md` for detailed instructions)
-3. **Current Status**: ✅ Authentication is working properly
+3. **Status**: ✅ Authentication and database fully operational
 
 **Applied Migrations:**
-- `20250829230023_fix_users_table_schema.sql` - Fixed users table schema
-- `20250829231123_fix_rls_policy_recursion.sql` - Fixed RLS policy recursion
+- `20250829233334_reset_and_initialize_database.sql` - Complete database with RLS policies
+- `20250830094836_add_google_places_fields.sql` - Google Places integration fields
 
 For future schema changes, see `supabase/README.md` for migration workflow.
 
-#### Option 2: Manual Setup (Legacy)
+### Authentication Setup
 
-1. Create a new Supabase project  
-2. Run the SQL schema from `supabase/schema.sql` in your Supabase SQL editor
-3. Enable Row Level Security (RLS) - it's configured automatically by the schema
+The app uses Supabase Auth with magic links. **No additional setup required** - authentication is production-ready with:
 
-**Note**: The manual setup has known authentication issues. Use the migration approach above.
+- ✅ PKCE flow for security
+- ✅ Automatic profile creation  
+- ✅ Session persistence across reloads
+- ✅ Robust error handling and fallbacks
+
+**Callback URL Configuration:**
+In your Supabase project → Authentication → URL Configuration:
+- Site URL: `http://localhost:3000` (development) or your domain (production)
+- Redirect URLs: `http://localhost:3000/auth/callback` (add your production callback too)
 
 ### Installation
 
@@ -89,6 +99,48 @@ npm run dev
 ```
 
 Visit `http://localhost:3000` to see the app.
+
+## Troubleshooting
+
+### Authentication Issues
+
+**🔄 Infinite Loading After Magic Link**
+- **Cause**: Conflicting cookies from multiple Supabase projects
+- **Fix**: Clear all cookies for localhost:3000:
+  1. Open DevTools (F12) → Application tab
+  2. Storage → Cookies → localhost:3000
+  3. Right-click → Clear or delete all cookies
+  4. Refresh and try again
+
+**❌ "Code verifier should be non-empty" Error**
+- **Cause**: PKCE flow cookies missing or corrupted
+- **Fix**: Clear cookies and request a fresh magic link
+
+**⏱️ Profile Fetch Timeout**
+- **Cause**: Database connectivity or RLS policy issues
+- **Fix**: App automatically uses fallback data - no action needed
+
+**🔑 Session Not Persisting Across Reloads**
+- **Cause**: Cookie configuration problems
+- **Fix**: Check that `@supabase/ssr` is properly configured
+
+### Development Issues
+
+**📦 Build Failures**
+```bash
+npm run type-check  # Check TypeScript errors first
+npm run lint       # Check linting issues
+```
+
+**🔌 Database Connection Issues**
+- Verify `.env.local` variables are set correctly
+- Check Supabase project is active and accessible
+- Review RLS policies in Supabase dashboard
+
+**🗺️ Google Places Not Working**
+- Ensure `NEXT_PUBLIC_GOOGLE_PLACES_KEY` is set
+- Check API key has Places API enabled
+- Verify billing is set up for Google Cloud project
 
 ## Database Schema
 
@@ -123,6 +175,11 @@ Visit `http://localhost:3000` to see the app.
 - `PUT /api/reviews/[id]` - Update own review
 - `DELETE /api/reviews/[id]` - Delete own review
 
+### Google Places Integration
+- `POST /api/places/autocomplete` - Search restaurants via Google Places
+- `POST /api/places/details` - Get detailed restaurant info from Google
+- `POST /api/restaurants/find-or-create` - Find existing or import from Google
+
 ### Invites
 - `GET /api/invites` - List user's invites
 - `POST /api/invites` - Create new invite
@@ -132,10 +189,17 @@ Visit `http://localhost:3000` to see the app.
 
 ### Maps Integration
 
-Set `NEXT_PUBLIC_ENABLE_MAPS=true` to enable:
-- Google Places autocomplete for restaurant search
-- Automatic address and location filling
-- Map display on restaurant pages
+Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
+- **Google Places Autocomplete** - Smart restaurant search as you type
+- **Automatic Data Import** - Restaurant info, hours, ratings from Google
+- **Location Bias** - Stockholm-focused results within 50km radius
+- **Free Maps Links** - Directions and venue details via Google Maps URLs
+- **Cost Optimization** - Session tokens and caching minimize API costs (~$3-5/month)
+
+**Required Setup:**
+1. Enable Places API (New) in Google Cloud Console
+2. Create API key (remove HTTP referrer restrictions for server-side calls)
+3. Set `NEXT_PUBLIC_GOOGLE_PLACES_KEY` in environment variables
 
 ## Deployment
 

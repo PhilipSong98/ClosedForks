@@ -1,6 +1,26 @@
 import { z } from 'zod';
 import { CUISINES } from '@/constants';
 
+export const googlePlaceDataSchema = z.object({
+  formatted_address: z.string(),
+  formatted_phone_number: z.string().optional(),
+  website: z.string().optional(),
+  opening_hours: z.object({
+    open_now: z.boolean().optional(),
+    weekday_text: z.array(z.string()).optional(),
+  }).optional(),
+  photos: z.array(z.object({
+    photo_reference: z.string(),
+    height: z.number(),
+    width: z.number(),
+  })).optional(),
+  types: z.array(z.string()).optional(),
+  business_status: z.string().optional(),
+  rating: z.number().optional(),
+  user_ratings_total: z.number().optional(),
+  price_level: z.number().optional(),
+});
+
 export const restaurantSchema = z.object({
   name: z.string().min(1, 'Restaurant name is required').max(100),
   address: z.string().min(1, 'Address is required').max(200),
@@ -14,6 +34,25 @@ export const restaurantSchema = z.object({
   lng: z.number().optional(),
   place_id: z.string().optional(),
   source: z.enum(['manual', 'maps']).default('manual'),
+  google_place_id: z.string().optional(),
+  google_maps_url: z.string().optional(),
+  google_data: googlePlaceDataSchema.optional(),
+  last_google_sync: z.string().optional(),
+});
+
+export const placesAutocompleteSchema = z.object({
+  input: z.string().min(1),
+  sessionToken: z.string(),
+  country: z.string().optional().default('se'),
+  location: z.object({
+    lat: z.number(),
+    lng: z.number(),
+  }).optional(),
+  radius: z.string().optional().default('50000'),
+});
+
+export const placeDetailsSchema = z.object({
+  placeId: z.string().min(1),
 });
 
 export const reviewSchema = z.object({
@@ -45,8 +84,11 @@ export const userUpdateSchema = z.object({
   avatar_url: z.string().url().optional(),
 });
 
+export type GooglePlaceDataInput = z.infer<typeof googlePlaceDataSchema>;
 export type RestaurantInput = z.infer<typeof restaurantSchema>;
 export type ReviewInput = z.infer<typeof reviewSchema>;
 export type InviteInput = z.infer<typeof inviteSchema>;
 export type ReportInput = z.infer<typeof reportSchema>;
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
+export type PlacesAutocompleteInput = z.infer<typeof placesAutocompleteSchema>;
+export type PlaceDetailsInput = z.infer<typeof placeDetailsSchema>;

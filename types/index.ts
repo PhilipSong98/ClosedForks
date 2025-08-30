@@ -6,6 +6,10 @@ export interface User {
   home_city?: string;
   role: 'user' | 'admin';
   created_at: string;
+  password_set?: boolean;
+  is_admin_user?: boolean;
+  first_login_completed?: boolean;
+  session_expires_at?: string;
 }
 
 export interface Restaurant {
@@ -25,6 +29,30 @@ export interface Restaurant {
   created_at: string;
   avg_rating?: number;
   review_count?: number;
+  google_place_id?: string;
+  google_maps_url?: string;
+  google_data?: GooglePlaceData;
+  last_google_sync?: string;
+}
+
+export interface GooglePlaceData {
+  formatted_address: string;
+  formatted_phone_number?: string;
+  website?: string;
+  opening_hours?: {
+    open_now?: boolean;
+    weekday_text?: string[];
+  };
+  photos?: {
+    photo_reference: string;
+    height: number;
+    width: number;
+  }[];
+  types?: string[];
+  business_status?: string;
+  rating?: number;
+  user_ratings_total?: number;
+  price_level?: number;
 }
 
 export interface Review {
@@ -85,4 +113,41 @@ export interface UserList {
   restaurants: string[];
   created_at: string;
   updated_at: string;
+}
+
+export interface MagicLinkRequest {
+  id: string;
+  email: string;
+  requested_by_ip?: string;
+  requested_by_user_agent?: string;
+  status: 'pending' | 'approved' | 'denied';
+  admin_notes?: string;
+  processed_by?: string;
+  processed_at?: string;
+  created_at: string;
+  processor?: User;
+}
+
+export interface AuthState {
+  user: User | null;
+  loading: boolean;
+  passwordSet: boolean;
+  isAdmin: boolean;
+  firstLoginCompleted: boolean;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface SetPasswordRequest {
+  password: string;
+  confirmPassword: string;
+}
+
+export interface MagicLinkRequestData {
+  email: string;
+  userAgent?: string;
+  ipAddress?: string;
 }

@@ -1,14 +1,25 @@
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { PenSquare } from 'lucide-react';
+
 export default function Home() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Welcome to Your Restaurant Network
-        </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Discover great restaurants through trusted recommendations from your friends and family.
-        </p>
-      </div>
+    <>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Welcome to Your Restaurant Network
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
+            Discover great restaurants through trusted recommendations from your friends and family.
+          </p>
+          <Link href="/reviews/new">
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+              <PenSquare className="h-4 w-4 mr-2" />
+              Write Your First Review
+            </Button>
+          </Link>
+        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
@@ -50,5 +61,17 @@ export default function Home() {
         </div>
       </div>
     </div>
+    
+    {/* Floating Action Button */}
+    <Link href="/reviews/new">
+      <Button
+        size="lg"
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 p-0 z-40"
+      >
+        <PenSquare className="h-6 w-6" />
+        <span className="sr-only">Write a review</span>
+      </Button>
+    </Link>
+  </>
   );
 }
