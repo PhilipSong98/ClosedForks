@@ -29,14 +29,10 @@ async function getRestaurantReviews(restaurantId: string): Promise<Review[]> {
   try {
     const supabase = await createClient();
     
-    // Use the same approach as home page - start from reviews with joins
+    // First get the reviews for this restaurant
     const { data: reviews, error } = await supabase
       .from('reviews')
-      .select(`
-        *,
-        author:users!reviews_author_id_fkey(id, full_name, email, avatar_url),
-        restaurant:restaurants!reviews_restaurant_id_fkey(*)
-      `)
+      .select('*')
       .eq('restaurant_id', restaurantId)
       .order('created_at', { ascending: false });
 
@@ -47,7 +43,25 @@ async function getRestaurantReviews(restaurantId: string): Promise<Review[]> {
 
     console.log(`Found ${reviews?.length || 0} reviews for restaurant ${restaurantId}`);
 
-    return reviews || [];
+    // If we have reviews, fetch the user data for each one
+    let reviewsWithUsers = reviews || [];
+    if (reviewsWithUsers.length > 0) {
+      const authorIds = reviewsWithUsers.map(review => review.author_id);
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, full_name, email, avatar_url')
+        .in('id', authorIds);
+
+      if (!usersError && users) {
+        // Map user data to reviews
+        reviewsWithUsers = reviewsWithUsers.map(review => ({
+          ...review,
+          author: users.find(user => user.id === review.author_id)
+        }));
+      }
+    }
+
+    return reviewsWithUsers || [];
   } catch (error) {
     console.error('Error fetching reviews:', error);
     return [];

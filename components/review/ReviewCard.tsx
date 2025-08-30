@@ -157,6 +157,21 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
       )}
 
 
+      {/* Rating and Dish */}
+      {!showRestaurant && (
+        <div className="px-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              {renderStars(rating)}
+              <span className="text-sm font-medium text-foreground ml-1">{rating}/5</span>
+            </div>
+            {dish && dish !== 'Not specified' && (
+              <span className="text-sm font-medium text-primary">Dish: {dish}</span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Review Text */}
       <div className="px-4 mb-4">
         <p className="text-sm text-foreground leading-relaxed mb-3">{reviewText}</p>

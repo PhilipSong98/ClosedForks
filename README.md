@@ -276,6 +276,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - `20250830154739_update_reviews_schema_for_lovable.sql` - Simplified review schema (dish, review, recommend, tips)
 - `20250830180128_add_tags_to_reviews.sql` - Professional tagging system with 35 food-focused tags
 - `20250830203214_invite_code_system.sql` - Modern invite code system with 6-digit codes
+- `20250131000000_fix_signup_issues.sql` - Fixed RLS policies and atomic user creation
+- `20250131000001_configure_auth_settings.sql` - Email confirmation handling for invite-based signups
 
 For future schema changes, see `supabase/README.md` for migration workflow.
 
@@ -289,6 +291,7 @@ DineCircle uses a modern invite code system with clean, exclusive design. **New 
 - ✅ **Complete account creation flow** - Full name, email, password with real-time validation
 - ✅ **Session-based security** - Proper session management and invite code validation
 - ✅ **Admin management** - Built-in admin panel for invite code oversight
+- ✅ **Fixed signup issues** - Resolved RLS policies, foreign key constraints, and email confirmation
 
 **Pages:**
 - `/welcome` - Landing page with invite code entry

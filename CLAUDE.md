@@ -24,6 +24,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **DineCircle branding** - "Where Your Circle Dines" 
 - [x] **6-digit invite code system** with exclusive landing page
 - [x] **Clean modern UI** - Light gray/white professional design
+- [x] **Fixed signup flow** - Resolved RLS policies, foreign key constraints, email confirmation
 - [x] Instagram-style single-column review feed 
 - [x] Dedicated restaurants page for discovery
 - [x] Google Places API integration with cost optimization
@@ -176,6 +177,7 @@ supabase db push                       # Apply to remote
 - **DineCircle Branding** - "Where Your Circle Dines" consistent across all pages
 - **Admin Management** - `/admin/invite-codes` for code oversight
 - **Security** - Rate limiting, session expiry, audit trails, RLS policies
+- **Fixed Signup Issues** - Atomic user creation, resolved RLS conflicts, email auto-confirmation
 
 ### Test Access
 - **Invite Code**: `123456` (50 uses, always active)
