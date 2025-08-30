@@ -45,40 +45,48 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setSessionToken(generateSessionToken());
   }, []);
 
-  // Debounce search
+  // Debounce search - Search only database restaurants and reviews
   useEffect(() => {
-    if (query.length > 2 && sessionToken) {
+    if (query.length > 2) {
       setIsLoading(true);
       const timer = setTimeout(async () => {
         try {
-          // Use POST with JSON body as expected by the API
-          const response = await fetch('/api/places/autocomplete', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              input: query,
-              sessionToken: sessionToken,
-              country: 'se',
-              location: {
-                lat: 59.3293,
-                lng: 18.0686
-              },
-              radius: '50000'
-            }),
-          });
+          // Search in private database only
+          const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
           
           if (response.ok) {
             const data = await response.json();
-            const formattedSuggestions = data.predictions?.map((prediction: any) => ({
-              google_place_id: prediction.place_id,
-              name: prediction.structured_formatting?.main_text || prediction.description,
-              address: prediction.structured_formatting?.secondary_text || prediction.description,
-              cuisine: prediction.types?.includes('restaurant') ? 'Restaurant' : undefined
-            })) || [];
+            console.log('Search API response:', data);
             
-            setSuggestions(formattedSuggestions);
+            // Process restaurant results
+            const restaurants = data.results
+              ?.filter((result: any) => result.type === 'restaurant')
+              ?.map((result: any) => ({
+                id: result.id,
+                name: result.name || result.title,
+                address: result.address || result.subtitle,
+                cuisine: result.cuisine || result.description
+              })) || [];
+            
+            // Also include restaurants from reviews
+            const reviewRestaurants = data.results
+              ?.filter((result: any) => result.type === 'review' && result.subtitle)
+              ?.map((result: any) => ({
+                id: result.restaurantId,
+                name: result.subtitle,
+                address: 'From review',
+                cuisine: result.title
+              })) || [];
+            
+            // Combine and deduplicate
+            const allRestaurants = [...restaurants, ...reviewRestaurants];
+            const uniqueRestaurants = allRestaurants.filter((restaurant, index, arr) => 
+              arr.findIndex(r => r.id === restaurant.id) === index
+            );
+            
+            console.log('Processed restaurants:', uniqueRestaurants);
+            
+            setSuggestions(uniqueRestaurants);
             setIsOpen(true);
             setSelectedIndex(-1);
           } else {
@@ -99,7 +107,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       setIsOpen(false);
       setIsLoading(false);
     }
-  }, [query, sessionToken]);
+  }, [query]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -129,32 +137,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const handleSelect = async (restaurant: Restaurant) => {
-    setQuery(restaurant.name);
+    setQuery(restaurant.name || '');
     setIsOpen(false);
 
     if (onRestaurantSelect) {
       // Custom handler provided
       onRestaurantSelect(restaurant);
     } else {
-      // Default behavior: navigate to restaurant or create review
+      // Default behavior: navigate to restaurant page (already in database)
       try {
-        if (restaurant.google_place_id) {
-          // Find or create restaurant in our database
-          const response = await fetch('/api/restaurants/find-or-create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              google_place_id: restaurant.google_place_id,
-              name: restaurant.name,
-              address: restaurant.address,
-            }),
-          });
-          
-          if (response.ok) {
-            const { restaurant: dbRestaurant } = await response.json();
-            // Navigate to restaurant page
-            router.push(`/restaurants/${dbRestaurant.id}`);
-          }
+        if (restaurant.id) {
+          // Navigate directly to restaurant page since it's from our database
+          router.push(`/restaurants/${restaurant.id}`);
         }
       } catch (error) {
         console.error('Error handling restaurant selection:', error);
@@ -169,8 +163,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         <input
           ref={inputRef}
           type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={query || ''}
+          onChange={(e) => setQuery(e.target.value || '')}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className={`w-full pl-12 pr-4 py-4 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 ${className}`}
@@ -186,7 +180,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-xl shadow-lg overflow-hidden animate-in slide-in-from-top-2 duration-200">
           {suggestions.map((restaurant, index) => (
             <button
-              key={restaurant.google_place_id || index}
+              key={restaurant.id || index}
               onClick={() => handleSelect(restaurant)}
               className={`w-full text-left px-4 py-3 hover:bg-accent transition-colors duration-150 first:rounded-t-lg last:rounded-b-lg ${
                 index === selectedIndex ? 'bg-accent' : ''

@@ -130,6 +130,8 @@ const HomeClient: React.FC<HomeClientProps> = ({
             onFiltersChange={setFilters}
             reviewCount={reviews.length}
             filteredCount={filteredReviews.length}
+            showAllFilters={false}
+            defaultExpanded={false}
           />
 
           {filteredReviews.length > 0 ? (

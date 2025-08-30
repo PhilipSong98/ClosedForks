@@ -24,18 +24,22 @@ export interface FilterState {
 interface EnhancedFiltersProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
-  reviewCount: number;
-  filteredCount: number;
+  reviewCount?: number;
+  filteredCount?: number;
+  showAllFilters?: boolean;
+  defaultExpanded?: boolean;
 }
 
 const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({ 
   filters, 
   onFiltersChange, 
-  reviewCount,
-  filteredCount 
+  reviewCount = 0,
+  filteredCount = 0,
+  showAllFilters = false,
+  defaultExpanded = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
 
@@ -88,9 +92,9 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
           )}
         </div>
         
-        {/* Sort Controls and Mobile Expand Toggle */}
+        {/* Sort Controls and Expand Toggle */}
         <div className="flex items-center gap-2">
-          {!isMobile ? (
+          {!isMobile && showAllFilters ? (
             <>
               <span className="text-sm font-medium text-foreground">Sort:</span>
               <Select 
@@ -126,8 +130,8 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
         </div>
       </div>
 
-      {/* Mobile Sort Controls */}
-      {isMobile && isExpanded && (
+      {/* Sort Controls When Expanded */}
+      {isExpanded && (
         <div className="flex items-center gap-2 mb-4 pb-3 border-b">
           <span className="text-sm font-medium text-foreground">Sort:</span>
           <Select 
@@ -148,7 +152,7 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
       )}
 
       {/* Quick Tag Filters */}
-      {(!isMobile || isExpanded) && (
+      {((!isMobile && showAllFilters) || isExpanded) && (
       <div className="space-y-3">
         {Object.entries(REVIEW_TAGS).map(([categoryKey, tags]) => {
           const category = categoryKey as keyof typeof REVIEW_TAGS;
@@ -231,7 +235,7 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
       )}
 
       {/* Advanced Filters */}
-      {(!isMobile || isExpanded) && (
+      {((!isMobile && showAllFilters) || isExpanded) && (
       <div className="mt-4">
         <Popover open={isOpen} onOpenChange={setIsOpen}>
           <PopoverTrigger asChild>

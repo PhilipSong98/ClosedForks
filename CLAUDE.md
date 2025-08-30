@@ -29,8 +29,9 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] Dedicated restaurants page for discovery
 - [x] Google Places API integration with cost optimization
 - [x] Complete review system with tagging (35 food-focused tags)
-- [x] Enhanced filtering system with rating/price/date controls
-- [x] Global search system with keyboard shortcuts
+- [x] **Enhanced filtering system** - Collapsed by default, rating/price/date controls
+- [x] **Private network search** - Database-only search with proper error handling
+- [x] **Restaurant detail pages** - Dual ratings, sidebar layout, grid reviews
 - [x] Modal-based responsive UI (Sheet mobile, Dialog desktop)
 - [x] Mobile-first responsive design
 
@@ -149,13 +150,15 @@ supabase db push                       # Apply to remote
 ### Enhanced Filtering System
 - **Tag-based**: 35 food-focused tags in 4 color-coded categories
 - **Advanced Controls**: Rating slider, price range, date filters
-- **Mobile UX**: Collapsible interface with live results counter
+- **Collapsed by Default**: Clean interface on both homepage and restaurants page
+- **Mobile UX**: Expandable interface with live results counter
 - **Real-time**: Client-side filtering for instant results
 
-### Global Search
-- **Fixed FAB**: Top-right with keyboard shortcuts (`/`, `Cmd/Ctrl+K`)
-- **API**: `/api/search` searches reviews and restaurants with RLS
-- **Responsive**: Full-screen mobile, centered desktop modal
+### Private Network Search
+- **Database-Only**: Restaurant page search limited to private network
+- **API**: `/api/search` searches only private reviews and restaurants
+- **Enhanced UX**: Fixed React controlled input warnings, proper fallbacks
+- **Smart Results**: Shows restaurants + restaurants from reviews with deduplication
 
 ### Google Places Integration
 - **Stockholm-focused**: 50km bias, cost-optimized with session tokens
@@ -223,5 +226,5 @@ NEXT_PUBLIC_APP_URL=
 Ready for photo uploads, restaurant detail pages, and advanced social features!
 
 ---
-**Last Updated**: 2025-08-30  
-**Status**: MVP v1.3 - Instagram-Style Feed Complete
+**Last Updated**: 2025-01-31  
+**Status**: MVP v1.4 - Enhanced UX & Private Search Complete

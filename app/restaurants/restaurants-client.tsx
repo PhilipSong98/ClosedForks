@@ -40,7 +40,7 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
         console.log(`Client-side: Found ${reviews.length} reviews`);
         
         // Group reviews by restaurant_id
-        const reviewsByRestaurant = reviews.reduce((acc, review) => {
+        const reviewsByRestaurant = reviews.reduce((acc: Record<string, any[]>, review: any) => {
           const restaurantId = review.restaurant_id;
           if (!acc[restaurantId]) {
             acc[restaurantId] = [];
@@ -55,16 +55,16 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
           
           // Calculate actual average rating from individual review.rating_overall values
           const ratings = restaurantReviews
-            .map(r => r.rating_overall)
-            .filter(r => r != null);
+            .map((r: any) => r.rating_overall)
+            .filter((r: any) => r != null);
           const avg_rating = ratings.length > 0 
-            ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
+            ? Math.round((ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length) * 10) / 10
             : 0;
           
           // Aggregate unique tags from all reviews
           const allTags = restaurantReviews
-            .flatMap(r => r.tags || [])
-            .filter((tag, index, arr) => arr.indexOf(tag) === index);
+            .flatMap((r: any) => r.tags || [])
+            .filter((tag: string, index: number, arr: string[]) => arr.indexOf(tag) === index);
           
           return {
             ...restaurant,
@@ -146,7 +146,10 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
             </p>
           </div>
           
-          <SearchBar onRestaurantSelect={handleRestaurantSelect} />
+          <SearchBar 
+            onRestaurantSelect={handleRestaurantSelect}
+            placeholder="Search restaurants from your network..."
+          />
         </section>
 
 
@@ -161,7 +164,10 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
           <EnhancedFilters 
             filters={filters}
             onFiltersChange={setFilters}
-            showAllFilters={true}
+            reviewCount={restaurantList.length}
+            filteredCount={filteredRestaurants.length}
+            showAllFilters={false}
+            defaultExpanded={false}
           />
 
           {filteredRestaurants.length > 0 ? (

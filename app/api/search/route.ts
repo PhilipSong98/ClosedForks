@@ -94,9 +94,12 @@ export async function GET(request: NextRequest) {
       return {
         type: "restaurant" as const,
         id: restaurant.id,
+        name: restaurant.name, // Add name field for SearchBar
         title: restaurant.name,
-        subtitle: `${restaurant.city || "City"}, ${restaurant.address || "Address"}`,
+        subtitle: `${restaurant.city || ""}, ${restaurant.address || ""}`.replace(/^,\s*/, ''), // Clean up leading comma
+        address: `${restaurant.city || ""}, ${restaurant.address || ""}`.replace(/^,\s*/, ''),
         description: `${cuisineText} cuisine`,
+        cuisine: cuisineText,
         rating: undefined,
         createdAt: restaurant.created_at,
         restaurantId: restaurant.id,

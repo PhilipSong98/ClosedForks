@@ -31,6 +31,29 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 
 ## Recent Updates
 
+### 🔧 UI/UX Improvements (January 2025)
+
+Enhanced user experience with cleaner interfaces and fixed search functionality:
+
+#### **✅ Restaurant Detail Page Enhancements**
+- **Dual Rating Display** - Shows both private network rating and Google rating prominently
+- **Proper Rating Calculation** - Real-time calculation from actual private reviews
+- **Enhanced Sidebar** - Sticky restaurant info with contact details, hours, and action buttons
+- **Grid Layout for Reviews** - Responsive grid display for better visual organization
+- **Fixed Google Maps Links** - Multiple fallback options for reliable map access
+
+#### **✅ Search System Improvements**
+- **Private Database Only** - Restaurant search now limited to your private network
+- **Fixed Input Errors** - Resolved React controlled/uncontrolled component warnings
+- **Enhanced Results** - Shows restaurants + restaurants from reviews with deduplication
+- **Better Error Handling** - Proper fallback values and loading states
+
+#### **✅ Filter System Optimization**
+- **Collapsed by Default** - Both homepage and restaurants page start with collapsed filters
+- **Cleaner Interface** - Reduces visual clutter and improves first impression
+- **Expandable on Demand** - Full functionality available when needed
+- **Consistent Experience** - Same behavior across all pages
+
 ### 🎨 Modern Authentication System & Clean Design (Latest - August 30, 2025)
 
 Complete redesign of authentication flow with modern, clean aesthetic and invite code system:
@@ -60,33 +83,21 @@ Complete redesign of authentication flow with modern, clean aesthetic and invite
 - **Components** - Consistent card design, input styling, and button treatments
 - **Responsive** - Mobile-first design with proper touch targets and accessibility
 
-### 🔍 Global Search System (August 30, 2025)
+### 🔍 Private Network Search System (January 2025)
 
-Complete search functionality implementation with global accessibility and modal interface:
+Private database search functionality with enhanced user experience:
 
-#### **✅ Global Search FAB**
-- **Top-Right Search FAB** - Magnifying glass icon fixed at top-right corner on every page
-- **Keyboard Shortcuts** - Press `/` or `Cmd/Ctrl+K` to open search from anywhere, `Esc` to close
-- **Responsive Modal System** - Full-screen sheet on mobile, centered dialog on desktop
-- **Real-Time Search** - 250ms debounced search with loading states and instant results
+#### **✅ Restaurant Page Private Search**
+- **Database-Only Search** - Searches only restaurants and reviews within your private network
+- **Enhanced User Experience** - Proper controlled input handling, no React warnings
+- **Smart Results** - Shows restaurants directly + restaurants mentioned in reviews
+- **Deduplication** - Prevents duplicate restaurant entries in search results
 
-#### **🔍 Comprehensive Search Functionality**
-- **Multi-Table Search** - Searches both reviews (text, dish, tips) and restaurants (name, city, address)
-- **Private Data Only** - Searches only your private database with RLS respect, no external APIs
-- **Smart Results Display** - Categorized results with ratings, images, tags, and creation dates
-- **Cache-Control Headers** - Proper no-store headers for real-time data freshness
-
-#### **🔧 Technical Implementation**
-- **API Route**: `/api/search` with proper error handling that always returns valid JSON
-- **Client Error Handling** - Uses `response.text()` instead of `response.json()` for error responses
-- **Database Query Optimization** - Efficient ilike queries with proper column mapping
-- **Accessibility** - Full ARIA support with screen reader compatibility
-
-#### **📱 User Experience Features**
-- **Auto-Focus Input** - Search input automatically focused when modal opens
-- **Empty/Loading States** - Clean UI states for different search conditions
-- **Click-to-Navigate** - Search results link to relevant pages with highlight parameters
-- **Visual Feedback** - Icons, badges, and formatted result cards for easy scanning
+#### **🔧 Technical Improvements**
+- **Fixed Controlled Input Issues** - Resolved React controlled/uncontrolled component warnings
+- **API Integration** - Uses `/api/search` endpoint for consistent private database queries
+- **Error Handling** - Proper fallback values and error states
+- **Performance** - Real-time search with 300ms debouncing
 
 ### 🎛️ Enhanced Filter System (Latest - August 30, 2025)
 
@@ -106,7 +117,7 @@ Complete professional upgrade of home page filters from basic cuisine buttons to
 - **Enhanced Sort Options** - Recent, Best Rated, Price Low→High, Price High→Low
 
 #### **📱 Mobile-First Responsive Design**
-- **Collapsible Interface** - "Filters" button with expansion on mobile to prevent overwhelm
+- **Collapsed by Default** - Filters start collapsed on both homepage and restaurants page to reduce clutter
 - **Touch-Optimized** - Large tap targets, proper spacing, mobile-friendly interactions
 - **Progressive Enhancement** - Full desktop experience, streamlined mobile experience
 - **Live Results Counter** - Shows "8 of 23 reviews" with real-time filter feedback
@@ -394,10 +405,11 @@ npm run lint       # Check linting issues
 - `PUT /api/reviews/[id]` - Update own review
 - `DELETE /api/reviews/[id]` - Delete own review
 
-**Note**: Review schema has been simplified from multi-dimensional ratings to a single rating with detailed text for better user experience.
+### Search
+- `GET /api/search` - Search private database restaurants and reviews only
 
 ### Google Places Integration
-- `POST /api/places/autocomplete` - Search restaurants via Google Places
+- `POST /api/places/autocomplete` - Search restaurants via Google Places (admin only)
 - `POST /api/places/details` - Get detailed restaurant info from Google
 - `POST /api/restaurants/find-or-create` - Find existing or import from Google
 
