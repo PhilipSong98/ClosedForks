@@ -54,11 +54,15 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Visual Tag Display** - Clean badge system in ReviewCard with hover effects
 - [x] **Instagram-Style Feed** - Single-column stacked layout with large images and optimized card design
 - [x] **Dedicated Restaurants Page** - Separated restaurant discovery from review feed for better UX
+- [x] **Global Search System** - Top-right FAB with keyboard shortcuts, searches reviews and restaurants
+- [x] **Modal-Only Review Creation** - WriteReviewFAB opens responsive modals, no page navigation
+- [x] **Search API Implementation** - /api/search endpoint with proper error handling and RLS respect
+- [x] **Accessibility Improvements** - ARIA support for modals and screen reader compatibility
 
 ### Pending Features (Future Sprints)
 - [ ] Photo upload for reviews
 - [ ] Restaurant detail pages with embedded maps
-- [ ] Advanced filtering and search
+- [ ] Advanced filtering (by tags, ratings, date ranges)
 - [ ] User-selectable location preferences (Nordic cities)
 - [ ] Email notifications via Resend
 - [ ] Admin dashboard for reports/moderation
@@ -124,6 +128,11 @@ restaurant/
 - `components/review/ReviewComposer.tsx`: Simplified review form (Lovable design)
 - `components/review/RatingInput.tsx`: Large, interactive star rating component
 - `components/search/SearchBar.tsx`: Google Places integrated restaurant search
+- `components/search/SearchFAB.tsx`: Global search FAB with keyboard shortcuts
+- `components/search/GlobalSearchModal.tsx`: Search modal with responsive design
+- `components/layout/WriteReviewFAB.tsx`: Modal-only review creation FAB
+- `app/api/search/route.ts`: Search API endpoint for reviews and restaurants
+- `lib/hooks/useDebounce.ts`: Debounce hook for search input
 
 ## 🎨 Lovable UI Integration (Important Context)
 
@@ -740,6 +749,86 @@ supabase logs
 - Caching layer for restaurant data
 - Image compression for review photos
 - CDN for static assets
+
+## 🔍 Global Search System Implementation
+
+### Overview
+Complete global search functionality that searches only private database content with full accessibility and responsive design.
+
+### Key Components
+
+#### **SearchFAB** (`components/search/SearchFAB.tsx`)
+- Fixed position at top-right corner (top-3 right-3 mobile, top-4 right-4 desktop)
+- Magnifying glass icon with proper z-index (50) above other content
+- Keyboard shortcuts: `/` and `Cmd/Ctrl+K` to open, `Esc` to close
+- Manages modal state and responsive detection
+
+#### **GlobalSearchModal** (`components/search/GlobalSearchModal.tsx`)
+- Responsive modal system: full-screen Sheet (mobile) vs centered Dialog (desktop)
+- Auto-focused search input with 250ms debouncing
+- Real-time search results with loading states
+- Accessible with DialogTitle/SheetTitle (screen reader only)
+- Result categorization and navigation
+
+#### **Search API** (`app/api/search/route.ts`)
+- Endpoint: `GET /api/search?q=searchterm`
+- Searches multiple tables: reviews (text, review, dish, tips) and restaurants (name, city, address)
+- RLS-compliant queries (respects user visibility)
+- Always returns valid JSON with `{ results: [] }` format
+- Cache-Control: no-store headers for freshness
+- Proper error handling that never returns 500 status
+
+### Technical Implementation
+
+#### **Database Queries**
+```sql
+-- Reviews search
+SELECT id, rating_overall, dish, review, text, tips, created_at, restaurant_id,
+       restaurant:restaurants!restaurant_id (id, name, city, address)
+FROM reviews
+WHERE text.ilike.%query% OR review.ilike.%query% OR dish.ilike.%query% OR tips.ilike.%query%
+
+-- Restaurants search  
+SELECT id, name, city, address, cuisine, created_at
+FROM restaurants
+WHERE name.ilike.%query% OR city.ilike.%query% OR address.ilike.%query%
+```
+
+#### **Result Mapping**
+Results transformed to consistent `SearchResult` interface:
+```typescript
+interface SearchResult {
+  type: "review" | "restaurant";
+  id: string;
+  title: string;
+  subtitle: string;
+  description?: string;
+  rating?: number;
+  createdAt?: string;
+  restaurantId?: string;
+  tags?: string[];
+}
+```
+
+#### **Client Features**
+- Debounced search input (250ms delay)
+- Loading/empty states with proper UI feedback  
+- Error handling with `response.text()` for HTML error pages
+- Click-to-navigate results with highlight parameters
+- Keyboard navigation support
+
+### Security & Privacy
+- **Private Data Only**: Never queries external APIs, only internal Supabase
+- **RLS Compliance**: Respects row-level security policies
+- **User Visibility**: Only shows data the authenticated user can access
+- **No Authentication Bypass**: Uses server-side Supabase client with cookies
+
+### User Experience
+- **Global Access**: Available on every page via fixed FAB
+- **Keyboard Shortcuts**: Power users can quickly access with `/` or `Cmd/Ctrl+K`
+- **Mobile Optimized**: Full-screen search on mobile for better UX
+- **Real-Time Results**: Instant feedback with debounced queries
+- **Clean Interface**: Categorized results with proper visual hierarchy
 
 ## 🎯 Business Context
 

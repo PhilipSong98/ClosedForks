@@ -8,6 +8,7 @@ A mobile-first, invite-only restaurant review site for friends & family. Share t
 - 🍽️ **Smart Restaurant Discovery** - Google Places API integration with autocomplete search
 - ⭐ **Simplified Review System** - Clean, user-friendly single rating with detailed text reviews
 - 🎨 **Instagram-Style Feed** - Single-column social media feed with large images and clean card design
+- 🎯 **Global FAB Interface** - Single floating action button for review creation across all pages
 - 📱 **Mobile-First Design** - Optimized for social media consumption patterns with intuitive navigation
 - 🌍 **Location Aware** - Stockholm-focused with 50km radius bias
 - 👥 **Network-Based** - Reviews visible only to your trusted network
@@ -29,7 +30,57 @@ A mobile-first, invite-only restaurant review site for friends & family. Share t
 
 ## Recent Updates
 
-### 📱 Instagram-Style Feed & Page Architecture (Latest - August 30, 2025)
+### 🔍 Global Search System (Latest - August 30, 2025)
+
+Complete search functionality implementation with global accessibility and modal interface:
+
+#### **✅ Global Search FAB**
+- **Top-Right Search FAB** - Magnifying glass icon fixed at top-right corner on every page
+- **Keyboard Shortcuts** - Press `/` or `Cmd/Ctrl+K` to open search from anywhere, `Esc` to close
+- **Responsive Modal System** - Full-screen sheet on mobile, centered dialog on desktop
+- **Real-Time Search** - 250ms debounced search with loading states and instant results
+
+#### **🔍 Comprehensive Search Functionality**
+- **Multi-Table Search** - Searches both reviews (text, dish, tips) and restaurants (name, city, address)
+- **Private Data Only** - Searches only your private database with RLS respect, no external APIs
+- **Smart Results Display** - Categorized results with ratings, images, tags, and creation dates
+- **Cache-Control Headers** - Proper no-store headers for real-time data freshness
+
+#### **🔧 Technical Implementation**
+- **API Route**: `/api/search` with proper error handling that always returns valid JSON
+- **Client Error Handling** - Uses `response.text()` instead of `response.json()` for error responses
+- **Database Query Optimization** - Efficient ilike queries with proper column mapping
+- **Accessibility** - Full ARIA support with screen reader compatibility
+
+#### **📱 User Experience Features**
+- **Auto-Focus Input** - Search input automatically focused when modal opens
+- **Empty/Loading States** - Clean UI states for different search conditions
+- **Click-to-Navigate** - Search results link to relevant pages with highlight parameters
+- **Visual Feedback** - Icons, badges, and formatted result cards for easy scanning
+
+### 🎯 Modal-Only Review Creation (August 30, 2025)
+
+Complete redesign of review creation UX with modal-only approach:
+
+#### **✅ Unified Review Creation Experience**
+- **Modal-Only Interface** - Write reviews exclusively through popup modals, no dedicated pages
+- **Responsive Modal System** - Bottom sheet on mobile, centered dialog on desktop
+- **Global FAB Access** - "+" button in bottom-right corner opens review modal on any page
+- **Eliminated Page Navigation** - Removed `/reviews/new` route entirely for cleaner UX
+
+#### **🔧 Technical Implementation**
+- **WriteReviewFAB Component** - Uses Sheet (mobile) and Dialog (desktop) with responsive detection
+- **ReviewComposer Integration** - Seamlessly integrated into modal with proper close handling
+- **Route Cleanup** - Completely removed `/app/reviews/` directory and page components
+- **Import Optimization** - Fixed default vs named export issues and cleaned dependencies
+
+#### **📱 Enhanced User Experience**
+- **Predictable Interaction** - Users always get modal overlay, stay on current page
+- **Mobile-Optimized** - 90% viewport height sheet provides optimal mobile experience
+- **Keyboard Accessible** - Full keyboard navigation and proper focus management
+- **Visual Clarity** - No page redirects, smooth modal transitions, consistent interface
+
+### 📱 Instagram-Style Feed & Page Architecture (August 30, 2025)
 
 Complete UI/UX transformation with separated concerns and optimized social media-style experience:
 
@@ -324,10 +375,10 @@ Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
 │   └── home-client.tsx     # Instagram-style review feed homepage
 ├── components/             # React components
 │   ├── auth/           # Authentication components
-│   ├── layout/         # Layout components (Header, AuthWrapper)
+│   ├── layout/         # Layout components (Header, AuthWrapper, WriteReviewFAB)
 │   ├── restaurant/     # Restaurant-related components
 │   ├── review/         # Review components (ReviewComposer, RatingInput)
-│   ├── search/         # Search components (SearchBar)
+│   ├── search/         # Search components (SearchBar, SearchFAB)
 │   └── ui/             # shadcn/ui components
 ├── lib/                # Utilities and configurations
 │   ├── supabase/       # Supabase client configuration

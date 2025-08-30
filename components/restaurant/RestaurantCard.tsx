@@ -17,14 +17,14 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
 
   return (
     <Link href={`/restaurants/${restaurant.id}`}>
-      <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
-        <CardContent className="p-4">
-          <div className="space-y-3">
+      <Card className="h-full hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
+        <CardContent className="p-0 md:p-4">
+          <div className="p-4 md:p-0 space-y-3">
             <div className="space-y-2">
               <h3 className="font-semibold text-lg line-clamp-1">
                 {restaurant.name}
               </h3>
-              <div className="flex items-center text-sm text-gray-600 gap-1">
+              <div className="flex items-center text-sm text-muted-foreground gap-1">
                 <MapPin className="h-4 w-4" />
                 <span className="line-clamp-1">{restaurant.address}, {restaurant.city}</span>
               </div>
@@ -38,13 +38,13 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
                     <span className="text-sm font-medium">
                       {avgRating.toFixed(1)}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       ({reviewCount} review{reviewCount !== 1 ? 's' : ''})
                     </span>
                   </div>
                 )}
                 {avgRating === 0 && (
-                  <span className="text-sm text-gray-500">No reviews yet</span>
+                  <span className="text-sm text-muted-foreground">No reviews yet</span>
                 )}
               </div>
               

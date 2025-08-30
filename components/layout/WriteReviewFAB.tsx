@@ -1,0 +1,81 @@
+'use client'
+
+import React, { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
+import ReviewComposer from '@/components/review/ReviewComposer';
+import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
+
+export function WriteReviewFAB() {
+  const [isOpen, setIsOpen] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
+  const handleSubmit = () => {
+    // Review submission is handled by ReviewComposer
+    setIsOpen(false);
+  };
+
+  const fabButton = (
+    <Button
+      size="icon"
+      className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+      aria-label="Write a review"
+    >
+      <Plus className="w-6 h-6" />
+    </Button>
+  );
+
+  if (isMobile) {
+    return (
+      <div className="fixed bottom-6 right-6 z-40 fab-safe-area">
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetTrigger asChild>
+            {fabButton}
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
+            <SheetTitle className="sr-only">Write a Review</SheetTitle>
+            <SheetDescription className="sr-only">
+              Share your dining experience and help others discover great food.
+            </SheetDescription>
+            <ReviewComposer 
+              onClose={handleClose}
+              onSubmit={handleSubmit}
+            />
+          </SheetContent>
+        </Sheet>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed bottom-6 right-6 z-40 fab-safe-area">
+      <Button
+        onClick={() => setIsOpen(true)}
+        size="icon"
+        className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+        aria-label="Write a review"
+      >
+        <Plus className="w-6 h-6" />
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogTitle className="sr-only">Write a Review</DialogTitle>
+          <DialogDescription className="sr-only">
+            Share your dining experience and help others discover great food.
+          </DialogDescription>
+          <ReviewComposer 
+            onClose={handleClose}
+            onSubmit={handleSubmit}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

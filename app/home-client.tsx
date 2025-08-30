@@ -2,17 +2,11 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import CuisineFilters from '@/components/filters/CuisineFilters';
 import ReviewCard from '@/components/review/ReviewCard';
-import ReviewComposer from '@/components/review/ReviewComposer';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useReviews } from '@/lib/queries/reviews';
-import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { Review } from '@/types';
 
 interface HomeClientProps {
@@ -26,8 +20,6 @@ const HomeClient: React.FC<HomeClientProps> = ({
   const { user } = useAuth();
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<'recent' | 'rating'>('recent');
-  const [isReviewComposerOpen, setIsReviewComposerOpen] = useState(false);
-  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Use React Query with initial data from server
   const { data: reviews = initialReviews } = useReviews();
@@ -43,18 +35,6 @@ const HomeClient: React.FC<HomeClientProps> = ({
 
   const handleUserClick = (userId: string) => {
     router.push(`/profile/${userId}`);
-  };
-
-  const handleWriteReview = () => {
-    setIsReviewComposerOpen(true);
-  };
-
-  const handleReviewSubmit = (success: boolean) => {
-    if (success) {
-      setIsReviewComposerOpen(false);
-      // Force refresh of reviews list
-      window.location.reload(); // Simple solution for now - could use React Query invalidation
-    }
   };
 
   // Filter and sort reviews
@@ -128,58 +108,13 @@ const HomeClient: React.FC<HomeClientProps> = ({
                     : 'Be the first to share a restaurant experience with your network! Visit the Restaurants page to discover new places to review.'
                   }
                 </p>
-                <Button onClick={handleWriteReview} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Write Your First Review
-                </Button>
               </div>
             </div>
           )}
         </section>
       </main>
 
-      {/* Floating Action Button (All Screen Sizes) */}
-      <div className="fixed bottom-6 right-6 z-50 fab-safe-area">
-        <Button 
-          onClick={handleWriteReview}
-          size="icon" 
-          className="h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-shadow"
-          aria-label="Write a review"
-        >
-          <Plus className="w-5 h-5" />
-        </Button>
-      </div>
 
-      {/* Review Composer Popup - Conditional Rendering */}
-      {isMobile ? (
-        <Sheet open={isReviewComposerOpen} onOpenChange={setIsReviewComposerOpen}>
-          <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle className="sr-only">Write a Review</SheetTitle>
-              <SheetDescription className="sr-only">
-                Share your dining experience and help others discover great food.
-              </SheetDescription>
-            </SheetHeader>
-            <ReviewComposer 
-              onClose={() => setIsReviewComposerOpen(false)}
-              onSubmit={handleReviewSubmit}
-            />
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <Dialog open={isReviewComposerOpen} onOpenChange={setIsReviewComposerOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogTitle className="sr-only">Write a Review</DialogTitle>
-            <DialogDescription className="sr-only">
-              Share your dining experience and help others discover great food.
-            </DialogDescription>
-            <ReviewComposer 
-              onClose={() => setIsReviewComposerOpen(false)}
-              onSubmit={handleReviewSubmit}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 };

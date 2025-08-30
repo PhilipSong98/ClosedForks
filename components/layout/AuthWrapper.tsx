@@ -2,6 +2,8 @@
 
 import { useAuth } from '@/lib/hooks/useAuth';
 import { SignInForm } from '@/components/auth/SignInForm';
+import { SearchFAB } from '@/components/search/SearchFAB';
+import { WriteReviewFAB } from '@/components/layout/WriteReviewFAB';
 
 interface AuthWrapperProps {
   children: React.ReactNode;
@@ -39,6 +41,8 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
   return (
     <div className="min-h-screen bg-background">
       {children}
+      <SearchFAB />
+      <WriteReviewFAB />
     </div>
   );
 }

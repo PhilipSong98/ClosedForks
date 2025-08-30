@@ -22,7 +22,8 @@ export function useRestaurants(options?: {
       if (!response.ok) {
         throw new Error('Failed to fetch restaurants');
       }
-      return response.json();
+      const data = await response.json();
+      return data.restaurants || [];
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
@@ -36,7 +37,8 @@ export function useTopRestaurants(limit: number = 10) {
       if (!response.ok) {
         throw new Error('Failed to fetch top restaurants');
       }
-      return response.json();
+      const data = await response.json();
+      return data.restaurants || [];
     },
     staleTime: 15 * 60 * 1000, // 15 minutes
   });
@@ -50,7 +52,8 @@ export function useRestaurant(restaurantId: string) {
       if (!response.ok) {
         throw new Error('Failed to fetch restaurant');
       }
-      return response.json();
+      const data = await response.json();
+      return data.restaurant;
     },
     enabled: !!restaurantId,
   });

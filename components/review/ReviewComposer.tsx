@@ -34,15 +34,17 @@ interface ReviewComposerProps {
   onClose: () => void;
   onSubmit: (success: boolean) => void;
   prefilledRestaurant?: any;
+  preselectedRestaurant?: any;
 }
 
 const ReviewComposer: React.FC<ReviewComposerProps> = ({ 
   onClose, 
   onSubmit, 
-  prefilledRestaurant 
+  prefilledRestaurant,
+  preselectedRestaurant 
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedRestaurant, setSelectedRestaurant] = useState(prefilledRestaurant);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(prefilledRestaurant || preselectedRestaurant);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();

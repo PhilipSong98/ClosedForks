@@ -45,16 +45,28 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/80 border-b border-border">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link 
-            href="/"
-            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-          >
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <div className="w-4 h-4 bg-primary-foreground rounded-sm" />
-            </div>
-            <span className="text-xl font-bold text-foreground">DineCircle</span>
-          </Link>
+          <div className="flex items-center space-x-8">
+            {/* Logo */}
+            <Link 
+              href="/"
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            >
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <div className="w-4 h-4 bg-primary-foreground rounded-sm" />
+              </div>
+              <span className="text-xl font-bold text-foreground">DineCircle</span>
+            </Link>
+
+            {/* Navigation Links */}
+            <nav className="hidden md:flex items-center space-x-6">
+              <Link 
+                href="/restaurants"
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                Restaurants
+              </Link>
+            </nav>
+          </div>
 
           {/* User Profile */}
           {user && (
