@@ -57,72 +57,83 @@ export const REPORT_REASONS = [
 ] as const;
 
 export const REVIEW_TAGS = {
+  DISHES: [
+    'Pasta',
+    'Burger',
+    'Pizza',
+    'Sushi',
+    'Ramen',
+    'Steak',
+    'Sandwich',
+    'Salad',
+    'Tacos',
+    'Curry',
+    'Poke',
+    'Wings',
+    'Kebab',
+    'BBQ',
+    'Seafood',
+    'Soup'
+  ],
   CUISINE: [
-    'Italian',
-    'Chinese', 
-    'Japanese',
-    'Thai',
-    'Indian',
+    'Asian',
     'Mexican',
-    'French',
-    'Spanish',
+    'Italian', 
     'American',
-    'Korean',
-    'Vietnamese',
-    'Greek',
     'Mediterranean',
-    'Middle Eastern',
     'Nordic',
-    'German',
-    'British',
-    'Brazilian',
-    'Peruvian',
-    'African',
-    'Caribbean',
-    'Fusion',
+    'French',
+    'Indian'
   ],
-  EXPERIENCE: [
-    'Casual Dining',
-    'Fine Dining',
-    'Fast Food',
-    'Street Food',
-    'Buffet',
+  MEAL_TYPE: [
     'Brunch',
-    'Late Night',
-    'Happy Hour',
-    'Takeout',
-    'Delivery',
+    'Lunch', 
+    'Dinner',
+    'Dessert',
+    'Coffee',
+    'Drinks',
+    'Breakfast'
   ],
-  ATMOSPHERE: [
-    'Romantic',
-    'Family Friendly',
-    'Business Lunch',
-    'Group Dining',
+  VIBE: [
+    'Casual',
+    'Fine Dining',
     'Date Night',
-    'Outdoor Seating',
-    'Waterfront',
-    'Rooftop',
+    'Groups',
+    'Quick Bite',
     'Cozy',
     'Trendy',
-    'Historic',
-    'Modern',
-  ],
-  DIETARY: [
-    'Vegetarian Friendly',
-    'Vegan Options',
-    'Halal',
-    'Kosher',
-    'Gluten Free',
-    'Healthy Options',
-    'Organic',
-    'Local Ingredients',
+    'Family Friendly'
   ]
 } as const;
 
 // Flattened array of all tags for easier use
 export const ALL_REVIEW_TAGS = [
+  ...REVIEW_TAGS.DISHES,
   ...REVIEW_TAGS.CUISINE,
-  ...REVIEW_TAGS.EXPERIENCE,
-  ...REVIEW_TAGS.ATMOSPHERE,
-  ...REVIEW_TAGS.DIETARY,
+  ...REVIEW_TAGS.MEAL_TYPE,
+  ...REVIEW_TAGS.VIBE,
 ] as const;
+
+// Tag category icons and colors for UI
+export const TAG_CATEGORY_CONFIG = {
+  DISHES: {
+    label: 'Popular Dishes',
+    icon: '🍽️',
+    color: 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200'
+  },
+  CUISINE: {
+    label: 'Cuisine Type', 
+    icon: '🌍',
+    color: 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200'
+  },
+  MEAL_TYPE: {
+    label: 'Meal Type',
+    icon: '⏰',
+    color: 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200'
+  },
+  VIBE: {
+    label: 'Atmosphere',
+    icon: '✨',
+    color: 'bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200'
+  }
+} as const;

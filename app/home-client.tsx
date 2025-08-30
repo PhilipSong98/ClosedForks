@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
-import CuisineFilters from '@/components/filters/CuisineFilters';
+import EnhancedFilters, { FilterState } from '@/components/filters/EnhancedFilters';
 import ReviewCard from '@/components/review/ReviewCard';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useReviews } from '@/lib/queries/reviews';
@@ -18,20 +18,17 @@ const HomeClient: React.FC<HomeClientProps> = ({
 }) => {
   const router = useRouter();
   const { user } = useAuth();
-  const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<'recent' | 'rating'>('recent');
+  const [filters, setFilters] = useState<FilterState>({
+    tags: [],
+    minRating: 0,
+    priceRange: [0, 1000],
+    dateRange: 'all',
+    recommendedOnly: false,
+    sortBy: 'recent'
+  });
 
   // Use React Query with initial data from server
   const { data: reviews = initialReviews } = useReviews();
-
-
-  const handleCuisineToggle = (cuisine: string) => {
-    setSelectedCuisines(prev => 
-      prev.includes(cuisine)
-        ? prev.filter(c => c !== cuisine)
-        : [...prev, cuisine]
-    );
-  };
 
   const handleUserClick = (userId: string) => {
     router.push(`/profile/${userId}`);
@@ -40,14 +37,68 @@ const HomeClient: React.FC<HomeClientProps> = ({
   // Filter and sort reviews
   const filteredReviews = reviews
     .filter(review => {
-      if (selectedCuisines.length === 0) return true;
-      return review.restaurant?.cuisine?.some(c => selectedCuisines.includes(c));
+      // Tag filter
+      if (filters.tags.length > 0) {
+        const reviewTags = review.tags || [];
+        const hasTagMatch = filters.tags.some(tag => reviewTags.includes(tag));
+        if (!hasTagMatch) return false;
+      }
+
+      // Rating filter
+      if (filters.minRating > 0 && review.rating_overall < filters.minRating) {
+        return false;
+      }
+
+      // Price range filter (if review has price data)
+      if (review.price_per_person) {
+        if (review.price_per_person < filters.priceRange[0] || 
+            (filters.priceRange[1] < 1000 && review.price_per_person > filters.priceRange[1])) {
+          return false;
+        }
+      }
+
+      // Date range filter
+      if (filters.dateRange !== 'all') {
+        const reviewDate = new Date(review.created_at);
+        const now = new Date();
+        const cutoffDate = new Date();
+        
+        switch (filters.dateRange) {
+          case 'week':
+            cutoffDate.setDate(now.getDate() - 7);
+            break;
+          case 'month':
+            cutoffDate.setMonth(now.getMonth() - 1);
+            break;
+          case 'year':
+            cutoffDate.setFullYear(now.getFullYear() - 1);
+            break;
+        }
+        
+        if (reviewDate < cutoffDate) {
+          return false;
+        }
+      }
+
+      // Recommended only filter
+      if (filters.recommendedOnly && !review.recommend) {
+        return false;
+      }
+
+      return true;
     })
     .sort((a, b) => {
-      if (sortBy === 'recent') {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      } else {
-        return b.rating_overall - a.rating_overall;
+      switch (filters.sortBy) {
+        case 'recent':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'rating':
+          return b.rating_overall - a.rating_overall;
+        case 'price_low':
+          return (a.price_per_person || 0) - (b.price_per_person || 0);
+        case 'price_high':
+          return (b.price_per_person || 0) - (a.price_per_person || 0);
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
 
@@ -74,11 +125,11 @@ const HomeClient: React.FC<HomeClientProps> = ({
 
         {/* Reviews Section */}
         <section>
-          <CuisineFilters 
-            selectedCuisines={selectedCuisines}
-            onCuisineToggle={handleCuisineToggle}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
+          <EnhancedFilters 
+            filters={filters}
+            onFiltersChange={setFilters}
+            reviewCount={reviews.length}
+            filteredCount={filteredReviews.length}
           />
 
           {filteredReviews.length > 0 ? (
@@ -97,14 +148,14 @@ const HomeClient: React.FC<HomeClientProps> = ({
             <div className="text-center py-12">
               <div className="max-w-md mx-auto">
                 <h3 className="text-lg font-medium text-foreground mb-2">
-                  {selectedCuisines.length > 0 
-                    ? 'No reviews found for selected cuisines' 
+                  {filters.tags.length > 0 || filters.minRating > 0 || filters.recommendedOnly || filters.dateRange !== 'all'
+                    ? 'No reviews match your filters' 
                     : 'No reviews yet'
                   }
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  {selectedCuisines.length > 0
-                    ? 'Try selecting different cuisine filters or clearing all filters.'
+                  {filters.tags.length > 0 || filters.minRating > 0 || filters.recommendedOnly || filters.dateRange !== 'all'
+                    ? 'Try adjusting your filters to see more results.'
                     : 'Be the first to share a restaurant experience with your network! Visit the Restaurants page to discover new places to review.'
                   }
                 </p>

@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { Review } from '@/types';
+import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
 
 interface ReviewCardProps {
   review: Review;
@@ -29,6 +30,16 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
     } catch {
       return new Date(timestamp).toLocaleDateString();
     }
+  };
+
+  // Helper function to get tag category for styling
+  const getTagCategory = (tag: string) => {
+    for (const [category, tags] of Object.entries(REVIEW_TAGS)) {
+      if ((tags as readonly string[]).includes(tag)) {
+        return category as keyof typeof REVIEW_TAGS;
+      }
+    }
+    return 'DISHES'; // fallback
   };
 
   const renderStars = (rating: number) => {
@@ -162,16 +173,20 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
       {/* Tags */}
       {review.tags && review.tags.length > 0 && (
         <div className="px-4 mb-4">
-          <div className="flex flex-wrap gap-1">
-            {review.tags.map((tag, index) => (
-              <Badge
-                key={index}
-                variant="secondary"
-                className="text-xs px-2 py-1 text-muted-foreground"
-              >
-                {tag}
-              </Badge>
-            ))}
+          <div className="flex flex-wrap gap-1.5">
+            {review.tags.map((tag, index) => {
+              const category = getTagCategory(tag);
+              const config = TAG_CATEGORY_CONFIG[category];
+              return (
+                <Badge
+                  key={index}
+                  className={`text-xs px-2.5 py-1 font-medium border ${config.color} transition-colors`}
+                >
+                  <span className="text-xs mr-1">{config.icon}</span>
+                  {tag}
+                </Badge>
+              );
+            })}
           </div>
         </div>
       )}

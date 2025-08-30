@@ -11,12 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
 import SearchBar from '@/components/search/SearchBar';
 import RatingInput from './RatingInput';
-import { REVIEW_TAGS } from '@/constants';
+import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
 
 const reviewSchema = z.object({
   restaurant: z.string().min(1, 'Please select a restaurant'),
@@ -49,6 +48,16 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Helper function to get tag category for styling
+  const getTagCategory = (tag: string) => {
+    for (const [category, tags] of Object.entries(REVIEW_TAGS)) {
+      if ((tags as readonly string[]).includes(tag)) {
+        return category as keyof typeof REVIEW_TAGS;
+      }
+    }
+    return 'DISHES'; // fallback
+  };
+
   const addTag = (tag: string) => {
     if (!selectedTags.includes(tag) && selectedTags.length < 5) {
       const newTags = [...selectedTags, tag];
@@ -76,7 +85,7 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
     },
   });
 
-  const handleRestaurantSelect = async (restaurant: any) => {
+  const handleRestaurantSelect = async (restaurant: { google_place_id?: string; name: string; address?: string; id?: string }) => {
     setSelectedRestaurant(restaurant);
     
     // Always set the form field first to avoid validation errors
@@ -327,88 +336,74 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
               <FormItem>
                 <FormLabel className="flex items-center gap-2 text-base font-medium">
                   <Tag className="w-4 h-4" />
-                  Tags (Optional - Max 5)
+                  Tags (Optional - {selectedTags.length}/5)
                 </FormLabel>
                 <FormControl>
                   <div className="space-y-4">
                     {/* Selected Tags Display */}
                     {selectedTags.length > 0 && (
                       <div className="flex flex-wrap gap-2">
-                        {selectedTags.map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="secondary"
-                            className="flex items-center gap-1 px-3 py-1"
-                          >
-                            {tag}
-                            <button
-                              type="button"
-                              onClick={() => removeTag(tag)}
-                              className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                        {selectedTags.map((tag) => {
+                          const category = getTagCategory(tag);
+                          const config = TAG_CATEGORY_CONFIG[category];
+                          return (
+                            <Badge
+                              key={tag}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border ${config.color} transition-colors`}
                             >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </Badge>
-                        ))}
+                              <span className="text-xs">{config.icon}</span>
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => removeTag(tag)}
+                                className="ml-1 hover:bg-black/10 rounded-full p-0.5 transition-colors"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </Badge>
+                          );
+                        })}
                       </div>
                     )}
                     
-                    {/* Tag Selection Dropdown */}
+                    {/* Tag Categories with Chips */}
                     {selectedTags.length < 5 && (
-                      <Select onValueChange={addTag}>
-                        <SelectTrigger className="border-0 bg-gray-50 rounded-xl px-4 py-3">
-                          <SelectValue placeholder="Add tags (cuisine, atmosphere, etc.)" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {/* Cuisine Tags */}
-                          <div className="p-2">
-                            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                              Cuisine
-                            </div>
-                            {REVIEW_TAGS.CUISINE.filter(tag => !selectedTags.includes(tag)).map((tag) => (
-                              <SelectItem key={tag} value={tag} className="cursor-pointer">
-                                {tag}
-                              </SelectItem>
-                            ))}
-                          </div>
+                      <div className="space-y-4">
+                        {Object.entries(REVIEW_TAGS).map(([categoryKey, tags]) => {
+                          const category = categoryKey as keyof typeof REVIEW_TAGS;
+                          const config = TAG_CATEGORY_CONFIG[category];
+                          const availableTags = tags.filter(tag => !selectedTags.includes(tag));
                           
-                          {/* Experience Tags */}
-                          <div className="p-2">
-                            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                              Experience
-                            </div>
-                            {REVIEW_TAGS.EXPERIENCE.filter(tag => !selectedTags.includes(tag)).map((tag) => (
-                              <SelectItem key={tag} value={tag} className="cursor-pointer">
-                                {tag}
-                              </SelectItem>
-                            ))}
-                          </div>
+                          if (availableTags.length === 0) return null;
                           
-                          {/* Atmosphere Tags */}
-                          <div className="p-2">
-                            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                              Atmosphere
+                          return (
+                            <div key={categoryKey} className="space-y-2">
+                              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                <span className="text-base">{config.icon}</span>
+                                {config.label}
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {availableTags.map((tag) => (
+                                  <button
+                                    key={tag}
+                                    type="button"
+                                    onClick={() => addTag(tag)}
+                                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${config.color} hover:scale-105`}
+                                  >
+                                    {tag}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
-                            {REVIEW_TAGS.ATMOSPHERE.filter(tag => !selectedTags.includes(tag)).map((tag) => (
-                              <SelectItem key={tag} value={tag} className="cursor-pointer">
-                                {tag}
-                              </SelectItem>
-                            ))}
-                          </div>
-                          
-                          {/* Dietary Tags */}
-                          <div className="p-2">
-                            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                              Dietary
-                            </div>
-                            {REVIEW_TAGS.DIETARY.filter(tag => !selectedTags.includes(tag)).map((tag) => (
-                              <SelectItem key={tag} value={tag} className="cursor-pointer">
-                                {tag}
-                              </SelectItem>
-                            ))}
-                          </div>
-                        </SelectContent>
-                      </Select>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {selectedTags.length >= 5 && (
+                      <p className="text-sm text-muted-foreground text-center py-2">
+                        Maximum 5 tags selected. Remove a tag to add more.
+                      </p>
                     )}
                   </div>
                 </FormControl>

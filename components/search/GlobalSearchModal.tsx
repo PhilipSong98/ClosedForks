@@ -9,6 +9,7 @@ import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from "@/constants";
 import Link from "next/link";
 
 interface SearchResult {
@@ -168,6 +169,16 @@ function SearchResultItem({
     ? `/?highlight=${result.id}` 
     : `/restaurants?highlight=${result.id}`;
 
+  // Helper function to get tag category for styling
+  const getTagCategory = (tag: string) => {
+    for (const [category, tags] of Object.entries(REVIEW_TAGS)) {
+      if ((tags as readonly string[]).includes(tag)) {
+        return category as keyof typeof REVIEW_TAGS;
+      }
+    }
+    return 'DISHES'; // fallback
+  };
+
   return (
     <Link
       href={href}
@@ -229,11 +240,19 @@ function SearchResultItem({
           
           {result.tags && result.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
-              {result.tags.slice(0, 3).map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
+              {result.tags.slice(0, 3).map((tag) => {
+                const category = getTagCategory(tag);
+                const config = TAG_CATEGORY_CONFIG[category];
+                return (
+                  <Badge 
+                    key={tag} 
+                    className={`text-xs px-2 py-0.5 font-medium border ${config.color}`}
+                  >
+                    <span className="text-xs mr-1">{config.icon}</span>
+                    {tag}
+                  </Badge>
+                );
+              })}
               {result.tags.length > 3 && (
                 <span className="text-xs text-muted-foreground">
                   +{result.tags.length - 3} more
