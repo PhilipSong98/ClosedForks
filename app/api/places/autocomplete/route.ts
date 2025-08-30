@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+// import { createClient } from '@/lib/supabase/server'; // Currently unused
 import { placesAutocompleteSchema } from '@/lib/validations';
+
+// Google Places API types
+interface GooglePlacePrediction {
+  place_id: string;
+  description: string;
+  types: string[];
+  structured_formatting?: {
+    main_text: string;
+    secondary_text: string;
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,12 +55,12 @@ export async function POST(request: NextRequest) {
       // Filter for restaurant-like places
       const restaurantTypes = ['restaurant', 'meal_takeaway', 'meal_delivery', 'cafe', 'bar', 'bakery', 'food'];
       
-      const filteredPredictions = data.predictions.filter((prediction: any) =>
+      const filteredPredictions = data.predictions.filter((prediction: GooglePlacePrediction) =>
         prediction.types.some((type: string) => restaurantTypes.includes(type))
       );
 
       return NextResponse.json({
-        predictions: filteredPredictions.map((prediction: any) => ({
+        predictions: filteredPredictions.map((prediction: GooglePlacePrediction) => ({
           place_id: prediction.place_id,
           description: prediction.description,
           structured_formatting: {

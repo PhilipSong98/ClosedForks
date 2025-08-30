@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Eye, EyeOff, Check, X, ArrowLeft, Shield, Users } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Check, X, ArrowLeft, Users } from 'lucide-react';
 import { signupSchema } from '@/lib/validations';
-import { InviteCodeSession, SignupFormData, AuthError } from '@/types';
+import { InviteCodeSession, SignupFormData } from '@/types';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState<SignupFormData>({
@@ -78,7 +78,7 @@ export default function SignupPage() {
     const validation = signupSchema.safeParse(formData);
     if (!validation.success) {
       const newErrors: Record<string, string> = {};
-      validation.error.errors.forEach(error => {
+      validation.error.issues.forEach(error => {
         if (error.path[0]) {
           newErrors[error.path[0] as string] = error.message;
         }
@@ -169,7 +169,7 @@ export default function SignupPage() {
         <Card className="bg-white border border-gray-200 shadow-sm">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-gray-900 text-xl">
-              Welcome! Let's get you started
+              Welcome! Let&apos;s get you started
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 px-6 pb-6">

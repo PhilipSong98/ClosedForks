@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
+import type { Restaurant } from '@/types';
 import SearchBar from '@/components/search/SearchBar';
 import RatingInput from './RatingInput';
 import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
@@ -32,8 +33,8 @@ type ReviewFormData = z.infer<typeof reviewSchema>;
 interface ReviewComposerProps {
   onClose: () => void;
   onSubmit: (success: boolean) => void;
-  prefilledRestaurant?: any;
-  preselectedRestaurant?: any;
+  prefilledRestaurant?: Restaurant;
+  preselectedRestaurant?: Restaurant;
 }
 
 const ReviewComposer: React.FC<ReviewComposerProps> = ({ 
@@ -86,10 +87,10 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
   });
 
   const handleRestaurantSelect = async (restaurant: { google_place_id?: string; name: string; address?: string; id?: string }) => {
-    setSelectedRestaurant(restaurant);
+    setSelectedRestaurant(restaurant as Restaurant);
     
     // Always set the form field first to avoid validation errors
-    form.setValue('restaurant', restaurant.name || restaurant);
+    form.setValue('restaurant', restaurant.name || '');
     
     // If we have a Google Place ID, try to find or create the restaurant in the background
     if (restaurant.google_place_id) {
@@ -111,7 +112,7 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
             form.setValue('restaurant', dbRestaurant.name);
           }
           // Store the database ID for later use in form submission
-          setSelectedRestaurant({ ...restaurant, id: dbRestaurant.id });
+          setSelectedRestaurant({ ...restaurant, id: dbRestaurant.id } as Restaurant);
         } else {
           console.error('Failed to create/find restaurant:', response.status, response.statusText);
         }
@@ -184,7 +185,7 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
       });
       
       form.reset();
-      setSelectedRestaurant(null);
+      setSelectedRestaurant(undefined);
       onSubmit(true);
     } catch (error) {
       console.error('Error posting review:', error);

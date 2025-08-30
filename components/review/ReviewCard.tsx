@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Star, Heart, MapPin } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -114,11 +115,12 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
             <div className="relative w-full aspect-[4/3] overflow-hidden">
               {restaurantImage ? (
                 <>
-                  <img 
+                  <Image 
                     src={restaurantImage} 
                     alt={restaurant.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 </>

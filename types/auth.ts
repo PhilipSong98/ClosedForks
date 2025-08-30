@@ -3,7 +3,7 @@
  */
 
 import { User as SupabaseUser } from '@supabase/supabase-js';
-import { User } from '../index';
+import { User } from './index';
 
 /** Auth state for the useAuth hook */
 export interface AuthState {

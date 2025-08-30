@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { findOrCreateRestaurantSchema } from '@/lib/validations';
+import type { Restaurant } from '@/types';
 
 // Helper function to extract city from address
 function extractCityFromAddress(address: string): string | null {
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
                   open_now: place.opening_hours.open_now,
                   weekday_text: place.opening_hours.weekday_text,
                 } : undefined,
-                photos: place.photos?.slice(0, 5).map((photo: any) => ({
+                photos: place.photos?.slice(0, 5).map((photo: { photo_reference: string; height: number; width: number }) => ({
                   photo_reference: photo.photo_reference,
                   height: photo.height,
                   width: photo.width,
@@ -150,13 +151,13 @@ export async function POST(request: NextRequest) {
       .select('*')
       .ilike('name', `%${restaurantData.name}%`)
       .ilike('city', `%${restaurantData.city}%`)
-      .single();
+      .single() as { data: Restaurant | null; error: Error | null };
 
     if (existingByName) {
       // Update existing restaurant with Google data if we have it
       if (restaurantData.google_place_id && !existingByName.google_place_id) {
-        const { data: updated } = await supabase
-          .from('restaurants')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: updated } = await (supabase.from('restaurants') as any)
           .update({
             google_place_id: restaurantData.google_place_id,
             google_maps_url: restaurantData.google_maps_url,
@@ -186,8 +187,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new restaurant
-    const { data: newRestaurant, error } = await supabase
-      .from('restaurants')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: newRestaurant, error } = await (supabase.from('restaurants') as any)
       .insert(restaurantData)
       .select()
       .single();

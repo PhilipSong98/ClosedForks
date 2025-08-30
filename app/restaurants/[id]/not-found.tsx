@@ -14,7 +14,7 @@ export default function RestaurantNotFound() {
             Restaurant Not Found
           </h2>
           <p className="text-muted-foreground mb-8">
-            The restaurant you're looking for doesn't exist or has been removed.
+            The restaurant you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
           <div className="space-y-4">
             <Button asChild>

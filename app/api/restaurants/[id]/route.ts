@@ -12,7 +12,8 @@ export async function GET(
     const resolvedParams = await params;
 
     // Get restaurant with average rating
-    const { data: restaurant, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: restaurant, error } = await (supabase as any)
       .rpc('get_restaurant_with_avg', {
         restaurant_id: resolvedParams.id,
         viewer_id: user?.id || null,
@@ -65,7 +66,7 @@ export async function PUT(
       .from('users')
       .select('role')
       .eq('id', user.id)
-      .single();
+      .single() as { data: { role: string } | null; error: Error | null };
 
     if (userData?.role !== 'admin') {
       return NextResponse.json(
@@ -77,8 +78,8 @@ export async function PUT(
     const json = await request.json();
     const validatedData = restaurantSchema.partial().parse(json);
 
-    const { data: restaurant, error } = await supabase
-      .from('restaurants')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: restaurant, error } = await (supabase.from('restaurants') as any)
       .update(validatedData)
       .eq('id', resolvedParams.id)
       .select()
@@ -130,7 +131,7 @@ export async function DELETE(
       .from('users')
       .select('role')
       .eq('id', user.id)
-      .single();
+      .single() as { data: { role: string } | null; error: Error | null };
 
     if (userData?.role !== 'admin') {
       return NextResponse.json(

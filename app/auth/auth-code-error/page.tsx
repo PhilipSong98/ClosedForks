@@ -21,7 +21,7 @@ export default function AuthCodeErrorPage() {
       case 'unexpected':
         return `Unexpected error: ${message || 'Please try again'}`;
       default:
-        return 'We couldn\'t sign you in with that link.';
+        return 'We couldn&apos;t sign you in with that link.';
     }
   };
 
@@ -33,7 +33,7 @@ export default function AuthCodeErrorPage() {
             Authentication Error
           </CardTitle>
           <CardDescription>
-            Sorry, we couldn't sign you in with that link.
+            Sorry, we couldn&apos;t sign you in with that link.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -48,7 +48,7 @@ export default function AuthCodeErrorPage() {
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>The link has expired</li>
               <li>The link has already been used</li>
-              <li>There's a configuration issue</li>
+              <li>There&apos;s a configuration issue</li>
             </ul>
           </div>
 

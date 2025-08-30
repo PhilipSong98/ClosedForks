@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { signupSchema } from '@/lib/validations';
-import { InviteCodeUsageResult } from '@/types';
+// import { InviteCodeUsageResult } from '@/types'; // Currently unused
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,8 +12,8 @@ export async function POST(request: NextRequest) {
     if (!validation.success) {
       return NextResponse.json(
         { 
-          error: validation.error.errors[0]?.message || 'Invalid input',
-          field: validation.error.errors[0]?.path?.[0],
+          error: validation.error.issues[0]?.message || 'Invalid input',
+          field: validation.error.issues[0]?.path?.[0],
         },
         { status: 400 }
       );
@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // First, validate the invite code again
-    const { data: codeValidation, error: validationError } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: codeValidation, error: validationError } = await (supabase as any)
       .rpc('validate_invite_code', { code_to_check: inviteCode });
 
     if (validationError || !codeValidation?.valid) {
@@ -99,12 +100,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user profile and record invite code usage atomically
-    const clientIP = request.ip || 
-      request.headers.get('x-forwarded-for')?.split(',')[0] || 
+    const clientIP = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+      request.headers.get('x-real-ip') || 
       'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    const { data: creationResult, error: creationError } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: creationResult, error: creationError } = await (supabase as any)
       .rpc('create_user_with_invite', {
         user_id_param: authData.user.id,
         email_param: email,
@@ -115,7 +117,7 @@ export async function POST(request: NextRequest) {
         user_agent_param: userAgent
       });
 
-    if (creationError || !(creationResult as any)?.success) {
+    if (creationError || !(creationResult as { success?: boolean })?.success) {
       console.error('User profile and invite code creation failed:', creationError);
       // Note: In production, you might want to implement cleanup logic
       // For now, we'll let the auth user exist but warn about the profile issue
@@ -131,7 +133,7 @@ export async function POST(request: NextRequest) {
 
     // For invite-based signups, we can attempt auto sign-in
     // since we know the invite code was valid
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    const { data: _signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });

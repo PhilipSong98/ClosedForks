@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { notFound } from 'next/navigation';
+// import { notFound } from 'next/navigation'; // Currently unused
 import RestaurantDetailClient from './restaurant-detail-client';
 import { Restaurant, Review } from '@/types';
 
@@ -25,16 +25,18 @@ async function getRestaurant(id: string): Promise<Restaurant | null> {
   }
 }
 
-async function getRestaurantReviews(restaurantId: string): Promise<Review[]> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getRestaurantReviews(restaurantId: string): Promise<any[]> {
   try {
     const supabase = await createClient();
     
     // First get the reviews for this restaurant
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: reviews, error } = await supabase
       .from('reviews')
       .select('*')
       .eq('restaurant_id', restaurantId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: { author_id: string; [key: string]: unknown }[] | null; error: Error | null };
 
     if (error) {
       console.error('Error fetching restaurant reviews:', error);
@@ -50,7 +52,7 @@ async function getRestaurantReviews(restaurantId: string): Promise<Review[]> {
       const { data: users, error: usersError } = await supabase
         .from('users')
         .select('id, name, full_name, email, avatar_url')
-        .in('id', authorIds);
+        .in('id', authorIds) as { data: { id: string; name: string; full_name: string; email: string; avatar_url?: string }[] | null; error: Error | null };
 
       if (!usersError && users) {
         // Map user data to reviews

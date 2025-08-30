@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
     console.log("Search query:", query);
 
     // Search reviews - let RLS handle visibility
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: reviewResults, error: reviewError } = await supabase
       .from("reviews")
       .select(`
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
         `text.ilike.${searchTerm},review.ilike.${searchTerm},dish.ilike.${searchTerm},tips.ilike.${searchTerm}`
       )
       .order("created_at", { ascending: false })
-      .limit(10);
+      .limit(10) as { data: { id: string; rating_overall: number; dish: string; review: string; text: string; tips: string; created_at: string; restaurant_id: string; restaurant?: { id: string; name: string; city: string; address: string } }[] | null; error: Error | null };
 
     // Search restaurants - let RLS handle visibility
     const { data: restaurantResults, error: restaurantError } = await supabase
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
         `name.ilike.${searchTerm},city.ilike.${searchTerm},address.ilike.${searchTerm}`
       )
       .order("created_at", { ascending: false })
-      .limit(10);
+      .limit(10) as { data: { id: string; name: string; city: string; address: string; cuisine: string | string[]; created_at: string }[] | null; error: Error | null };
 
     // Log errors but don't fail the request
     if (reviewError) {

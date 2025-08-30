@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Star, MapPin } from 'lucide-react';
 import { Restaurant } from '@/types';
@@ -35,7 +36,7 @@ const TopRestaurantsCarousel: React.FC<TopRestaurantsCarouselProps> = ({
     return null;
   };
 
-  const handleClick = (restaurant: Restaurant) => {
+      const _handleClick = (restaurant: Restaurant) => {
     if (onRestaurantClick) {
       onRestaurantClick(restaurant);
     }
@@ -65,11 +66,12 @@ const TopRestaurantsCarousel: React.FC<TopRestaurantsCarouselProps> = ({
                   <div className="relative w-full h-32 overflow-hidden rounded-t-lg">
                     {restaurantImage ? (
                       <>
-                        <img 
+                        <Image 
                           src={restaurantImage} 
                           alt={restaurant.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       </>

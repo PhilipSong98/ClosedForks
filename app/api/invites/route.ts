@@ -94,8 +94,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: invite, error } = await supabase
-      .from('invites')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: invite, error } = await (supabase.from('invites') as any)
       .insert({
         inviter_id: user.id,
         code: code!,

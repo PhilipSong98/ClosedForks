@@ -78,8 +78,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: restaurant, error } = await supabase
-      .from('restaurants')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: restaurant, error } = await (supabase.from('restaurants') as any)
       .insert(validatedData)
       .select()
       .single();

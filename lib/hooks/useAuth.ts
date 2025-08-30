@@ -78,7 +78,7 @@ export function useAuth() {
     const fallbackUser = createFallbackUser(authUser);
 
     try {
-      authLog('info', 'Fetching user profile', { 
+      authLog('INFO', 'Fetching user profile', { 
         userId: authUser.id,
         userEmail: authUser.email?.substring(0, 3) + '***'
       });
@@ -102,34 +102,36 @@ export function useAuth() {
       
       // Race between query and timeout
       const result = await Promise.race([queryPromise, timeoutPromise]);
-      const { data: profile, error } = result as { data: User | null; error: any };
+      const { data: profile, error } = result as { data: User | null; error: Error | null };
       
       clearTimeout(timeoutId);
       
-      authLog('debug', 'Profile query completed', { 
+      authLog('DEBUG', 'Profile query completed', { 
         hasProfile: !!profile, 
         hasError: !!error,
-        errorCode: error?.code 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        errorCode: (error as any)?.code 
       });
 
       if (error) {
-        authLog('warn', 'Profile fetch error, using fallback', { 
-          errorCode: error.code, 
+        authLog('WARN', 'Profile fetch error, using fallback', { 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          errorCode: (error as any).code, 
           errorMessage: error.message 
         });
         setUser(fallbackUser);
       } else if (profile) {
-        authLog('info', 'Profile found and set', sanitizeUserForLogging(profile));
+        authLog('INFO', 'Profile found and set', sanitizeUserForLogging(profile));
         setUser(profile);
       } else {
-        authLog('warn', 'No profile returned, using fallback');
+        authLog('WARN', 'No profile returned, using fallback');
         setUser(fallbackUser);
       }
       
     } catch (error) {
       const isTimeout = error instanceof Error && error.message.includes('timeout');
       
-      authLog(isTimeout ? 'warn' : 'error', 
+      authLog(isTimeout ? 'WARN' : 'ERROR', 
         isTimeout ? 'Profile fetch timed out, using fallback' : 'Profile fetch failed', 
         { error: error instanceof Error ? error.message : String(error) }
       );

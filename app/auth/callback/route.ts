@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       const cookieStore = await cookies();
       const allCookies = cookieStore.getAll();
       
-      authLog('debug', 'Auth callback received', { 
+      authLog('DEBUG', 'Auth callback received', { 
         cookieCount: allCookies.length,
         cookieNames: allCookies.map(c => c.name)
       });
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       );
       
       if (conflictResult.hasConflicts) {
-        authLog('warn', 'Cookie conflicts detected', {
+        authLog('WARN', 'Cookie conflicts detected', {
           conflictCount: conflictResult.conflictingCookies.length,
           conflictingCookies: conflictResult.conflictingCookies.map(c => c.name),
           currentProject: conflictResult.currentProjectId
@@ -40,14 +40,14 @@ export async function GET(request: NextRequest) {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       
       if (error) {
-        authLog('error', 'Code exchange failed', { 
+        authLog('ERROR', 'Code exchange failed', { 
           errorCode: error.code,
           errorMessage: error.message 
         });
         return NextResponse.redirect(`${origin}${AUTH_ROUTES.ERROR}`);
       }
       
-      authLog('info', 'Successfully exchanged code for session', {
+      authLog('INFO', 'Successfully exchanged code for session', {
         userId: data?.user?.id
       });
       
@@ -59,24 +59,26 @@ export async function GET(request: NextRequest) {
             .from('users')
             .select('id, password_set, first_login_completed, is_admin_user')
             .eq('id', data.user.id)
-            .single();
+            .single() as { data: { id: string; password_set?: boolean; first_login_completed?: boolean; is_admin_user?: boolean } | null; error: Error | null };
           
           if (!existingProfile) {
-            authLog('info', 'Creating user profile', { userId: data.user.id });
+            authLog('INFO', 'Creating user profile', { userId: data.user.id });
             
             const profileData = createProfileData(data.user);
             // Set admin status for admin email
             if (data.user.email === 'philip.song1998@gmail.com') {
-              profileData.is_admin_user = true;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (profileData as any).is_admin_user = true;
             }
             
-            await supabase.from('users').insert(profileData);
-            authLog('info', 'User profile created successfully');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (supabase.from('users') as any).insert(profileData);
+            authLog('INFO', 'User profile created successfully');
             
             // New users need to set password
             redirectPath = '/auth/set-password';
           } else {
-            authLog('debug', 'User profile already exists');
+            authLog('DEBUG', 'User profile already exists');
             
             // Check if user needs to complete password setup
             if (!existingProfile.password_set || !existingProfile.first_login_completed) {
@@ -85,14 +87,14 @@ export async function GET(request: NextRequest) {
             
             // Update admin status if needed
             if (data.user.email === 'philip.song1998@gmail.com' && !existingProfile.is_admin_user) {
-              await supabase
-                .from('users')
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              await (supabase.from('users') as any)
                 .update({ is_admin_user: true })
                 .eq('id', data.user.id);
             }
           }
         } catch (profileError) {
-          authLog('warn', 'Failed to create user profile', { 
+          authLog('WARN', 'Failed to create user profile', { 
             error: profileError instanceof Error ? profileError.message : String(profileError)
           });
           // Don't block auth flow if profile creation fails - assume they need password setup
@@ -100,7 +102,7 @@ export async function GET(request: NextRequest) {
         }
       }
     } catch (error) {
-      authLog('error', 'Unexpected error in auth callback', { 
+      authLog('ERROR', 'Unexpected error in auth callback', { 
         error: error instanceof Error ? error.message : String(error)
       });
       return NextResponse.redirect(`${origin}${AUTH_ROUTES.ERROR}`);

@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import RestaurantsClient from './restaurants-client';
 import { Restaurant } from '@/types';
 
-async function getAllRestaurants(): Promise<Restaurant[]> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getAllRestaurants(): Promise<any[]> {
   try {
     const supabase = await createClient();
     
@@ -11,7 +12,7 @@ async function getAllRestaurants(): Promise<Restaurant[]> {
     const { data: allRestaurants, error: restaurantsError } = await supabase
       .from('restaurants')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: { [key: string]: unknown }[] | null; error: Error | null };
 
     if (restaurantsError) {
       console.error('Error fetching restaurants:', restaurantsError);

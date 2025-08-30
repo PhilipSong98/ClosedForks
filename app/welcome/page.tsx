@@ -27,7 +27,7 @@ export default function WelcomePage() {
     // Validate code format
     const validation = inviteCodeValidationSchema.safeParse({ code });
     if (!validation.success) {
-      setError(validation.error.errors[0]?.message || 'Please enter a valid 6-digit code');
+      setError(validation.error.issues[0]?.message || 'Please enter a valid 6-digit code');
       return;
     }
 
@@ -122,7 +122,7 @@ export default function WelcomePage() {
                           onKeyDown={(e) => {
                             // Auto-focus previous input on backspace
                             if (e.key === 'Backspace' && !code[index] && index > 0) {
-                              const prevInput = e.target.parentElement?.parentElement?.children[index - 1]?.querySelector('input');
+                              const prevInput = (e.target as HTMLElement).parentElement?.parentElement?.children[index - 1]?.querySelector('input');
                               prevInput?.focus();
                             }
                           }}
@@ -180,7 +180,7 @@ export default function WelcomePage() {
           {/* Sign In Link */}
           <div className="text-center mt-6 space-y-3">
             <p className="text-gray-500 text-sm">
-              Don't have a code?{' '}
+              Don&apos;t have a code?{' '}
               <span className="text-gray-700 font-medium">Ask a friend or family member</span>
             </p>
             

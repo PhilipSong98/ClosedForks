@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { Restaurant } from '@/types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,6 +16,7 @@ export async function GET(request: NextRequest) {
 
     // Search restaurants that have at least one review
     // This ensures we only show restaurants with user-generated content
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: restaurants, error } = await supabase
       .from('restaurants')
       .select(`
@@ -24,8 +26,8 @@ export async function GET(request: NextRequest) {
         )
       `)
       .or(`name.ilike.%${query}%,city.ilike.%${query}%,address.ilike.%${query}%,cuisine.cs.{${query}}`)
-      .order('avg_rating', { ascending: false, nullsLast: true })
-      .limit(limit);
+      .order('avg_rating', { ascending: false })
+      .limit(limit) as { data: Restaurant[] | null; error: Error | null };
 
     if (error) {
       console.error('Error searching restaurants:', error);
@@ -39,11 +41,12 @@ export async function GET(request: NextRequest) {
     const uniqueRestaurants = restaurants?.reduce((acc, restaurant) => {
       if (!acc.find(r => r.id === restaurant.id)) {
         // Remove the reviews array since we only used it for filtering
-        const { reviews, ...restaurantData } = restaurant;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { reviews: _reviews, ...restaurantData } = restaurant as any;
         acc.push(restaurantData);
       }
       return acc;
-    }, [] as any[]) || [];
+    }, [] as Restaurant[]) || [];
 
     return NextResponse.json({ restaurants: uniqueRestaurants });
   } catch (error) {

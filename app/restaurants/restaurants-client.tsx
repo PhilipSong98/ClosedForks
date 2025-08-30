@@ -6,8 +6,8 @@ import SearchBar from '@/components/search/SearchBar';
 import EnhancedFilters, { FilterState } from '@/components/filters/EnhancedFilters';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { useRestaurants } from '@/lib/queries/restaurants';
-import { Restaurant } from '@/types';
+// import { useRestaurants } from '@/lib/queries/restaurants'; // Currently unused
+import { Restaurant, Review } from '@/types';
 
 interface RestaurantsClientProps {
   initialRestaurants?: Restaurant[];
@@ -40,14 +40,14 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
         console.log(`Client-side: Found ${reviews.length} reviews`);
         
         // Group reviews by restaurant_id
-        const reviewsByRestaurant = reviews.reduce((acc: Record<string, any[]>, review: any) => {
+        const reviewsByRestaurant = reviews.reduce((acc: Record<string, Review[]>, review: Review) => {
           const restaurantId = review.restaurant_id;
           if (!acc[restaurantId]) {
             acc[restaurantId] = [];
           }
           acc[restaurantId].push(review);
           return acc;
-        }, {} as Record<string, any[]>);
+        }, {} as Record<string, Review[]>);
 
         // Update restaurants with review data
         const updatedRestaurants = initialRestaurants.map(restaurant => {
@@ -55,15 +55,15 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
           
           // Calculate actual average rating from individual review.rating_overall values
           const ratings = restaurantReviews
-            .map((r: any) => r.rating_overall)
-            .filter((r: any) => r != null);
+            .map((r: Review) => r.rating_overall)
+            .filter((r: number | undefined) => r != null) as number[];
           const avg_rating = ratings.length > 0 
             ? Math.round((ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length) * 10) / 10
             : 0;
           
           // Aggregate unique tags from all reviews
           const allTags = restaurantReviews
-            .flatMap((r: any) => r.tags || [])
+            .flatMap((r: Review) => r.tags || [])
             .filter((tag: string, index: number, arr: string[]) => arr.indexOf(tag) === index);
           
           return {

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// Unused imports commented out
+// import { Button } from '@/components/ui/button';
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoginForm } from './LoginForm';
 import { MagicLinkForm } from './MagicLinkForm';
 
