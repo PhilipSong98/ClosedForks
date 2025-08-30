@@ -1,0 +1,114 @@
+'use client'
+
+import React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/hooks/useAuth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { LogOut, User, Settings, MapPin } from 'lucide-react';
+
+interface HeaderProps {
+  onProfileClick?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
+  const { user, signOut } = useAuth();
+  const router = useRouter();
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const handleProfileClick = () => {
+    if (onProfileClick) {
+      onProfileClick();
+    } else {
+      // Default to profile page if no custom handler
+      router.push('/profile');
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
+
+  return (
+    <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/80 border-b border-border">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link 
+            href="/"
+            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+          >
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <div className="w-4 h-4 bg-primary-foreground rounded-sm" />
+            </div>
+            <span className="text-xl font-bold text-foreground">DineCircle</span>
+          </Link>
+
+          {/* User Profile */}
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={user.avatar_url || undefined} />
+                    <AvatarFallback className="bg-secondary text-secondary-foreground text-sm">
+                      {getInitials(user.full_name || user.email || 'U')}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    {user.full_name && (
+                      <p className="font-medium">{user.full_name}</p>
+                    )}
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleProfileClick}>
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/restaurants">
+                    <MapPin className="mr-2 h-4 w-4" />
+                    Restaurants
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/invite">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Manage Invites
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;

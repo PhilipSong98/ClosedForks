@@ -14,12 +14,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('reviews')
-      .select(`
-        *,
-        author:users(id, name, email, avatar_url),
-        restaurant:restaurants(id, name, city),
-        photos:review_photos(*)
-      `)
+      .select('*')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -98,12 +93,7 @@ export async function POST(request: NextRequest) {
         ...validatedData,
         author_id: user.id,
       })
-      .select(`
-        *,
-        author:users(id, name, email, avatar_url),
-        restaurant:restaurants(id, name, city),
-        photos:review_photos(*)
-      `)
+      .select('*')
       .single();
 
     if (error) {

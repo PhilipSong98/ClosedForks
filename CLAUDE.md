@@ -37,6 +37,11 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Cost-optimized API usage** - Session tokens and intelligent caching
 - [x] **Production-ready authentication** - Fixed PKCE flow, session persistence, and cookie conflicts
 - [x] **Robust error handling** - Fallback user data and timeout protection
+- [x] **Lovable UI Integration** - Beautiful, modern interface merged from external Lovable project
+- [x] **Simplified Review System** - Streamlined from complex multi-dimensional to user-friendly single rating
+- [x] **Responsive Popup System** - Conditional rendering with Sheet (mobile) and Dialog (desktop)
+- [x] **Modern Component Library** - Clean, accessible components with better spacing and typography
+- [x] **Tanstack Query Integration** - Proper server state management with React Query
 
 ### Pending Features (Future Sprints)
 - [ ] Photo upload for reviews
@@ -61,15 +66,19 @@ restaurant/
 │   ├── auth/              # Auth callback handling
 │   ├── restaurants/       # Restaurant pages
 │   ├── invite/            # Invite management
+│   ├── providers.tsx      # Tanstack Query and UI providers
+│   ├── home-client.tsx    # Main home page client component
 │   └── layout.tsx         # Root layout with AuthWrapper
 ├── components/            # React components
 │   ├── auth/              # Authentication components
-│   ├── layout/            # Navigation, AuthWrapper
+│   ├── layout/            # Header, AuthWrapper (Navigation removed)
 │   ├── restaurant/        # Restaurant-specific components
+│   ├── review/            # ReviewComposer, RatingInput
+│   ├── search/            # SearchBar with Google Places
 │   └── ui/                # shadcn/ui components
 ├── lib/                   # Utilities and configurations
 │   ├── supabase/          # Supabase client setup
-│   ├── hooks/             # Custom React hooks
+│   ├── hooks/             # Custom React hooks (useAuth, useMediaQuery)
 │   └── validations/       # Zod schemas
 ├── types/                 # TypeScript definitions
 ├── constants/             # App constants and enums
@@ -79,6 +88,7 @@ restaurant/
 │   └── README.md          # Migration documentation
 ├── scripts/               # Development scripts
 │   └── migrate.sh         # Migration helper script
+├── lovable-frontend/      # Original Lovable UI code (reference)
 └── middleware.ts          # Supabase auth middleware
 ```
 
@@ -95,9 +105,63 @@ restaurant/
 - `lib/validations/index.ts`: Zod schemas for API validation
 - `lib/google/places.ts`: Google Places API utilities
 - `lib/constants/cities.ts`: City locations for restaurant search
-- `components/places/PlacesAutocomplete.tsx`: Smart restaurant search
-- `components/restaurant/RestaurantSelector.tsx`: Restaurant discovery flow
-- `app/reviews/new/page.tsx`: Complete review creation experience
+- `lib/hooks/useMediaQuery.ts`: Media query hook for responsive rendering
+- `app/providers.tsx`: Tanstack Query and UI providers setup
+- `app/home-client.tsx`: Main home page with responsive popups
+- `components/layout/Header.tsx`: Modern navigation with user dropdown
+- `components/review/ReviewComposer.tsx`: Simplified review form (Lovable design)
+- `components/review/RatingInput.tsx`: Large, interactive star rating component
+- `components/search/SearchBar.tsx`: Google Places integrated restaurant search
+
+## 🎨 Lovable UI Integration (Important Context)
+
+### Background
+The project originally had functional but basic UI. A designer created a beautiful interface in Lovable (React + Vite app), which was successfully merged into this Next.js application.
+
+### Integration Details
+**Source**: `/lovable-frontend/` directory contains the original Lovable code for reference
+**Migration**: Converted from React Router to Next.js App Router
+**Data**: Replaced mock data with real Supabase API calls
+**State Management**: Added Tanstack Query for server state
+
+### Key Changes from Integration
+1. **Simplified Review Form**: Changed from complex multi-dimensional ratings (food, service, vibe, value) to single overall rating with detailed text
+2. **Modern UI Components**: Clean design with better spacing, larger interactive elements
+3. **Responsive Popups**: Conditional rendering using `useMediaQuery` hook - Sheet for mobile, Dialog for desktop
+4. **Navigation Update**: Removed old Navigation component, replaced with modern Header with dropdown
+5. **Component Consolidation**: Merged duplicate components, kept best UI from Lovable
+
+### Review Schema Changes
+**Old Schema** (multi-dimensional):
+```typescript
+{
+  rating_overall: number,
+  food: number,
+  service: number,
+  vibe: number,
+  value: number,
+  text: string,
+  visit_date: string,
+  price_per_person: number
+}
+```
+
+**New Schema** (simplified):
+```typescript
+{
+  restaurant: string,
+  rating: number,        // Single overall rating
+  dish: string,         // What did you eat?
+  review: string,       // Detailed review text
+  recommend: boolean,   // Would recommend to friends?
+  tips: string         // Optional pro tips
+}
+```
+
+### Common Issues & Solutions
+- **Duplicate Popups**: Fixed by using conditional rendering instead of CSS hiding
+- **Import Errors**: Converted all React Router imports to Next.js navigation
+- **Type Mismatches**: Updated TypeScript types to match simplified schema
 
 ## 🔧 Development Workflow
 

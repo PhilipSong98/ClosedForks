@@ -2,7 +2,6 @@
 
 import { useAuth } from '@/lib/hooks/useAuth';
 import { SignInForm } from '@/components/auth/SignInForm';
-import { Navigation } from '@/components/layout/Navigation';
 
 interface AuthWrapperProps {
   children: React.ReactNode;
@@ -38,9 +37,8 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <main>{children}</main>
+    <div className="min-h-screen bg-background">
+      {children}
     </div>
   );
 }

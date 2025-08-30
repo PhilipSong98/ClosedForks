@@ -1,0 +1,207 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Monochromatic Design System */
+    --background: 0 0% 98%;
+    --foreground: 220 9% 15%;
+    
+    /* Surface colors */
+    --card: 0 0% 100%;
+    --card-foreground: 220 9% 15%;
+    
+    /* Interactive elements */
+    --primary: 220 9% 20%;
+    --primary-foreground: 0 0% 98%;
+    
+    --secondary: 220 6% 95%;
+    --secondary-foreground: 220 9% 25%;
+    
+    --muted: 220 6% 96%;
+    --muted-foreground: 220 4% 50%;
+    
+    --accent: 220 8% 92%;
+    --accent-foreground: 220 9% 20%;
+    
+    /* Borders and inputs */
+    --border: 220 6% 90%;
+    --input: 220 6% 94%;
+    --ring: 220 9% 20%;
+    
+    /* Semantic colors */
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 98%;
+    
+    /* Layout */
+    --radius: 0.75rem;
+    
+    /* Custom tokens for our app */
+    --surface-elevated: 0 0% 100%;
+    --surface-subtle: 220 6% 97%;
+    --text-subtle: 220 4% 45%;
+    --text-muted: 220 4% 65%;
+    
+    /* Gradients */
+    --gradient-subtle: linear-gradient(135deg, hsl(220 6% 98%) 0%, hsl(220 6% 96%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(220 6% 99%) 100%);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  
+  /* Custom utility classes */
+  .surface-elevated {
+    background: hsl(var(--surface-elevated));
+  }
+  
+  .surface-subtle {
+    background: hsl(var(--surface-subtle));
+  }
+  
+  .text-subtle {
+    color: hsl(var(--text-subtle));
+  }
+  
+  .text-muted {
+    color: hsl(var(--text-muted));
+  }
+  
+  .gradient-subtle {
+    background: var(--gradient-subtle);
+  }
+  
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+}
+
+@layer components {
+  /* Search component styles */
+  .search-container {
+    @apply relative w-full max-w-2xl mx-auto;
+  }
+  
+  .search-dropdown {
+    @apply absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto;
+  }
+  
+  /* Filter button styles */
+  .filter-button {
+    @apply px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-border;
+  }
+  
+  .filter-button-active {
+    @apply bg-primary text-primary-foreground border-primary;
+  }
+  
+  .filter-button-inactive {
+    @apply bg-card text-foreground hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  /* Review card styles */
+  .review-card {
+    @apply gradient-card border border-border rounded-xl p-6 transition-all duration-300 hover:shadow-md hover:border-accent;
+  }
+
+  .review-card-compact {
+    @apply bg-card border border-border rounded-lg p-4 transition-all duration-300 hover:shadow-md hover:border-accent;
+  }
+
+  /* Masonry grid for reviews */
+  .masonry-grid {
+    @apply columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4;
+  }
+
+  .masonry-item {
+    @apply break-inside-avoid mb-4;
+  }
+
+  /* Cuisine filter chip styles */
+  .cuisine-filter-chip {
+    @apply px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border inline-flex items-center;
+  }
+
+  .cuisine-filter-chip-default {
+    @apply bg-background text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground hover:border-accent-foreground/20;
+  }
+
+  .cuisine-filter-chip-selected {
+    @apply bg-primary text-primary-foreground border-primary shadow-sm;
+  }
+
+  /* Profile avatar styles */
+  .avatar-clickable {
+    @apply cursor-pointer transition-transform duration-200 hover:scale-105 ring-2 ring-transparent hover:ring-accent;
+  }
+
+  /* Floating Action Button safe area */
+  .fab-safe-area {
+    padding-bottom: env(safe-area-inset-bottom, 1.5rem);
+  }
+
+  /* Scrollbar hide utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}

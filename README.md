@@ -6,8 +6,9 @@ A mobile-first, invite-only restaurant review site for friends & family. Share t
 
 - 🔐 **Private by Default** - Invite-only access with magic link authentication
 - 🍽️ **Smart Restaurant Discovery** - Google Places API integration with autocomplete search
-- ⭐ **Multi-dimensional Reviews** - Rate food, service, vibe, and value separately
-- 📱 **Mobile-First Design** - Responsive UI optimized for mobile devices
+- ⭐ **Simplified Review System** - Clean, user-friendly single rating with detailed text reviews
+- 🎨 **Modern UI Design** - Beautiful, clean interface integrated from Lovable with responsive popups
+- 📱 **Mobile-First Design** - Responsive UI optimized for mobile devices with conditional rendering
 - 🌍 **Location Aware** - Stockholm-focused with 50km radius bias
 - 👥 **Network-Based** - Reviews visible only to your trusted network
 - 📧 **Email Notifications** - Powered by Resend for invites and updates
@@ -17,11 +18,33 @@ A mobile-first, invite-only restaurant review site for friends & family. Share t
 ## Tech Stack
 
 - **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui
+- **State Management**: Tanstack Query for server state management
 - **Backend**: Supabase (PostgreSQL + Auth + Storage)
 - **Maps & Places**: Google Places API (New) for restaurant discovery
 - **Email**: Resend
 - **Deployment**: Vercel
 - **Validation**: Zod
+- **UI Components**: Custom responsive popup system with Sheet (mobile) and Dialog (desktop)
+
+## Recent Updates
+
+### 🎨 Lovable UI Integration (Latest)
+
+Successfully integrated beautiful UI design from Lovable (React + Vite) into the existing Next.js application:
+
+- **Clean, Modern Design** - Simplified review form with better spacing and typography
+- **Responsive Popup System** - Mobile-first approach with Sheet (mobile) and Dialog (desktop)
+- **Simplified Review Flow** - Streamlined from complex multi-dimensional ratings to user-friendly single rating
+- **Better UX** - Larger interactive elements, cleaner input fields, and improved visual hierarchy
+- **Conditional Rendering** - Fixed duplicate popup issues with proper media query detection
+
+### Key Integration Components
+
+- **ReviewComposer** - Clean, simplified review form with modern styling
+- **RatingInput** - Large, interactive star rating component
+- **Header** - Modern navigation with user dropdown menu
+- **SearchBar** - Google Places integrated restaurant search
+- **Responsive Popups** - Sheet for mobile, Dialog for desktop with useMediaQuery hook
 
 ## Getting Started
 
@@ -142,6 +165,11 @@ npm run lint       # Check linting issues
 - Check API key has Places API enabled
 - Verify billing is set up for Google Cloud project
 
+**📱 Duplicate Popups Appearing**
+- **Cause**: Both mobile Sheet and desktop Dialog rendering simultaneously
+- **Fix**: Implemented conditional rendering with `useMediaQuery` hook
+- **Prevention**: Use either Sheet OR Dialog based on screen size, never both
+
 ## Database Schema
 
 ### Core Tables
@@ -171,9 +199,11 @@ npm run lint       # Check linting issues
 
 ### Reviews
 - `GET /api/reviews` - List reviews with filters
-- `POST /api/reviews` - Create new review
+- `POST /api/reviews` - Create new review (simplified schema: restaurant, rating, dish, review, recommend, tips)
 - `PUT /api/reviews/[id]` - Update own review
 - `DELETE /api/reviews/[id]` - Delete own review
+
+**Note**: Review schema has been simplified from multi-dimensional ratings to a single rating with detailed text for better user experience.
 
 ### Google Places Integration
 - `POST /api/places/autocomplete` - Search restaurants via Google Places
@@ -221,17 +251,22 @@ Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
 
 ```
 ├── app/                 # Next.js app router pages
+│   ├── providers.tsx   # Tanstack Query and UI providers
+│   └── home-client.tsx # Main home page client component
 ├── components/          # React components
 │   ├── auth/           # Authentication components
-│   ├── layout/         # Layout components
+│   ├── layout/         # Layout components (Header, AuthWrapper)
 │   ├── restaurant/     # Restaurant-related components
+│   ├── review/         # Review components (ReviewComposer, RatingInput)
+│   ├── search/         # Search components (SearchBar)
 │   └── ui/             # shadcn/ui components
 ├── lib/                # Utilities and configurations
 │   ├── supabase/       # Supabase client configuration
-│   ├── hooks/          # Custom React hooks
+│   ├── hooks/          # Custom React hooks (useAuth, useMediaQuery)
 │   └── validations/    # Zod schemas
 ├── types/              # TypeScript type definitions
 ├── constants/          # App constants
+├── lovable-frontend/   # Original Lovable UI code (reference)
 └── supabase/           # Database schema and migrations
 ```
 
