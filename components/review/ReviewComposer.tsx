@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
 import type { Restaurant } from '@/types';
-import SearchBar from '@/components/search/SearchBar';
+import { RestaurantSelector } from '@/components/restaurant/RestaurantSelector';
 import RatingInput from './RatingInput';
 import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
 
@@ -86,39 +86,13 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
     },
   });
 
-  const handleRestaurantSelect = async (restaurant: { google_place_id?: string; name: string; address?: string; id?: string }) => {
-    setSelectedRestaurant(restaurant as Restaurant);
-    
-    // Always set the form field first to avoid validation errors
-    form.setValue('restaurant', restaurant.name || '');
-    
-    // If we have a Google Place ID, try to find or create the restaurant in the background
-    if (restaurant.google_place_id) {
-      try {
-        const response = await fetch('/api/restaurants/find-or-create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            google_place_id: restaurant.google_place_id,
-            name: restaurant.name,
-            address: restaurant.address,
-          }),
-        });
-        
-        if (response.ok) {
-          const { restaurant: dbRestaurant } = await response.json();
-          // Update form with database restaurant name if different
-          if (dbRestaurant.name !== restaurant.name) {
-            form.setValue('restaurant', dbRestaurant.name);
-          }
-          // Store the database ID for later use in form submission
-          setSelectedRestaurant({ ...restaurant, id: dbRestaurant.id } as Restaurant);
-        } else {
-          console.error('Failed to create/find restaurant:', response.status, response.statusText);
-        }
-      } catch (error) {
-        console.error('Error finding/creating restaurant:', error);
-      }
+  const handleRestaurantSelect = (restaurant: Restaurant | null) => {
+    if (restaurant) {
+      setSelectedRestaurant(restaurant);
+      form.setValue('restaurant', restaurant.name || '');
+    } else {
+      setSelectedRestaurant(undefined);
+      form.setValue('restaurant', '');
     }
   };
 
@@ -220,10 +194,10 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
                   Restaurant
                 </FormLabel>
                 <FormControl>
-                  <SearchBar
-                    placeholder="Search for a restaurant..."
-                    onRestaurantSelect={handleRestaurantSelect}
-                    className="border-0 bg-gray-50 rounded-xl px-4 py-3"
+                  <RestaurantSelector
+                    onSelect={handleRestaurantSelect}
+                    selectedRestaurant={selectedRestaurant}
+                    className="w-full"
                   />
                 </FormControl>
                 <FormMessage />
