@@ -114,8 +114,54 @@ export const reportSchema = z.object({
 
 export const userUpdateSchema = z.object({
   name: z.string().min(1).max(100).optional(),
+  full_name: z.string().min(1).max(150).optional(),
   home_city: z.string().max(50).optional(),
   avatar_url: z.string().url().optional(),
+});
+
+// ============================================================================
+// INVITE CODE VALIDATION SCHEMAS
+// ============================================================================
+
+export const inviteCodeValidationSchema = z.object({
+  code: z.string()
+    .min(6, 'Invite code must be 6 digits')
+    .max(6, 'Invite code must be 6 digits')
+    .regex(/^\d{6}$/, 'Invite code must contain only numbers'),
+});
+
+export const signupSchema = z.object({
+  fullName: z.string()
+    .min(2, 'Full name must be at least 2 characters')
+    .max(150, 'Full name must be less than 150 characters')
+    .regex(/^[a-zA-Z\s\-']+$/, 'Full name can only contain letters, spaces, hyphens, and apostrophes'),
+  email: z.string()
+    .email('Please enter a valid email address')
+    .min(5, 'Email must be at least 5 characters')
+    .max(255, 'Email must be less than 255 characters')
+    .toLowerCase(),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be less than 128 characters')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one lowercase letter, one uppercase letter, and one number'),
+  confirmPassword: z.string(),
+  inviteCode: z.string()
+    .min(6, 'Invite code must be 6 digits')
+    .max(6, 'Invite code must be 6 digits')
+    .regex(/^\d{6}$/, 'Invite code must contain only numbers'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+export const inviteCodeCreationSchema = z.object({
+  code: z.string()
+    .min(6, 'Invite code must be 6 digits')
+    .max(6, 'Invite code must be 6 digits')
+    .regex(/^\d{6}$/, 'Invite code must contain only numbers'),
+  description: z.string().max(500).optional(),
+  max_uses: z.number().int().min(1).max(1000).default(1),
+  expires_at: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid date').optional(),
 });
 
 export type GooglePlaceDataInput = z.infer<typeof googlePlaceDataSchema>;
@@ -128,3 +174,8 @@ export type ReportInput = z.infer<typeof reportSchema>;
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
 export type PlacesAutocompleteInput = z.infer<typeof placesAutocompleteSchema>;
 export type PlaceDetailsInput = z.infer<typeof placeDetailsSchema>;
+
+// New invite code system exports
+export type InviteCodeValidationInput = z.infer<typeof inviteCodeValidationSchema>;
+export type SignupInput = z.infer<typeof signupSchema>;
+export type InviteCodeCreationInput = z.infer<typeof inviteCodeCreationSchema>;

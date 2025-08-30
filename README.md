@@ -15,7 +15,8 @@ A mobile-first, invite-only restaurant review site for friends & family. Share t
 - 📧 **Email Notifications** - Powered by Resend for invites and updates
 - 🔒 **Secure** - Row-level security with Supabase
 - 🗺️ **Maps Integration** - Free Google Maps links for directions and venue details
-- 🏷️ **Smart Tagging System** - 52+ predefined tags across cuisine, experience, atmosphere, and dietary categories
+- 🏷️ **Professional Tag System** - 35 relevant food-focused tags across dishes, cuisine, meal type, and vibe categories
+- 🔍 **Advanced Filter System** - Instagram-level filtering with rating, price, date, and recommendation filters
 
 ## Tech Stack
 
@@ -57,6 +58,35 @@ Complete search functionality implementation with global accessibility and modal
 - **Empty/Loading States** - Clean UI states for different search conditions
 - **Click-to-Navigate** - Search results link to relevant pages with highlight parameters
 - **Visual Feedback** - Icons, badges, and formatted result cards for easy scanning
+
+### 🎛️ Enhanced Filter System (Latest - August 30, 2025)
+
+Complete professional upgrade of home page filters from basic cuisine buttons to Instagram-level filtering:
+
+#### **✅ Smart Tag-Based Filtering**
+- **4 Organized Categories** - Popular Dishes (🍽️), Cuisine (🌍), Meal Type (⏰), Atmosphere (✨)
+- **35 Relevant Tags** - From "Pasta" & "Burger" to "Date Night" & "Fine Dining" - no more irrelevant options
+- **Color-Coded System** - Visual category identification with professional color scheme
+- **Smart Management** - Shows "3/5 selected" with one-click clear functionality
+
+#### **🔧 Advanced Filter Controls**
+- **Rating Slider** - Minimum rating filter (0-5 stars) with smooth slider interface
+- **Price Range Filter** - Dual-handle slider for $0-$1000+ per person price filtering
+- **Date Range Options** - All time, Past week, Past month, Past year quick selections
+- **Recommendation Toggle** - Filter to show only recommended places with heart icon
+- **Enhanced Sort Options** - Recent, Best Rated, Price Low→High, Price High→Low
+
+#### **📱 Mobile-First Responsive Design**
+- **Collapsible Interface** - "Filters" button with expansion on mobile to prevent overwhelm
+- **Touch-Optimized** - Large tap targets, proper spacing, mobile-friendly interactions
+- **Progressive Enhancement** - Full desktop experience, streamlined mobile experience
+- **Live Results Counter** - Shows "8 of 23 reviews" with real-time filter feedback
+
+#### **🎨 Professional UI/UX**
+- **Advanced Popover** - Secondary filters in clean popup with organized sections
+- **Active Filter Badges** - Visual indicators showing number of active filters
+- **One-Click Clear** - "Clear all (4)" button with smart active filter counting
+- **Visual Tag Selection** - Chip-based interface matching the quality of modern food apps
 
 ### 🎯 Modal-Only Review Creation (August 30, 2025)
 
@@ -109,27 +139,33 @@ Complete UI/UX transformation with separated concerns and optimized social media
 - **Type Safety** - Full TypeScript support with updated component interfaces
 - **Clean Architecture** - Clear separation between feed consumption and restaurant management
 
-### 🏷️ Review Tagging System Implementation (August 30, 2025)
+### 🏷️ Professional Tag System Overhaul (August 30, 2025)
 
-Added comprehensive tagging system for better review categorization and filtering:
+Complete redesign of the tagging system with focus on relevant, food-focused tags:
 
-#### **✅ Complete Tagging Implementation**
-- **52+ Predefined Tags** - Organized across Cuisine (22), Experience (10), Atmosphere (12), and Dietary (8) categories
-- **Multi-Select Interface** - Intuitive dropdown with category grouping and removable badges
-- **Database Optimization** - GIN index on tags array for efficient filtering queries
-- **Smart Validation** - Maximum 5 tags per review with real-time feedback
+#### **✅ Streamlined Tag Categories (52+ → 35 Relevant Tags)**
+- **🍽️ Popular Dishes (16)** - Pasta, Burger, Pizza, Sushi, Ramen, Steak, Sandwich, Salad, Tacos, Curry, Poke, Wings, Kebab, BBQ, Seafood, Soup
+- **🌍 Cuisine Type (8)** - Asian, Mexican, Italian, American, Mediterranean, Nordic, French, Indian  
+- **⏰ Meal Type (7)** - Brunch, Lunch, Dinner, Dessert, Coffee, Drinks, Breakfast
+- **✨ Atmosphere (8)** - Casual, Fine Dining, Date Night, Groups, Quick Bite, Cozy, Trendy, Family Friendly
 
-#### **🎨 Enhanced User Experience**
-- **Review Creation** - Organized tag dropdown with category sections
-- **Review Display** - Clean tag badges below dish information with hover effects
-- **Visual Feedback** - Selected tags displayed as removable badges during creation
-- **Future Ready** - System prepared for tag-based filtering features
+#### **🎨 Modern Chip-Based Interface**
+- **Interactive Selection** - Clickable chips organized by category with emoji icons
+- **Color-Coded Categories** - Orange (dishes), Blue (cuisine), Green (meal), Purple (vibe)  
+- **Real-Time Counter** - Shows "3/5 tags selected" with visual progress
+- **Remove with X Button** - Easy tag removal with hover effects and smooth transitions
 
-#### **🔧 Technical Implementation**
-- **Database Migration** - Added `tags TEXT[]` field with constraints and indexing
+#### **📱 Enhanced User Experience**
+- **Review Creation** - Category-organized chip selection instead of overwhelming dropdown
+- **Review Display** - Color-coded badges with category icons throughout the app
+- **Visual Hierarchy** - Clear category sections make selection intuitive and fast
+- **Professional Design** - Matches quality of modern food discovery apps
+
+#### **🔧 Technical Excellence**
+- **Database Optimization** - GIN index on tags array for efficient filtering
 - **Type Safety** - Full TypeScript support with updated validation schemas
-- **Component Updates** - Enhanced ReviewComposer and ReviewCard with tag functionality
-- **API Integration** - Seamless tag handling in review creation and retrieval
+- **Consistent Styling** - Helper functions ensure uniform tag display across components
+- **Filter Integration** - Tags now power the advanced filter system for comprehensive search
 
 ### 🖼️ Complete Review System Overhaul (August 30, 2025)
 
@@ -209,7 +245,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - `20250829233334_reset_and_initialize_database.sql` - Complete database with RLS policies
 - `20250830094836_add_google_places_fields.sql` - Google Places integration fields
 - `20250830154739_update_reviews_schema_for_lovable.sql` - Simplified review schema (dish, review, recommend, tips)
-- `20250830180128_add_tags_to_reviews.sql` - **NEW**: Tagging system with 52+ predefined tags
+- `20250830180128_add_tags_to_reviews.sql` - Professional tagging system with 35 food-focused tags
 
 For future schema changes, see `supabase/README.md` for migration workflow.
 
@@ -375,10 +411,11 @@ Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
 │   └── home-client.tsx     # Instagram-style review feed homepage
 ├── components/             # React components
 │   ├── auth/           # Authentication components
+│   ├── filters/        # Enhanced filter system (EnhancedFilters, legacy CuisineFilters)
 │   ├── layout/         # Layout components (Header, AuthWrapper, WriteReviewFAB)
 │   ├── restaurant/     # Restaurant-related components
 │   ├── review/         # Review components (ReviewComposer, RatingInput)
-│   ├── search/         # Search components (SearchBar, SearchFAB)
+│   ├── search/         # Search components (SearchBar, SearchFAB, GlobalSearchModal)
 │   └── ui/             # shadcn/ui components
 ├── lib/                # Utilities and configurations
 │   ├── supabase/       # Supabase client configuration

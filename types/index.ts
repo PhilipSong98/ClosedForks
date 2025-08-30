@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   name: string;
+  full_name?: string; // New field for full name
   email: string;
   avatar_url?: string;
   home_city?: string;
@@ -161,4 +162,65 @@ export interface MagicLinkRequestData {
   email: string;
   userAgent?: string;
   ipAddress?: string;
+}
+
+// ============================================================================
+// INVITE CODE SYSTEM TYPES
+// ============================================================================
+
+export interface InviteCode {
+  id: string;
+  code: string;
+  description?: string;
+  max_uses: number;
+  current_uses: number;
+  is_active: boolean;
+  expires_at?: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InviteCodeUsage {
+  id: string;
+  invite_code_id: string;
+  user_id: string;
+  used_at: string;
+  ip_address?: string;
+  user_agent?: string;
+}
+
+export interface InviteCodeValidation {
+  valid: boolean;
+  message: string;
+  code_id?: string;
+  description?: string;
+  uses_remaining?: number;
+}
+
+export interface InviteCodeUsageResult {
+  success: boolean;
+  message: string;
+  code_id?: string;
+}
+
+// New auth flow types
+export interface SignupFormData {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  inviteCode: string;
+}
+
+export interface InviteCodeSession {
+  code: string;
+  validatedAt: string;
+  codeId: string;
+}
+
+export interface AuthError {
+  message: string;
+  code?: string;
+  field?: string;
 }
