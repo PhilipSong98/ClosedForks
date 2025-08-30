@@ -28,23 +28,34 @@ A mobile-first, invite-only restaurant review site for friends & family. Share t
 
 ## Recent Updates
 
-### 🎨 Lovable UI Integration (Latest)
+### 🖼️ Complete Review System Overhaul (Latest - August 30, 2025)
 
-Successfully integrated beautiful UI design from Lovable (React + Vite) into the existing Next.js application:
+Successfully implemented end-to-end review functionality with Google Places integration and Lovable UI:
 
-- **Clean, Modern Design** - Simplified review form with better spacing and typography
-- **Responsive Popup System** - Mobile-first approach with Sheet (mobile) and Dialog (desktop)
-- **Simplified Review Flow** - Streamlined from complex multi-dimensional ratings to user-friendly single rating
-- **Better UX** - Larger interactive elements, cleaner input fields, and improved visual hierarchy
-- **Conditional Rendering** - Fixed duplicate popup issues with proper media query detection
+#### **✅ Working Review Creation & Display**
+- **Fixed Google Places Integration** - Restaurant search now fetches full details including photos
+- **Database Schema Migration** - Updated reviews table for simplified Lovable format (dish, review, recommend, tips)
+- **Complete Review Flow** - Search → Select restaurant → Create review → Display with images
+- **Restaurant Cover Images** - Google Places photos display in beautiful review cards
+- **Data Mapping Fixed** - Resolved API join issues preventing reviews from displaying
 
-### Key Integration Components
+#### **🎨 Lovable UI Integration (Completed)**
+- **Beautiful Review Cards** - Compact design with restaurant images and user avatars
+- **Simplified Review Form** - Single rating with dish, review text, and tips fields
+- **Responsive Design** - Conditional Sheet (mobile) and Dialog (desktop) rendering
+- **Modern Components** - Clean typography, better spacing, and interactive elements
 
-- **ReviewComposer** - Clean, simplified review form with modern styling
-- **RatingInput** - Large, interactive star rating component
-- **Header** - Modern navigation with user dropdown menu
-- **SearchBar** - Google Places integrated restaurant search
-- **Responsive Popups** - Sheet for mobile, Dialog for desktop with useMediaQuery hook
+#### **🔧 Technical Improvements**
+- **Foreign Key Relations Fixed** - Proper Supabase joins for restaurants and users data
+- **Type Safety Enhanced** - Updated TypeScript types for both legacy and new review formats
+- **Error Handling Improved** - Better messaging for duplicate reviews and validation errors
+- **Backward Compatibility** - Supports both old multi-dimensional and new simplified review formats
+
+#### **🗺️ Google Places Features**
+- **Automatic Restaurant Data** - Name, address, photos, and details from Google Places
+- **Cost Optimization** - Session tokens and intelligent caching minimize API costs
+- **Smart Search** - Stockholm-focused autocomplete with 300ms debouncing
+- **Database Integration** - find-or-create endpoint with full Google Places data fetching
 
 ## Getting Started
 
@@ -94,6 +105,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 **Applied Migrations:**
 - `20250829233334_reset_and_initialize_database.sql` - Complete database with RLS policies
 - `20250830094836_add_google_places_fields.sql` - Google Places integration fields
+- `20250830154739_update_reviews_schema_for_lovable.sql` - Simplified review schema (dish, review, recommend, tips)
 
 For future schema changes, see `supabase/README.md` for migration workflow.
 

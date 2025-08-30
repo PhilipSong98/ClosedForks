@@ -61,8 +61,8 @@ const HomeClient: React.FC<HomeClientProps> = ({
   const handleReviewSubmit = (success: boolean) => {
     if (success) {
       setIsReviewComposerOpen(false);
-      // Optionally refresh the reviews list
-      // We could use React Query's refetch here if needed
+      // Force refresh of reviews list
+      window.location.reload(); // Simple solution for now - could use React Query invalidation
     }
   };
 

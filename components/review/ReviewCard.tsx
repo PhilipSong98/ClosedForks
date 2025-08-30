@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Star, Heart, MapPin, Calendar, DollarSign } from 'lucide-react';
+import { Star, Heart, MapPin } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { Review } from '@/types';
@@ -41,160 +41,125 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
     ));
   };
 
-  const formatPriceLevel = (pricePerPerson?: number) => {
-    if (!pricePerPerson) return null;
-    if (pricePerPerson <= 200) return '$';
-    if (pricePerPerson <= 500) return '$$';
-    if (pricePerPerson <= 1000) return '$$$';
-    return '$$$$';
-  };
+  // Handle both old and new API response structures
+  const restaurant = review.restaurant || review.restaurants;
+  const author = review.author || review.users;
 
-  const restaurantImage = review.restaurant?.google_data?.photos?.[0] 
-    ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${review.restaurant.google_data.photos[0].photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}`
+  const restaurantImage = restaurant?.google_data?.photos?.[0] 
+    ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${restaurant.google_data.photos[0].photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY}`
     : null;
 
   const handleUserClick = () => {
-    if (onUserClick && review.author?.id) {
-      onUserClick(review.author.id);
+    if (onUserClick && author?.id) {
+      onUserClick(author.id);
     }
   };
 
+  // Use new fields if available, fall back to legacy fields
+  const rating = review.rating_overall || 5;
+  const reviewText = review.review || review.text || '';
+  const dish = review.dish || 'Not specified';
+  const tips = review.tips || '';
+
   return (
-    <div className="bg-card rounded-lg border border-border p-6 space-y-4 hover:shadow-md transition-shadow duration-200">
+    <div className="review-card-compact">
       {/* User Info */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2 mb-3">
         <button 
           onClick={handleUserClick}
-          className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+          className="avatar-clickable"
           disabled={!onUserClick}
         >
-          <Avatar className="w-10 h-10">
-            <AvatarImage src={review.author?.avatar_url} />
-            <AvatarFallback className="bg-secondary text-secondary-foreground">
-              {getInitials(review.author?.name || review.author?.email || 'U')}
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={author?.avatar_url} />
+            <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
+              {getInitials(author?.name || author?.email || 'U')}
             </AvatarFallback>
           </Avatar>
-          <div className="text-left">
-            <h3 className="font-medium text-foreground">
-              {review.author?.name || review.author?.email}
-            </h3>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Calendar className="w-3 h-3" />
-              <span>{formatTime(review.created_at)}</span>
-            </div>
-          </div>
         </button>
+        
+        <div className="flex-1 min-w-0">
+          <button 
+            onClick={handleUserClick}
+            className="text-left hover:text-primary transition-colors"
+            disabled={!onUserClick}
+          >
+            <h3 className="font-medium text-sm text-foreground truncate">
+              {author?.name || author?.email}
+            </h3>
+          </button>
+          <p className="text-xs text-muted-foreground">{formatTime(review.created_at)}</p>
+        </div>
       </div>
 
-      {/* Restaurant Info */}
-      {showRestaurant && review.restaurant && (
-        <Link 
-          href={`/restaurants/${review.restaurant.id}`}
-          className="block group"
-        >
-          <div className="space-y-3">
-            {/* Restaurant Image */}
-            {restaurantImage ? (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden">
-                <img 
-                  src={restaurantImage} 
-                  alt={review.restaurant.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <div className="absolute bottom-3 left-3 right-3">
-                  <h4 className="font-semibold text-white text-lg mb-1 truncate drop-shadow-sm">
-                    {review.restaurant.name}
-                  </h4>
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="w-3 h-3 text-white/90" />
-                    <span className="text-sm text-white/90 truncate">
-                      {review.restaurant.address}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="w-full h-20 bg-muted rounded-lg flex items-center justify-center group-hover:bg-muted/80 transition-colors">
-                <div className="text-center">
-                  <span className="text-2xl font-medium text-muted-foreground">
-                    {review.restaurant.name.charAt(0)}
+      {/* Restaurant Cover & Info */}
+      {showRestaurant && restaurant && (
+        <div className="mb-3">
+          <Link 
+            href={`/restaurants/${restaurant.id}`}
+            className="block group"
+          >
+            <div className="relative w-full h-20 rounded-lg overflow-hidden mb-3">
+              {restaurantImage ? (
+                <>
+                  <img 
+                    src={restaurantImage} 
+                    alt={restaurant.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                </>
+              ) : (
+                <div className="w-full h-full bg-muted flex items-center justify-center">
+                  <span className="text-2xl text-muted-foreground font-medium">
+                    {restaurant.name.charAt(0)}
                   </span>
-                  <div className="text-sm font-medium text-foreground mt-1">
-                    {review.restaurant.name}
-                  </div>
-                  <div className="text-xs text-muted-foreground flex items-center justify-center mt-1">
-                    <MapPin className="w-3 h-3 mr-1" />
-                    {review.restaurant.city}
-                  </div>
+                </div>
+              )}
+              <div className="absolute bottom-2 left-2 right-2">
+                <h4 className="font-medium text-white mb-1 text-sm truncate drop-shadow-sm">
+                  {restaurant.name}
+                </h4>
+                <div className="flex items-center space-x-1">
+                  <MapPin className="w-3 h-3 text-white/90" />
+                  <span className="text-xs text-white/90 truncate">
+                    {restaurant.address}
+                  </span>
                 </div>
               </div>
-            )}
-
-            {/* Cuisine Tags */}
-            <div className="flex flex-wrap gap-1">
-              {review.restaurant.cuisine?.map((cuisine, index) => (
-                <span 
-                  key={index}
-                  className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full"
-                >
-                  {cuisine}
-                </span>
-              ))}
             </div>
+          </Link>
+          
+          <div className="flex items-center space-x-1 mb-2">
+            {renderStars(rating)}
+            <span className="text-xs font-medium text-foreground ml-1">{rating}/5</span>
           </div>
-        </Link>
+        </div>
       )}
 
-      {/* Rating */}
-      <div className="space-y-2">
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-1">
-            {renderStars(review.rating_overall)}
-          </div>
-          <span className="text-sm font-medium text-foreground">
-            {review.rating_overall}/5
-          </span>
-        </div>
-        
-        {/* Sub-ratings */}
-        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-          <div>Food: {review.food}/5</div>
-          <div>Service: {review.service}/5</div>
-          <div>Vibe: {review.vibe}/5</div>
-          <div>Value: {review.value}/5</div>
-        </div>
+      {/* Dish */}
+      <div className="mb-2">
+        <span className="text-xs font-medium text-primary">Dish: </span>
+        <span className="text-xs text-foreground">{dish}</span>
       </div>
 
       {/* Review Text */}
-      {review.text && (
-        <p className="text-sm text-foreground leading-relaxed line-clamp-4">
-          {review.text}
-        </p>
+      <p className="text-sm text-foreground leading-relaxed mb-3 line-clamp-3">{reviewText}</p>
+
+      {/* Tip */}
+      {tips && (
+        <div className="bg-accent/50 rounded-md p-2 mb-3">
+          <span className="text-xs font-medium text-primary">💡 </span>
+          <span className="text-xs text-foreground line-clamp-2">{tips}</span>
+        </div>
       )}
 
-      {/* Price and Visit Info */}
-      <div className="flex items-center justify-between pt-2 border-t border-border">
-        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-          {review.price_per_person && (
-            <div className="flex items-center space-x-1">
-              <DollarSign className="w-3 h-3" />
-              <span>{formatPriceLevel(review.price_per_person)}</span>
-            </div>
-          )}
-          <div className="flex items-center space-x-1">
-            <Calendar className="w-3 h-3" />
-            <span>
-              {new Date(review.visit_date).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-
-        {/* Like button placeholder - can be implemented later */}
+      {/* Actions */}
+      <div className="flex items-center justify-between">
         <button className="flex items-center space-x-1 text-muted-foreground hover:text-primary transition-colors">
-          <Heart className="w-4 h-4" />
-          <span className="text-sm">0</span>
+          <Heart className="w-3 h-3" />
+          <span className="text-xs">0</span>
         </button>
       </div>
     </div>

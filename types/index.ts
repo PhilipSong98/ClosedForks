@@ -59,19 +59,29 @@ export interface Review {
   id: string;
   restaurant_id: string;
   author_id: string;
+  // Legacy multi-dimensional ratings (optional for backward compatibility)
   rating_overall: number;
-  food: number;
-  service: number;
-  vibe: number;
-  value: number;
-  text?: string;
+  food?: number;
+  service?: number;
+  vibe?: number;
+  value?: number;
+  text?: string; // Legacy review text
+  // New simplified review fields (Lovable format)
+  dish?: string;
+  review?: string; // New review text field
+  recommend?: boolean;
+  tips?: string;
+  // Common fields
   visit_date: string;
   price_per_person?: number;
   visibility: 'my_circles' | 'public';
   created_at: string;
   updated_at: string;
+  // Relationship data (can be from different API response formats)
   author?: User;
   restaurant?: Restaurant;
+  users?: User; // From join query
+  restaurants?: Restaurant; // From join query
   photos?: ReviewPhoto[];
 }
 

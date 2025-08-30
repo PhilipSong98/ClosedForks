@@ -57,7 +57,10 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
   const handleRestaurantSelect = async (restaurant: any) => {
     setSelectedRestaurant(restaurant);
     
-    // If we have a Google Place ID, try to find or create the restaurant
+    // Always set the form field first to avoid validation errors
+    form.setValue('restaurant', restaurant.name || restaurant);
+    
+    // If we have a Google Place ID, try to find or create the restaurant in the background
     if (restaurant.google_place_id) {
       try {
         const response = await fetch('/api/restaurants/find-or-create', {
@@ -72,35 +75,90 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
         
         if (response.ok) {
           const { restaurant: dbRestaurant } = await response.json();
-          form.setValue('restaurant', dbRestaurant.name);
+          // Update form with database restaurant name if different
+          if (dbRestaurant.name !== restaurant.name) {
+            form.setValue('restaurant', dbRestaurant.name);
+          }
+          // Store the database ID for later use in form submission
+          setSelectedRestaurant({ ...restaurant, id: dbRestaurant.id });
+        } else {
+          console.error('Failed to create/find restaurant:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Error finding/creating restaurant:', error);
       }
-    } else {
-      form.setValue('restaurant', restaurant.name || restaurant);
     }
   };
 
   const handleSubmit = async (data: ReviewFormData) => {
-    if (!user) return;
+    if (!user || !selectedRestaurant) {
+      toast({
+        title: "Error",
+        description: "Please select a restaurant first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Ensure we have the restaurant ID (either from database or from Google Places)
+    if (!selectedRestaurant.id) {
+      toast({
+        title: "Error", 
+        description: "Restaurant information is incomplete. Please select a restaurant again.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
     try {
-      // For now, just show success message
-      // TODO: Update API to handle simplified review format
+      // Map the form data to the API format
+      const reviewData = {
+        restaurant_id: selectedRestaurant.id, // From the restaurant we selected
+        rating_overall: data.rating,
+        dish: data.dish,
+        review: data.review,
+        recommend: data.recommend,
+        tips: data.tips || '',
+        visit_date: new Date().toISOString(), // Current date
+        visibility: 'my_circles' as const,
+      };
+
+      const response = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reviewData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        
+        // Handle specific error cases with better messaging
+        if (response.status === 409 || errorData.error?.includes('already reviewed')) {
+          throw new Error('You have already reviewed this restaurant. Each user can only write one review per restaurant.');
+        }
+        
+        throw new Error(errorData.error || 'Failed to create review');
+      }
+
+      const result = await response.json();
+      
       toast({
         title: "Review posted!",
         description: "Your review has been shared with your network.",
       });
+      
       form.reset();
+      setSelectedRestaurant(null);
       onSubmit(true);
     } catch (error) {
       console.error('Error posting review:', error);
       toast({
         title: "Error",
-        description: "Failed to post your review. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to post your review. Please try again.",
         variant: "destructive",
       });
       onSubmit(false);

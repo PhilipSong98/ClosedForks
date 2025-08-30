@@ -15,29 +15,60 @@ interface Restaurant {
 interface SearchBarProps {
   onRestaurantSelect?: (restaurant: Restaurant) => void;
   placeholder?: string;
+  className?: string;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ 
   onRestaurantSelect, 
-  placeholder = "Search restaurants..." 
+  placeholder = "Search restaurants...",
+  className = ""
 }) => {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<Restaurant[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionToken, setSessionToken] = useState<string>('');
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
+  // Generate session token on component mount for cost optimization
+  useEffect(() => {
+    const generateSessionToken = () => {
+      return 'xxxx-xxxx-4xxx-yxxx-xxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    };
+    setSessionToken(generateSessionToken());
+  }, []);
+
   // Debounce search
   useEffect(() => {
-    if (query.length > 2) {
+    if (query.length > 2 && sessionToken) {
       setIsLoading(true);
       const timer = setTimeout(async () => {
         try {
-          // Use our existing Google Places API
-          const response = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(query)}`);
+          // Use POST with JSON body as expected by the API
+          const response = await fetch('/api/places/autocomplete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              input: query,
+              sessionToken: sessionToken,
+              country: 'se',
+              location: {
+                lat: 59.3293,
+                lng: 18.0686
+              },
+              radius: '50000'
+            }),
+          });
+          
           if (response.ok) {
             const data = await response.json();
             const formattedSuggestions = data.predictions?.map((prediction: any) => ({
@@ -50,6 +81,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
             setSuggestions(formattedSuggestions);
             setIsOpen(true);
             setSelectedIndex(-1);
+          } else {
+            console.error('API response not ok:', response.status, response.statusText);
+            setSuggestions([]);
           }
         } catch (error) {
           console.error('Search error:', error);
@@ -65,7 +99,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       setIsOpen(false);
       setIsLoading(false);
     }
-  }, [query]);
+  }, [query, sessionToken]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -139,7 +173,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full pl-12 pr-4 py-4 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200"
+          className={`w-full pl-12 pr-4 py-4 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 ${className}`}
         />
         {isLoading && (
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
