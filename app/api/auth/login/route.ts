@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import type { User } from '@/types'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
       .from('users')
       .select('id, email, name, password_set, first_login_completed, is_admin_user')
       .eq('id', authData.user.id)
-      .single()
+      .single() as { data: User | null; error: Error | null }
 
     if (profileError) {
       console.error('Profile fetch error after login:', profileError)
@@ -75,6 +76,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user needs to complete password setup
+    if (!profile) {
+      return NextResponse.json(
+        { success: false, error: 'Profile not found' },
+        { status: 500 }
+      )
+    }
+
     const requiresPasswordSetup = !profile.password_set || !profile.first_login_completed
 
     return NextResponse.json({
@@ -96,7 +104,7 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       )
     }

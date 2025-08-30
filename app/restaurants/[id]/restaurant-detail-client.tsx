@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StarRating } from '@/components/ui/StarRating';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { PRICE_LEVELS } from '@/constants';
-import type { Restaurant, Review } from '@/types';
+import type { Restaurant, Review, GooglePlaceData } from '@/types';
 
 interface RestaurantDetailClientProps {
   restaurant: Restaurant | null;
@@ -23,7 +23,7 @@ export default function RestaurantDetailClient({
 }: RestaurantDetailClientProps) {
   const router = useRouter();
   const { user } = useAuth();
-  const [reviews, setReviews] = useState<Review[]>(initialReviews);
+  const [reviews, _setReviews] = useState<Review[]>(initialReviews);
 
   const handleUserClick = (userId: string) => {
     router.push(`/profile/${userId}`);
@@ -36,7 +36,7 @@ export default function RestaurantDetailClient({
     : 0;
   const privateReviewCount = privateReviews.length;
 
-  const googleData = restaurant?.google_data as any;
+  const googleData = restaurant?.google_data as GooglePlaceData | undefined;
 
   // Debug: Check if we have data
   console.log('Restaurant data:', restaurant);
@@ -57,7 +57,7 @@ export default function RestaurantDetailClient({
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Restaurant not found</h1>
-            <p className="text-muted-foreground">The restaurant you're looking for doesn't exist.</p>
+            <p className="text-muted-foreground">The restaurant you&apos;re looking for doesn&apos;t exist.</p>
           </div>
         </main>
       </div>

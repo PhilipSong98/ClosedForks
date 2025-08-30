@@ -60,8 +60,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
             
             // Process restaurant results
             const restaurants = data.results
-              ?.filter((result: any) => result.type === 'restaurant')
-              ?.map((result: any) => ({
+              ?.filter((result: { type: string }) => result.type === 'restaurant')
+              ?.map((result: { id: string; name?: string; title?: string; address?: string; subtitle?: string; cuisine?: string; description?: string }) => ({
                 id: result.id,
                 name: result.name || result.title,
                 address: result.address || result.subtitle,
@@ -70,8 +70,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
             
             // Also include restaurants from reviews
             const reviewRestaurants = data.results
-              ?.filter((result: any) => result.type === 'review' && result.subtitle)
-              ?.map((result: any) => ({
+              ?.filter((result: { type: string; subtitle?: string }) => result.type === 'review' && result.subtitle)
+              ?.map((result: { restaurantId: string; subtitle: string; title: string }) => ({
                 id: result.restaurantId,
                 name: result.subtitle,
                 address: 'From review',
@@ -203,7 +203,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
       {isOpen && query.length > 2 && suggestions.length === 0 && !isLoading && (
         <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-xl shadow-lg p-4 text-center text-muted-foreground">
-          No restaurants found for "{query}"
+          No restaurants found for &quot;{query}&quot;
         </div>
       )}
     </div>

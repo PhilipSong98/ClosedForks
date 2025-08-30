@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+// import { createClient } from '@/lib/supabase/server'; // Currently unused
 import { placeDetailsSchema } from '@/lib/validations';
 import { mapGoogleTypesToCuisines, mapGooglePriceLevelToLocal, generateGoogleMapsUrl } from '@/lib/google/places';
+
+// Google Places API types
+interface GooglePlacePhoto {
+  photo_reference: string;
+  height: number;
+  width: number;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,7 +87,7 @@ export async function POST(request: NextRequest) {
             open_now: place.opening_hours.open_now,
             weekday_text: place.opening_hours.weekday_text,
           } : undefined,
-          photos: place.photos?.slice(0, 5).map((photo: any) => ({
+          photos: place.photos?.slice(0, 5).map((photo: GooglePlacePhoto) => ({
             photo_reference: photo.photo_reference,
             height: photo.height,
             width: photo.width,

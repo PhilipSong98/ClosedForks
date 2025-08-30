@@ -27,7 +27,7 @@ export function createFallbackUser(authUser: SupabaseUser): User {
     email: authUser.email!,
     name: authUser.user_metadata?.full_name || authUser.email!.split('@')[0],
     avatar_url: authUser.user_metadata?.avatar_url || PROFILE_FALLBACK_TEMPLATE.avatar_url,
-    home_city: PROFILE_FALLBACK_TEMPLATE.home_city,
+    home_city: PROFILE_FALLBACK_TEMPLATE.home_city || undefined,
     role: PROFILE_FALLBACK_TEMPLATE.role,
     created_at: new Date().toISOString(),
   };
@@ -155,7 +155,7 @@ export function generateDisplayName(
   userMetadata?: Record<string, unknown>
 ): string {
   // Prefer full name from metadata
-  if (userMetadata?.full_name) {
+  if (userMetadata?.full_name && typeof userMetadata.full_name === 'string') {
     return userMetadata.full_name;
   }
   

@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Update user profile to mark password as set
-    const { error: profileError } = await supabase
-      .from('users')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: profileError } = await (supabase.from('users') as any)
       .update({ 
         password_set: true,
         first_login_completed: true 
@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
 
     // If user is admin email, set admin status
     if (user.email === 'philip.song1998@gmail.com') {
-      const { error: adminError } = await supabase
-        .from('users')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: adminError } = await (supabase.from('users') as any)
         .update({ is_admin_user: true })
         .eq('id', user.id)
       
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       )
     }

@@ -65,7 +65,7 @@ export function ReviewForm({ restaurant, onCancel }: ReviewFormProps) {
     text: '',
     visit_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
     price_per_person: '',
-    visibility: 'my_circles' as const,
+    visibility: 'my_circles' as 'my_circles' | 'public',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {

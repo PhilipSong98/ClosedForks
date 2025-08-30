@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { headers } from 'next/headers'
+import type { User } from '@/types'
+
+interface MagicLinkRequestInsert {
+  email: string;
+  requested_by_ip: string;
+  requested_by_user_agent: string | null;
+}
 
 const magicLinkRequestSchema = z.object({
   email: z.string().email('Invalid email address')
@@ -13,20 +20,20 @@ export async function POST(request: NextRequest) {
     const { email } = magicLinkRequestSchema.parse(body)
 
     const supabase = await createClient()
-    const headersList = headers()
+    const headersList = await headers()
     
     // Get client info for tracking
     const userAgent = headersList.get('user-agent')
     const forwarded = headersList.get('x-forwarded-for')
     const realIp = headersList.get('x-real-ip')
-    const ipAddress = forwarded?.split(',')[0] || realIp || request.ip || 'unknown'
+    const ipAddress = forwarded?.split(',')[0] || realIp || 'unknown'
 
     // Check if user already exists and has a password
     const { data: existingUser } = await supabase
       .from('users')
       .select('id, email, password_set, is_admin_user')
       .eq('email', email)
-      .single()
+      .single() as { data: Pick<User, 'id' | 'email' | 'password_set' | 'is_admin_user'> | null; error: Error | null }
 
     // If user exists and has password, suggest they login instead
     if (existingUser && existingUser.password_set) {
@@ -62,13 +69,15 @@ export async function POST(request: NextRequest) {
     }
 
     // For non-admin users, log the request for admin approval
-    const { data: request_record, error: insertError } = await supabase
-      .from('magic_link_requests')
-      .insert({
-        email,
-        requested_by_ip: ipAddress,
-        requested_by_user_agent: userAgent
-      })
+    const insertData: MagicLinkRequestInsert = {
+      email,
+      requested_by_ip: ipAddress,
+      requested_by_user_agent: userAgent
+    };
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: request_record, error: insertError } = await (supabase.from('magic_link_requests') as any)
+      .insert(insertData)
       .select()
       .single()
 
@@ -105,7 +114,7 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid email address', details: error.errors },
+        { error: 'Invalid email address', details: error.issues },
         { status: 400 }
       )
     }
@@ -137,7 +146,7 @@ export async function GET(request: NextRequest) {
       .from('users')
       .select('is_admin_user')
       .eq('id', user.id)
-      .single()
+      .single() as { data: Pick<User, 'is_admin_user'> | null; error: Error | null }
 
     if (!profile?.is_admin_user) {
       return NextResponse.json(

@@ -25,7 +25,7 @@ export const restaurantSchema = z.object({
   name: z.string().min(1, 'Restaurant name is required').max(100),
   address: z.string().min(1, 'Address is required').max(200),
   city: z.string().min(1, 'City is required').max(50),
-  cuisine: z.array(z.enum(CUISINES as [string, ...string[]])).default([]),
+  cuisine: z.array(z.enum(CUISINES as unknown as [string, ...string[]])).default([]),
   price_level: z.number().int().min(1).max(4),
   website_url: z.string().url().optional().or(z.literal('')),
   booking_url: z.string().url().optional().or(z.literal('')),
@@ -76,7 +76,7 @@ export const reviewSchema = z.object({
   review: z.string().min(10, 'Review must be at least 10 characters').max(1000),
   recommend: z.boolean().default(true),
   tips: z.string().max(500).optional().default(''),
-  tags: z.array(z.enum(ALL_REVIEW_TAGS as [string, ...string[]])).max(5, 'Maximum 5 tags allowed').optional().default([]),
+  tags: z.array(z.enum(ALL_REVIEW_TAGS as unknown as [string, ...string[]])).max(5, 'Maximum 5 tags allowed').optional().default([]),
   visit_date: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid date').default(() => new Date().toISOString()),
   visibility: z.enum(['my_circles', 'public']).default('my_circles'),
   // Legacy fields - optional for backward compatibility

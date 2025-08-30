@@ -6,7 +6,7 @@ import { InviteCodeValidation } from '@/types';
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting check
-    const clientIP = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    const clientIP = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || 'unknown';
     
     if (!checkRateLimit(clientIP)) {
       return NextResponse.json(
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           valid: false, 
-          message: validation.error.errors[0]?.message || 'Invalid invite code format'
+          message: validation.error.issues[0]?.message || 'Invalid invite code format'
         },
         { status: 400 }
       );
@@ -36,7 +36,8 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // Use the database function to validate the invite code
-    const { data: result, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: result, error } = await (supabase as any)
       .rpc('validate_invite_code', { code_to_check: code });
 
     if (error) {

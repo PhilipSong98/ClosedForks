@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { INVITE_STATUS } from '@/constants';
+import type { Invite } from '@/types';
 
 export default function InvitePage() {
   const [invites] = useState([]); // Will be populated with real data later
@@ -103,7 +104,7 @@ export default function InvitePage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {invites.map((invite: any) => (
+                  {invites.map((invite: Invite) => (
                     <div
                       key={invite.id}
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"

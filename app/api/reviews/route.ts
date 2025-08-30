@@ -36,7 +36,8 @@ export async function GET(request: NextRequest) {
       query = query.eq('restaurant_id', restaurantId);
     }
 
-    const { data: reviews, error } = await query;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: reviews, error } = await query as { data: any[] | null; error: Error | null };
 
     if (error) {
       console.error('Error fetching reviews:', error);
@@ -50,10 +51,11 @@ export async function GET(request: NextRequest) {
     let reviewsWithUsers = reviews || [];
     if (reviewsWithUsers.length > 0) {
       const authorIds = reviewsWithUsers.map(review => review.author_id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: users, error: usersError } = await supabase
         .from('users')
         .select('id, name, email, avatar_url')
-        .in('id', authorIds);
+        .in('id', authorIds) as { data: { id: string; name: string; email: string; avatar_url?: string }[] | null; error: Error | null };
 
       if (!usersError && users) {
         // Map user data to reviews
@@ -126,8 +128,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: review, error } = await supabase
-      .from('reviews')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: review, error } = await (supabase.from('reviews') as any)
       .insert({
         ...validatedData,
         author_id: user.id,

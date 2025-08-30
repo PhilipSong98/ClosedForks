@@ -176,7 +176,7 @@ export function SetPasswordForm() {
                 ) : (
                   <>
                     <X size={14} className="text-red-500" />
-                    <span className="text-red-500">Passwords don't match</span>
+                    <span className="text-red-500">Passwords don&apos;t match</span>
                   </>
                 )}
               </div>

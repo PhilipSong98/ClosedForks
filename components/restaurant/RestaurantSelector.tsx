@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { Restaurant } from '@/types';
 
 interface RestaurantSelectorProps {
-  onSelect: (restaurant: Restaurant) => void;
+  onSelect: (restaurant: Restaurant | null) => void;
   selectedRestaurant?: Restaurant | null;
   className?: string;
 }
@@ -72,7 +72,7 @@ export function RestaurantSelector({ onSelect, selectedRestaurant, className = "
   };
 
   const handleClearSelection = () => {
-    onSelect(null as any);
+    onSelect(null);
     setError(null);
   };
 
@@ -90,7 +90,7 @@ export function RestaurantSelector({ onSelect, selectedRestaurant, className = "
             className="w-full"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Start typing to search for restaurants. We'll check our database first, then Google Places.
+            Start typing to search for restaurants. We&apos;ll check our database first, then Google Places.
           </p>
         </div>
       )}
