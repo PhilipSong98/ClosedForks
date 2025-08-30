@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapPin, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PRICE_LEVELS } from '@/constants';
+import { getRestaurantPhotoUrl } from '@/lib/utils';
 import type { Restaurant } from '@/types';
 
 interface RestaurantCardProps {
@@ -12,19 +14,33 @@ interface RestaurantCardProps {
 }
 
 export function RestaurantCard({ restaurant }: RestaurantCardProps) {
-  const avgRating = restaurant.avg_rating || 0;
-  const reviewCount = restaurant.review_count || 0;
+  const avgRating = restaurant.avg_rating ?? 0;
+  const reviewCount = restaurant.review_count ?? 0;
+  const photoUrl = getRestaurantPhotoUrl(restaurant, 400);
 
   return (
     <Link href={`/restaurants/${restaurant.id}`}>
-      <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
-        <CardContent className="p-4">
-          <div className="space-y-3">
+      <Card className="h-full hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
+        <CardContent className="p-0">
+          {/* Cover Image */}
+          {photoUrl && (
+            <div className="relative w-full h-48 overflow-hidden">
+              <Image
+                src={photoUrl}
+                alt={`${restaurant.name} cover photo`}
+                fill
+                className="object-cover transition-transform hover:scale-105"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            </div>
+          )}
+          
+          <div className="p-4 space-y-3">
             <div className="space-y-2">
               <h3 className="font-semibold text-lg line-clamp-1">
                 {restaurant.name}
               </h3>
-              <div className="flex items-center text-sm text-gray-600 gap-1">
+              <div className="flex items-center text-sm text-muted-foreground gap-1">
                 <MapPin className="h-4 w-4" />
                 <span className="line-clamp-1">{restaurant.address}, {restaurant.city}</span>
               </div>
@@ -32,19 +48,19 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {avgRating > 0 && (
+                {reviewCount > 0 && avgRating > 0 && (
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                     <span className="text-sm font-medium">
                       {avgRating.toFixed(1)}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       ({reviewCount} review{reviewCount !== 1 ? 's' : ''})
                     </span>
                   </div>
                 )}
-                {avgRating === 0 && (
-                  <span className="text-sm text-gray-500">No reviews yet</span>
+                {reviewCount === 0 && (
+                  <span className="text-sm text-muted-foreground">No reviews yet</span>
                 )}
               </div>
               
@@ -55,6 +71,7 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
               </div>
             </div>
 
+            {/* Cuisine Categories */}
             {restaurant.cuisine.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {restaurant.cuisine.slice(0, 3).map((cuisine) => (
@@ -67,6 +84,25 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
                     +{restaurant.cuisine.length - 3}
                   </Badge>
                 )}
+              </div>
+            )}
+
+            {/* Aggregated Tags from Reviews */}
+            {restaurant.aggregated_tags && restaurant.aggregated_tags.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-xs text-muted-foreground font-medium">Popular:</div>
+                <div className="flex flex-wrap gap-1">
+                  {restaurant.aggregated_tags.slice(0, 4).map((tag) => (
+                    <Badge key={tag} variant="outline" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                  {restaurant.aggregated_tags.length > 4 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{restaurant.aggregated_tags.length - 4}
+                    </Badge>
+                  )}
+                </div>
               </div>
             )}
           </div>

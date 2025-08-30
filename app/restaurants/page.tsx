@@ -1,64 +1,47 @@
-'use client';
+import { createClient } from '@/lib/supabase/server';
+import RestaurantsClient from './restaurants-client';
+import { Restaurant } from '@/types';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
+async function getAllRestaurants(): Promise<Restaurant[]> {
+  try {
+    const supabase = await createClient();
+    
+    // Server-side: Only fetch restaurants (no auth needed)
+    // Client-side will handle review aggregation with proper auth
+    const { data: allRestaurants, error: restaurantsError } = await supabase
+      .from('restaurants')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-export default function RestaurantsPage() {
-  const [restaurants] = useState([]); // Will be populated with real data later
+    if (restaurantsError) {
+      console.error('Error fetching restaurants:', restaurantsError);
+      return [];
+    }
+
+    // Return restaurants with placeholder values
+    // The client will populate review data with proper authentication
+    return (allRestaurants || []).map(restaurant => ({
+      ...restaurant,
+      avg_rating: 0,
+      review_count: 0,
+      aggregated_tags: []
+    }));
+  } catch (error) {
+    console.error('Error fetching restaurants:', error);
+    return [];
+  }
+}
+
+
+export default async function RestaurantsPage() {
+  // Fetch data server-side
+  const allRestaurants = await getAllRestaurants();
+
+  console.log(`Server-side: Found ${allRestaurants.length} restaurants (review data will be loaded client-side)`);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Restaurants</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Discover great places recommended by your network
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/restaurants/new">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Restaurant
-          </Link>
-        </Button>
-      </div>
-
-      {/* Filters - placeholder for now */}
-      <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
-        <p className="text-sm text-gray-600">
-          Filters (search, cuisine, price, city) will be implemented here
-        </p>
-      </div>
-
-      {/* Restaurant Grid */}
-      {restaurants.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <span className="text-2xl">🍽️</span>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No restaurants yet
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Be the first to add a restaurant to your network
-          </p>
-          <Button asChild>
-            <Link href="/restaurants/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Add First Restaurant
-            </Link>
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {restaurants.map((restaurant: any) => (
-            <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-          ))}
-        </div>
-      )}
-    </div>
+    <RestaurantsClient 
+      initialRestaurants={allRestaurants}
+    />
   );
 }

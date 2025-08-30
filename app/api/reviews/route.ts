@@ -16,9 +16,18 @@ export async function GET(request: NextRequest) {
       .from('reviews')
       .select(`
         *,
-        author:users(id, name, email, avatar_url),
-        restaurant:restaurants(id, name, city),
-        photos:review_photos(*)
+        restaurants(
+          id,
+          name,
+          address,
+          city,
+          cuisine,
+          google_data,
+          google_place_id,
+          google_maps_url,
+          lat,
+          lng
+        )
       `)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -37,7 +46,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ reviews });
+    // If we have reviews, manually fetch the user data for each one
+    let reviewsWithUsers = reviews || [];
+    if (reviewsWithUsers.length > 0) {
+      const authorIds = reviewsWithUsers.map(review => review.author_id);
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, email, avatar_url')
+        .in('id', authorIds);
+
+      if (!usersError && users) {
+        // Map user data to reviews
+        reviewsWithUsers = reviewsWithUsers.map(review => ({
+          ...review,
+          author_user: users.find(user => user.id === review.author_id)
+        }));
+      }
+    }
+
+    // Transform the data to match expected format with manually joined user data
+    const formattedReviews = reviewsWithUsers.map(review => ({
+      ...review,
+      restaurant: review.restaurants,  // Map joined restaurant data to expected name
+      author: review.author_user,      // Map manually joined user data
+    }));
+
+    return NextResponse.json({ reviews: formattedReviews });
   } catch (error) {
     console.error('Unexpected error:', error);
     return NextResponse.json(
@@ -98,12 +132,7 @@ export async function POST(request: NextRequest) {
         ...validatedData,
         author_id: user.id,
       })
-      .select(`
-        *,
-        author:users(id, name, email, avatar_url),
-        restaurant:restaurants(id, name, city),
-        photos:review_photos(*)
-      `)
+      .select('*')
       .single();
 
     if (error) {

@@ -5,8 +5,8 @@ This file provides comprehensive context for AI assistants working on the Restau
 ## 🎯 Project Overview
 
 **What**: Mobile-first, invite-only restaurant review platform for friends & family
-**Goal**: Private network for trusted restaurant recommendations
-**Status**: Core MVP implemented, ready for enhancements
+**Goal**: Private network for trusted restaurant recommendations  
+**Status**: Core MVP implemented with Instagram-style feed
 
 ### Core Business Rules
 - **Private by default**: Only invited users can access
@@ -17,39 +17,30 @@ This file provides comprehensive context for AI assistants working on the Restau
 
 ## ✅ Current Implementation Status
 
-### Completed Features
-- [x] Next.js 14 with TypeScript and App Router setup
-- [x] Tailwind CSS + shadcn/ui component system
-- [x] Supabase integration (auth + database + storage)
-- [x] Authentication system (magic link via Supabase)
-- [x] Database schema with RLS policies
-- [x] User management with roles (user/admin)
-- [x] Restaurant CRUD operations
-- [x] Multi-dimensional rating system (overall, food, service, vibe, value)
-- [x] Invite system with expiring codes
-- [x] Mobile-responsive navigation
-- [x] API routes with validation
-- [x] Environment configuration with feature flags
-- [x] Comprehensive documentation
-- [x] **Google Places API integration** - Smart restaurant discovery
-- [x] **Review creation flow** - Complete UI with restaurant selection
-- [x] **Location-based search** - Stockholm-focused with 50km bias
-- [x] **Cost-optimized API usage** - Session tokens and intelligent caching
-- [x] **Production-ready authentication** - Fixed PKCE flow, session persistence, and cookie conflicts
-- [x] **Robust error handling** - Fallback user data and timeout protection
+### Core Features (Fully Operational)
+- [x] Next.js 14 + TypeScript + App Router + Tailwind CSS + shadcn/ui
+- [x] Supabase integration (auth + database + RLS policies)
+- [x] **Modern invite code authentication system** with clean design
+- [x] **DineCircle branding** - "Where Your Circle Dines" 
+- [x] **6-digit invite code system** with exclusive landing page
+- [x] **Clean modern UI** - Light gray/white professional design
+- [x] **Fixed signup flow** - Resolved RLS policies, foreign key constraints, email confirmation
+- [x] Instagram-style single-column review feed 
+- [x] Dedicated restaurants page for discovery
+- [x] Google Places API integration with cost optimization
+- [x] Complete review system with tagging (35 food-focused tags)
+- [x] **Enhanced filtering system** - Collapsed by default, rating/price/date controls
+- [x] **Private network search** - Database-only search with proper error handling
+- [x] **Restaurant detail pages** - Dual ratings, sidebar layout, grid reviews
+- [x] Modal-based responsive UI (Sheet mobile, Dialog desktop)
+- [x] Mobile-first responsive design
 
-### Pending Features (Future Sprints)
+### Pending Features
 - [ ] Photo upload for reviews
-- [ ] Restaurant detail pages with embedded maps
-- [ ] Advanced filtering and search
-- [ ] User-selectable location preferences (Nordic cities)
-- [ ] Email notifications via Resend
-- [ ] Admin dashboard for reports/moderation
-- [ ] User lists/collections
-- [ ] Analytics integration
-- [ ] Testing suite (Playwright)
-- [ ] Seed data script
-- [ ] Re-enable authentication for Places API routes
+- [ ] Restaurant detail pages with maps
+- [ ] Email notifications
+- [ ] Admin dashboard
+- [ ] User collections/lists
 
 ## 🏗️ Architecture & Key Files
 
@@ -58,476 +49,160 @@ This file provides comprehensive context for AI assistants working on the Restau
 restaurant/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API routes
-│   ├── auth/              # Auth callback handling
-│   ├── restaurants/       # Restaurant pages
-│   ├── invite/            # Invite management
-│   └── layout.tsx         # Root layout with AuthWrapper
-├── components/            # React components
-│   ├── auth/              # Authentication components
-│   ├── layout/            # Navigation, AuthWrapper
-│   ├── restaurant/        # Restaurant-specific components
+│   ├── home-client.tsx    # Instagram-style feed
+│   └── restaurants/       # Restaurant discovery page
+├── components/
+│   ├── filters/           # EnhancedFilters system  
+│   ├── layout/            # Header, AuthWrapper, FABs
+│   ├── review/            # ReviewComposer, ReviewCard
+│   ├── search/            # SearchBar, GlobalSearchModal
 │   └── ui/                # shadcn/ui components
-├── lib/                   # Utilities and configurations
-│   ├── supabase/          # Supabase client setup
-│   ├── hooks/             # Custom React hooks
+├── lib/
+│   ├── supabase/          # Database clients & middleware
+│   ├── hooks/             # useAuth, useMediaQuery, etc.
 │   └── validations/       # Zod schemas
-├── types/                 # TypeScript definitions
-├── constants/             # App constants and enums
-├── supabase/              # Database schema & migrations
-│   ├── migrations/        # Version-controlled database changes
-│   ├── schema.sql         # Legacy schema (use migrations instead)
-│   └── README.md          # Migration documentation
-├── scripts/               # Development scripts
-│   └── migrate.sh         # Migration helper script
-└── middleware.ts          # Supabase auth middleware
+├── supabase/migrations/   # Database migrations
+└── constants/             # Tags, cuisines, cities
 ```
 
 ### Critical Files
-- `supabase/migrations/`: Version-controlled database migrations
-- `supabase/schema.sql`: Legacy schema file (use migrations instead)
-- `lib/supabase/client.ts`: Database types and browser client setup
-- `lib/supabase/server.ts`: Server-side Supabase client
-- `lib/supabase/middleware.ts`: Session handling middleware
-- `app/auth/callback/route.ts`: OAuth callback handler with PKCE flow
-- `lib/hooks/useAuth.ts`: Authentication hook with profile management
-- `middleware.ts`: Session refresh for server components
-- `constants/index.ts`: Enums, cuisines, price levels
-- `lib/validations/index.ts`: Zod schemas for API validation
-- `lib/google/places.ts`: Google Places API utilities
-- `lib/constants/cities.ts`: City locations for restaurant search
-- `components/places/PlacesAutocomplete.tsx`: Smart restaurant search
-- `components/restaurant/RestaurantSelector.tsx`: Restaurant discovery flow
-- `app/reviews/new/page.tsx`: Complete review creation experience
+- `app/welcome/page.tsx`: **NEW** - Modern landing page with 6-digit invite code entry
+- `app/signup/page.tsx`: **NEW** - Complete account creation with validation
+- `app/signin/page.tsx`: **NEW** - Email/password authentication (no magic links)
+- `app/admin/invite-codes/page.tsx`: **NEW** - Admin invite code management
+- `app/home-client.tsx`: Instagram-style feed with filtering
+- `app/restaurants/page.tsx`: Restaurant discovery page
+- `components/filters/EnhancedFilters.tsx`: Professional filter system
+- `components/review/ReviewComposer.tsx`: Modal-based review creation
+- `components/search/GlobalSearchModal.tsx`: Search with keyboard shortcuts
+- `lib/hooks/useAuth.ts`: Authentication with fallback handling
+- `supabase/migrations/`: Database schema (use migrations, not schema.sql)
+
+## 🗄️ Database Schema
+
+### Core Tables
+- `users`: User profiles with roles (user/admin) + `full_name` field
+- `restaurants`: Restaurant data + Google Places integration
+  - `google_place_id`, `google_maps_url`, `google_data`, `last_google_sync`
+- `reviews`: Simplified rating system + tagging
+  - `rating_overall`, `dish`, `review`, `recommend`, `tips`, `tags[]`
+  - GIN index on tags for efficient filtering
+- `invite_codes`: **NEW** - 6-digit code management system
+  - `code`, `max_uses`, `current_uses`, `is_active`, `expires_at`
+  - Rate limiting and usage tracking
+- `invite_code_usage`: **NEW** - Audit trail for code usage
+  - `invite_code_id`, `user_id`, `ip_address`, `user_agent`, `used_at`
+
+### RLS Policies
+- Network-based review visibility
+- Users edit only their own content  
+- Admins bypass restrictions
 
 ## 🔧 Development Workflow
 
 ### Environment Setup
 1. Copy `.env.example` to `.env.local`
-2. Create Supabase project
-3. Apply database migration (see Database Migrations section below)
-4. Configure environment variables (see `.env.example`)
-5. Run `npm install && npm run dev`
+2. Create Supabase project and apply migrations: `supabase db push`
+3. Configure environment variables
+4. Run `npm install && npm run dev`
 
 ### Key Commands
 ```bash
 npm run dev          # Development server
-npm run build        # Production build
+npm run build        # Production build  
 npm run lint         # ESLint check
 npm run type-check   # TypeScript validation
-
-# Database migrations
-npm run db:migrate   # Apply migrations to remote database
-npm run db:new       # Create new migration
-npm run db:status    # Check migration status
+npm run db:migrate   # Apply migrations
 ```
 
-### Database Migrations
-**IMPORTANT**: Always use migrations for database changes, never modify schema directly.
-
+### Database Changes
 ```bash
-# Apply the initial migration to fix authentication
-supabase db push
-
-# Create new migration for schema changes
-npm run db:new migration_name
-
-# Apply migrations to remote database
-npm run db:migrate
-
-# Check what migrations are pending
-npm run db:status
+supabase migration new migration_name  # Create migration
+supabase db push                       # Apply to remote
 ```
 
-**Applied Migration (Clean State):**
-- ✅ `20250829233334_reset_and_initialize_database.sql` - Complete clean migration (SUCCESSFULLY APPLIED)
+## 🎨 Current UI Architecture
 
-**Archived Migrations** (in `supabase/migrations_archive/`):
-- ❌ `20250829230023_fix_users_table_schema.sql` - Archived (was partial fix)
-- ❌ `20250829231123_fix_rls_policy_recursion.sql` - Archived (was partial fix)
-- ❌ `20250829232355_fix_profile_creation_policy.sql` - Archived (was partial fix)
-- ❌ `20250829232628_initial_schema_setup.sql` - Archived (was reference only)
+### Instagram-Style Feed
+- **Homepage**: Single-column review feed (max-width: 512px)
+- **ReviewCard**: Large 4:3 images, user headers, inline tips, tag badges
+- **Restaurants Page**: Separated discovery with SearchBar and filters
 
-**Migration Files Location:** `supabase/migrations/`
-**Documentation:** See `supabase/README.md` for detailed migration workflow
+### Responsive System
+- **Mobile**: Full-screen sheets, collapsible filters, touch-optimized
+- **Desktop**: Centered dialogs, expanded filters, hover effects
+- **Conditional Rendering**: `useMediaQuery` hook for Sheet vs Dialog
 
-### Adding shadcn/ui Components
-```bash
-npx shadcn@latest add [component-name]
+### Review Schema (Simplified)
+```typescript
+{
+  rating_overall: number,  // Single 1-5 star rating
+  dish: string,           // What did you eat?  
+  review: string,         // Main review text
+  recommend: boolean,     // Would recommend?
+  tips?: string,          // Pro tips
+  tags?: string[]         // Up to 5 tags from 35 options
+}
 ```
 
-## 🎨 Design System
+## 🔍 Key Features
 
-### UI Components (shadcn/ui)
-- All components in `components/ui/`
-- Customizable via `tailwind.config.js`
-- Follows Radix UI accessibility standards
+### Enhanced Filtering System
+- **Tag-based**: 35 food-focused tags in 4 color-coded categories
+- **Advanced Controls**: Rating slider, price range, date filters
+- **Collapsed by Default**: Clean interface on both homepage and restaurants page
+- **Mobile UX**: Expandable interface with live results counter
+- **Real-time**: Client-side filtering for instant results
 
-### Styling Conventions
-- Tailwind CSS utility classes
-- Mobile-first responsive design
-- Consistent spacing and typography
-- Color scheme defined in `globals.css`
+### Private Network Search
+- **Database-Only**: Restaurant page search limited to private network
+- **API**: `/api/search` searches only private reviews and restaurants
+- **Enhanced UX**: Fixed React controlled input warnings, proper fallbacks
+- **Smart Results**: Shows restaurants + restaurants from reviews with deduplication
 
-## ✅ Database Status: FULLY OPERATIONAL
+### Google Places Integration
+- **Stockholm-focused**: 50km bias, cost-optimized with session tokens
+- **Auto-import**: Restaurant data, photos, hours on selection
+- **Smart caching**: Store Google data permanently, refresh periodically
 
-### Previous Authentication Issues (ALL RESOLVED ✅)
-**Problem**: Multiple authentication and RLS policy issues
-**Root Causes**: 
-- Users table ID mismatch with auth.users
-- RLS policy infinite recursion
-- Restrictive INSERT policies
+## 🔐 Authentication - Modern Invite Code System
 
-**Solution**: ✅ **CLEAN SLATE RESET** - Single comprehensive migration
-
-### Current Status: ✅ DATABASE FULLY OPERATIONAL
-
-**Applied Migrations**: 
-- `20250829233334_reset_and_initialize_database.sql` - Complete clean database reset
-- `20250830094836_add_google_places_fields.sql` - Google Places integration fields
-
-**Migration Status:**
-- ✅ **Database fully operational** - All authentication and RLS issues resolved
-- ✅ **Google Places ready** - New fields added for restaurant data caching
-- ✅ **Future-proof schema** - Ready for additional features
-
-**Old Migrations**: Archived to `supabase/migrations_archive/` for reference
-
-**Benefits Achieved**:
-- ✅ No policy conflicts - all authentication working
-- ✅ Clear, stable schema - ready for development
-- ✅ Future migrations will work seamlessly
-- ✅ All authentication issues permanently resolved
-
-## 🗺️ Google Places Integration
-
-### ✅ FULLY IMPLEMENTED AND OPERATIONAL
-
-**Status**: Complete implementation with Stockholm focus and cost optimization
+### New Authentication Flow
+1. **Landing Page** (`/welcome`) → Enter 6-digit invite code (test: `123456`)
+2. **Code Validation** → Server-side validation with rate limiting (5 attempts/15min)
+3. **Account Creation** (`/signup`) → Full name, email, password with strength validation
+4. **Existing Users** (`/signin`) → Simple email/password login
+5. **Session Management** → Secure cookies with 30-minute invite code sessions
 
 ### Key Features
-- **Smart Restaurant Search**: Google Places Autocomplete with 300ms debouncing
-- **Automatic Data Import**: Name, address, hours, photos, ratings from Google
-- **Location Optimization**: Stockholm-focused with 50km radius bias
-- **Cost Minimization**: Session tokens + caching = ~$3-5/month for small user base
-- **Database Integration**: Intelligent deduplication and data enrichment
-
-### Implementation Components
-
-#### **API Routes** (`app/api/places/`)
-- `autocomplete/route.ts` - Google Places predictions with session tokens
-- `details/route.ts` - Full restaurant data fetch with field masking
-- `find-or-create/route.ts` - Smart restaurant creation/updating
-
-#### **React Components**
-- `PlacesAutocomplete` - Debounced search with dropdown predictions
-- `RestaurantSelector` - Complete restaurant discovery flow
-- `ReviewForm` - Multi-dimensional rating system
-- Complete review creation page at `/reviews/new`
-
-#### **Data Layer**
-- Google Places fields in restaurants table
-- City location constants for Nordic region
-- Validation schemas for API parameters
-- Intelligent caching strategy
-
-### User Experience
-1. **Type restaurant name** → Google Places suggestions appear
-2. **Select restaurant** → Auto-imports all data if new, matches existing if duplicate
-3. **Rich display** → Shows hours, ratings, directions link
-4. **Complete review** → Full 5-dimension rating system
-
-### Cost Strategy
-- **Session Tokens**: Only pay when restaurant selected (~$0.017 per selection)
-- **Database First**: Check existing restaurants before Google API
-- **Smart Caching**: Store Google data permanently, refresh periodically
-- **Field Masking**: Request only needed data from Google
-
-### Location Configuration
-- **Current**: Stockholm, Sweden (59.3293, 18.0686) with 50km radius
-- **Future Ready**: Nordic cities predefined in `lib/constants/cities.ts`
-- **Expandable**: User-selectable location preferences
-
-## 🗄️ Database Schema
-
-### Core Tables
-- `users`: User profiles with roles
-- `restaurants`: Restaurant data with location + **Google Places integration**
-  - `google_place_id`: Google's unique identifier
-  - `google_maps_url`: Free directions link
-  - `google_data`: Cached place details (hours, photos, ratings)
-  - `last_google_sync`: Data freshness tracking
-- `reviews`: Multi-dimensional ratings with visit details
-- `invites`: Invitation system with expiring codes
-- `review_photos`: Image metadata for reviews
-- `reports`: Content moderation system
-
-### Important RLS Policies
-- Users see only their network's reviews
-- Users can only edit their own content
-- Admins bypass most restrictions
-- Public endpoints require authentication
-
-### Key Database Functions
-- `get_restaurant_with_avg()`: Computed ratings visible to viewer
-- Auto-updating `updated_at` triggers on reviews
-
-## 🔐 Security Implementation
-
-### Authentication
-- Magic link via Supabase Auth
-- Session management through middleware
-- Automatic user profile creation
-
-### Authorization
-- Row-Level Security (RLS) on all tables
-- Role-based permissions (user/admin)
-- Input validation with Zod schemas
-
-### Data Privacy
-- Network-based review visibility
-- HTTPS enforcement in production
-- Secure environment variable handling
-
-## 🚀 Feature Flags
-
-### Maps Integration (`NEXT_PUBLIC_ENABLE_MAPS`)
-- Default: `false`
-- When enabled: Google Places integration for restaurant search
-- Affects: Restaurant creation form, search functionality
-
-## 📝 Common Development Tasks
-
-### Adding a New API Endpoint
-1. Create route in `app/api/[resource]/route.ts`
-2. Add Zod validation schema in `lib/validations/`
-3. Update TypeScript types in `types/index.ts`
-4. Test authentication and authorization
-
-### Adding a New Page
-1. Create page in `app/[path]/page.tsx`
-2. Add navigation link in `components/layout/Navigation.tsx`
-3. Ensure mobile responsiveness
-4. Add to README if significant
-
-### Database Schema Changes
-1. Create new migration: `supabase migration new migration_name`
-2. Write SQL changes in the generated migration file
-3. Apply migration: `supabase db push`
-4. Update `lib/supabase/client.ts` types if needed
-5. Update validation schemas
-6. Test RLS policies
-
-### Adding a New Component
-1. Create in appropriate `components/` subdirectory
-2. Follow existing patterns for props/styling
-3. Add TypeScript interfaces
-4. Ensure accessibility compliance
-
-## 🔐 Authentication Implementation
-
-### Overview
-The app uses Supabase Auth with magic links, implementing the modern PKCE (Proof Key for Code Exchange) flow for security. Authentication is fully working with production-ready error handling and session management.
-
-### Key Components
-
-#### **Server-Side Route Handler** (`app/auth/callback/route.ts`)
-- Handles OAuth callback from magic links
-- Exchanges authorization code for session tokens
-- Creates user profiles automatically
-- Detects and logs conflicting cookies
-- Redirects to authenticated app
-
-#### **Client-Side Auth Hook** (`lib/hooks/useAuth.ts`)
-- Manages auth state and user profile data
-- Implements fallback user data from auth session
-- Handles profile fetch with timeout protection
-- Provides sign-in, sign-out, and profile update functions
-
-#### **Supabase Clients**
-- **Browser Client** (`lib/supabase/client.ts`): Uses `createBrowserClient` for proper cookie handling
-- **Server Client** (`lib/supabase/server.ts`): Server-side client with cookie integration
-- **Middleware** (`lib/supabase/middleware.ts`): Session refresh for server components
-
-### Authentication Flow
-1. **Magic Link Request**: User enters email, receives magic link
-2. **Callback Processing**: Link redirects to `/auth/callback?code=XXX`
-3. **Token Exchange**: Server exchanges code for session using PKCE
-4. **Profile Creation**: User profile created if doesn't exist
-5. **Session Storage**: Auth tokens stored in secure cookies
-6. **Client Auth**: Browser client reads session, fetches/creates profile
-7. **Fallback Handling**: Uses auth data if profile fetch fails
-
-### Security Features
-- ✅ **PKCE Flow**: Secure authorization code exchange
-- ✅ **Cookie Security**: Proper httpOnly, secure, sameSite settings
-- ✅ **Session Refresh**: Automatic token renewal
-- ✅ **RLS Policies**: Database-level authorization
-- ✅ **Timeout Protection**: Prevents hanging requests
-- ✅ **Conflict Detection**: Handles multiple Supabase project cookies
-
-### Troubleshooting Authentication
-
-#### **Common Issues & Solutions**
-
-**1. Infinite Loading After Magic Link**
-- **Cause**: Conflicting cookies from multiple Supabase projects
-- **Solution**: Clear all localhost:3000 cookies in DevTools → Application → Storage
-
-**2. "Code verifier should be non-empty" Error**
-- **Cause**: PKCE cookies missing or corrupted
-- **Solution**: Clear cookies and try fresh magic link
-
-**3. Profile Fetch Timeout**
-- **Cause**: Database query hanging or RLS policy issues
-- **Solution**: App uses fallback auth data automatically
-
-**4. Session Not Persisting**
-- **Cause**: Cookie configuration issues
-- **Solution**: Ensure using `createBrowserClient` from `@supabase/ssr`
-
-#### **Debug Steps**
-1. Check browser console for auth logs
-2. Verify environment variables are set
-3. Check Network tab for failed requests  
-4. Clear cookies if experiencing conflicts
-5. Check Supabase dashboard for auth logs
-
-### Best Practices Implemented
-- Server-side profile creation during auth callback
-- Fallback user data prevents auth failures from blocking app
-- Timeout protection with AbortController
-- Comprehensive error logging
-- Cookie conflict detection and cleanup
-- Production-ready error boundaries
-
-## 🔍 Debugging Tips
-
-### Common Issues
-1. **Auth not working**: Check callback URL in Supabase Auth settings
-2. **Database connection**: Verify environment variables
-3. **RLS blocking queries**: Check user permissions in Supabase
-4. **Build failures**: Run `npm run type-check` first
-
-### Useful Debugging Commands
-```bash
-# Check TypeScript issues
-npm run type-check
-
-# Lint and fix issues
-npm run lint --fix
-
-# Check environment variables
-echo $NEXT_PUBLIC_SUPABASE_URL
-
-# Supabase logs (if CLI installed)
-supabase logs
-```
-
-## 📊 Performance Considerations
-
-### Implemented Optimizations
-- Server-side rendering with App Router
-- Efficient database queries with RLS
-- Lazy loading for components
-- Image optimization ready (Next.js built-in)
-
-### Future Optimizations
-- Database indexes for common queries
-- Caching layer for restaurant data
-- Image compression for review photos
-- CDN for static assets
-
-## 🎯 Business Context
-
-### Target Users
-- Friend/family networks sharing restaurant experiences
-- Privacy-conscious users wanting private recommendations
-- Small communities (10-100 users initially)
-
-### Key Metrics to Track
-- User engagement (reviews created)
-- Network growth (successful invites)
-- Restaurant coverage by city
-- Mobile usage patterns
-
-## 📚 Technical Decisions & Rationale
-
-### Why Next.js App Router?
-- Server components for better performance
-- Built-in API routes
-- Excellent TypeScript support
-- Vercel deployment optimization
-
-### Why Supabase?
-- Built-in authentication
-- PostgreSQL with geographic extensions
-- Row-Level Security
-- Real-time capabilities (future use)
-
-### Why shadcn/ui?
-- Accessible components out of the box
-- Customizable design system
-- Copy-paste, not dependency
-- Excellent TypeScript support
-
-## 🚦 Development Guidelines
-
-### Code Standards
-- TypeScript strict mode enabled
-- ESLint + Prettier for formatting
-- Functional components with hooks
-- Server components where possible
-
-### Git Workflow
-- Feature branches for new development
-- Descriptive commit messages
-- Pull request reviews for main branch
-- Deploy main branch to production
-
-### Testing Strategy (Future)
-- Playwright for E2E testing
-- Jest for unit tests
-- Supabase local dev for testing
-- Staging environment for integration tests
-
-## 🔮 Future Enhancements
-
-### Phase 2 Features
-- Review photos with compression
-- Advanced search and filters
-- Email notifications
-- Admin dashboard
-
-### Phase 3 Features
-- Maps integration with Places API
-- User collections/lists
-- Social features (comments, reactions)
-- Analytics dashboard
-
-### Technical Improvements
-- Progressive Web App (PWA)
-- Offline capabilities
-- Advanced caching strategies
-- Performance monitoring
-
-## 🆘 Getting Help
-
-### When Stuck
-1. Check this documentation first
-2. Review error logs in browser/terminal
-3. Check Supabase dashboard for database issues
-4. Consult Next.js and Supabase documentation
-5. Review recent commit history for context
-
-### Useful Resources
-- [Next.js App Router Docs](https://nextjs.org/docs/app)
-- [Supabase Docs](https://supabase.com/docs)
-- [shadcn/ui Components](https://ui.shadcn.com/)
-- [Tailwind CSS Docs](https://tailwindcss.com/docs)
+- **Exclusive Design** - Clean, modern gray/white aesthetic
+- **Individual Digit Inputs** - 6 separate input boxes with auto-focus
+- **DineCircle Branding** - "Where Your Circle Dines" consistent across all pages
+- **Admin Management** - `/admin/invite-codes` for code oversight
+- **Security** - Rate limiting, session expiry, audit trails, RLS policies
+- **Fixed Signup Issues** - Atomic user creation, resolved RLS conflicts, email auto-confirmation
+
+### Test Access
+- **Invite Code**: `123456` (50 uses, always active)
+- **Admin Access**: Users with `is_admin_user = true` can access admin panel
+- **Database Functions**: `validate_invite_code()` and `use_invite_code()` for server-side processing
+
+## 📝 Common Tasks
+
+### Adding API Endpoint
+1. Create `app/api/[resource]/route.ts`
+2. Add Zod validation in `lib/validations/`
+3. Update TypeScript types
+
+### Database Changes
+1. `supabase migration new name`
+2. Write SQL in migration file
+3. `supabase db push`
+4. Update types if needed
 
 ## 📋 Quick Reference
 
-### Environment Variables (Required)
+### Environment Variables
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
@@ -535,22 +210,21 @@ SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_APP_URL=
 ```
 
-### Important Constants
-- Price levels: 1-4 ($, $$, $$$, $$$$)
+### Key Constants
 - Rating scale: 1-5 stars
-- Invite expiry: 7 days default
-- Supported cuisines: See `constants/index.ts`
+- Price levels: 1-4 ($-$$$$)
+- Max tags per review: 5
+- Invite expiry: 7 days
 
 ### API Endpoints
 - `GET /api/restaurants` - List restaurants
-- `POST /api/restaurants` - Create restaurant
-- `GET /api/reviews?restaurant_id=X` - Restaurant reviews
-- `POST /api/reviews` - Create review
-- `GET /api/invites` - User's invites
+- `POST /api/reviews` - Create review  
+- `GET /api/search?q=term` - Search reviews/restaurants
 - `POST /api/invites` - Create invite
 
----
+## 🚀 Next Steps
+Ready for photo uploads, restaurant detail pages, and advanced social features!
 
-**Last Updated**: 2025-01-30
-**Project Version**: MVP v1.0
-**Next AI**: You're ready to build amazing features! 🚀
+---
+**Last Updated**: 2025-01-31  
+**Status**: MVP v1.4 - Enhanced UX & Private Search Complete

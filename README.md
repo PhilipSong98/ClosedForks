@@ -1,27 +1,240 @@
-# Restaurant Reviews - Private Network
+# DineCircle - Where Your Circle Dines
 
-A mobile-first, invite-only restaurant review site for friends & family. Share trusted restaurant recommendations within your private network.
+A mobile-first, invite-only restaurant review platform for friends & family. Share trusted restaurant recommendations within your private network with a beautiful, modern interface.
 
 ## Features
 
-- 🔐 **Private by Default** - Invite-only access with magic link authentication
+- 🔐 **Private by Default** - Exclusive invite-only access with 6-digit invite code system
 - 🍽️ **Smart Restaurant Discovery** - Google Places API integration with autocomplete search
-- ⭐ **Multi-dimensional Reviews** - Rate food, service, vibe, and value separately
-- 📱 **Mobile-First Design** - Responsive UI optimized for mobile devices
+- ⭐ **Simplified Review System** - Clean, user-friendly single rating with detailed text reviews
+- 🎨 **Instagram-Style Feed** - Single-column social media feed with large images and clean card design
+- 🎯 **Global FAB Interface** - Single floating action button for review creation across all pages
+- 📱 **Mobile-First Design** - Optimized for social media consumption patterns with intuitive navigation
 - 🌍 **Location Aware** - Stockholm-focused with 50km radius bias
 - 👥 **Network-Based** - Reviews visible only to your trusted network
 - 📧 **Email Notifications** - Powered by Resend for invites and updates
 - 🔒 **Secure** - Row-level security with Supabase
 - 🗺️ **Maps Integration** - Free Google Maps links for directions and venue details
+- 🏷️ **Professional Tag System** - 35 relevant food-focused tags across dishes, cuisine, meal type, and vibe categories
+- 🔍 **Advanced Filter System** - Instagram-level filtering with rating, price, date, and recommendation filters
 
 ## Tech Stack
 
 - **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui
+- **State Management**: Tanstack Query for server state management
 - **Backend**: Supabase (PostgreSQL + Auth + Storage)
 - **Maps & Places**: Google Places API (New) for restaurant discovery
 - **Email**: Resend
 - **Deployment**: Vercel
 - **Validation**: Zod
+- **UI Components**: Custom responsive popup system with Sheet (mobile) and Dialog (desktop)
+
+## Recent Updates
+
+### 🔧 UI/UX Improvements (January 2025)
+
+Enhanced user experience with cleaner interfaces and fixed search functionality:
+
+#### **✅ Restaurant Detail Page Enhancements**
+- **Dual Rating Display** - Shows both private network rating and Google rating prominently
+- **Proper Rating Calculation** - Real-time calculation from actual private reviews
+- **Enhanced Sidebar** - Sticky restaurant info with contact details, hours, and action buttons
+- **Grid Layout for Reviews** - Responsive grid display for better visual organization
+- **Fixed Google Maps Links** - Multiple fallback options for reliable map access
+
+#### **✅ Search System Improvements**
+- **Private Database Only** - Restaurant search now limited to your private network
+- **Fixed Input Errors** - Resolved React controlled/uncontrolled component warnings
+- **Enhanced Results** - Shows restaurants + restaurants from reviews with deduplication
+- **Better Error Handling** - Proper fallback values and loading states
+
+#### **✅ Filter System Optimization**
+- **Collapsed by Default** - Both homepage and restaurants page start with collapsed filters
+- **Cleaner Interface** - Reduces visual clutter and improves first impression
+- **Expandable on Demand** - Full functionality available when needed
+- **Consistent Experience** - Same behavior across all pages
+
+### 🎨 Modern Authentication System & Clean Design (Latest - August 30, 2025)
+
+Complete redesign of authentication flow with modern, clean aesthetic and invite code system:
+
+#### **✅ Exclusive Invite Code System**
+- **6-Digit Code Entry** - Beautiful landing page with individual digit inputs
+- **Modern Clean Design** - Light gray/white color palette inspired by contemporary apps
+- **DineCircle Branding** - "Where Your Circle Dines" with consistent logo and typography
+- **Test Code Available** - Use `123456` for immediate access during development
+
+#### **🎯 Streamlined User Experience**
+- **Landing Page** (`/welcome`) - Exclusive invite code entry with premium feel
+- **Account Creation** (`/signup`) - Complete form with password strength validation
+- **Member Login** (`/signin`) - Simple email/password authentication (no magic links)
+- **Cross-Navigation** - Smooth transitions between all authentication pages
+
+#### **🔧 Technical Implementation**
+- **Session Management** - Secure 30-minute invite code sessions with validation
+- **Database Schema** - New `invite_codes` and `invite_code_usage` tables with full audit trails
+- **Rate Limiting** - 5 attempts per IP per 15 minutes for security
+- **Admin Dashboard** - Complete invite code management at `/admin/invite-codes`
+- **Clean Architecture** - Removed magic link complexity, streamlined codebase
+
+#### **🎨 Design System Upgrade**
+- **Color Palette** - Professional gray-50/white backgrounds with gray-800 accents
+- **Typography** - Clean font hierarchy with proper spacing and contrast
+- **Components** - Consistent card design, input styling, and button treatments
+- **Responsive** - Mobile-first design with proper touch targets and accessibility
+
+### 🔍 Private Network Search System (January 2025)
+
+Private database search functionality with enhanced user experience:
+
+#### **✅ Restaurant Page Private Search**
+- **Database-Only Search** - Searches only restaurants and reviews within your private network
+- **Enhanced User Experience** - Proper controlled input handling, no React warnings
+- **Smart Results** - Shows restaurants directly + restaurants mentioned in reviews
+- **Deduplication** - Prevents duplicate restaurant entries in search results
+
+#### **🔧 Technical Improvements**
+- **Fixed Controlled Input Issues** - Resolved React controlled/uncontrolled component warnings
+- **API Integration** - Uses `/api/search` endpoint for consistent private database queries
+- **Error Handling** - Proper fallback values and error states
+- **Performance** - Real-time search with 300ms debouncing
+
+### 🎛️ Enhanced Filter System (Latest - August 30, 2025)
+
+Complete professional upgrade of home page filters from basic cuisine buttons to Instagram-level filtering:
+
+#### **✅ Smart Tag-Based Filtering**
+- **4 Organized Categories** - Popular Dishes (🍽️), Cuisine (🌍), Meal Type (⏰), Atmosphere (✨)
+- **35 Relevant Tags** - From "Pasta" & "Burger" to "Date Night" & "Fine Dining" - no more irrelevant options
+- **Color-Coded System** - Visual category identification with professional color scheme
+- **Smart Management** - Shows "3/5 selected" with one-click clear functionality
+
+#### **🔧 Advanced Filter Controls**
+- **Rating Slider** - Minimum rating filter (0-5 stars) with smooth slider interface
+- **Price Range Filter** - Dual-handle slider for $0-$1000+ per person price filtering
+- **Date Range Options** - All time, Past week, Past month, Past year quick selections
+- **Recommendation Toggle** - Filter to show only recommended places with heart icon
+- **Enhanced Sort Options** - Recent, Best Rated, Price Low→High, Price High→Low
+
+#### **📱 Mobile-First Responsive Design**
+- **Collapsed by Default** - Filters start collapsed on both homepage and restaurants page to reduce clutter
+- **Touch-Optimized** - Large tap targets, proper spacing, mobile-friendly interactions
+- **Progressive Enhancement** - Full desktop experience, streamlined mobile experience
+- **Live Results Counter** - Shows "8 of 23 reviews" with real-time filter feedback
+
+#### **🎨 Professional UI/UX**
+- **Advanced Popover** - Secondary filters in clean popup with organized sections
+- **Active Filter Badges** - Visual indicators showing number of active filters
+- **One-Click Clear** - "Clear all (4)" button with smart active filter counting
+- **Visual Tag Selection** - Chip-based interface matching the quality of modern food apps
+
+### 🎯 Modal-Only Review Creation (August 30, 2025)
+
+Complete redesign of review creation UX with modal-only approach:
+
+#### **✅ Unified Review Creation Experience**
+- **Modal-Only Interface** - Write reviews exclusively through popup modals, no dedicated pages
+- **Responsive Modal System** - Bottom sheet on mobile, centered dialog on desktop
+- **Global FAB Access** - "+" button in bottom-right corner opens review modal on any page
+- **Eliminated Page Navigation** - Removed `/reviews/new` route entirely for cleaner UX
+
+#### **🔧 Technical Implementation**
+- **WriteReviewFAB Component** - Uses Sheet (mobile) and Dialog (desktop) with responsive detection
+- **ReviewComposer Integration** - Seamlessly integrated into modal with proper close handling
+- **Route Cleanup** - Completely removed `/app/reviews/` directory and page components
+- **Import Optimization** - Fixed default vs named export issues and cleaned dependencies
+
+#### **📱 Enhanced User Experience**
+- **Predictable Interaction** - Users always get modal overlay, stay on current page
+- **Mobile-Optimized** - 90% viewport height sheet provides optimal mobile experience
+- **Keyboard Accessible** - Full keyboard navigation and proper focus management
+- **Visual Clarity** - No page redirects, smooth modal transitions, consistent interface
+
+### 📱 Instagram-Style Feed & Page Architecture (August 30, 2025)
+
+Complete UI/UX transformation with separated concerns and optimized social media-style experience:
+
+#### **✅ Homepage → Review Feed Transformation**
+- **Instagram-Style Layout** - Single-column centered feed (max-width: 512px) instead of multi-column grid  
+- **Large Restaurant Images** - Full-width photos with 4:3 aspect ratio for maximum visual impact
+- **Social Media Flow** - User avatar → large image → content → actions layout like Instagram posts
+- **Optimized Card Design** - Clean borders, shadows, and spacing with proper content hierarchy
+- **Enhanced User Experience** - Larger avatars, better typography, inline pro tips
+
+#### **🏛️ Dedicated Restaurants Page**
+- **Separated Concerns** - Restaurant discovery moved to `/restaurants` page for cleaner UX
+- **Complete Management Interface** - SearchBar, filters, restaurant grid, and top picks carousel
+- **Server-Side Optimization** - Efficient data loading for both restaurant lists and featured content
+- **Easy Navigation** - Accessible via Header dropdown menu
+
+#### **🎨 Component Redesign**
+- **ReviewCard Enhancement** - Full-width images, optimized spacing, improved content layout
+- **Pro Tips Optimization** - Inline style instead of bulky background boxes saves space
+- **Tag System Polish** - More subtle badge design with better visual hierarchy
+- **Action Footer** - Clean separation with proper spacing and hover effects
+
+#### **📐 Technical Implementation**
+- **Responsive Design** - Works seamlessly across all screen sizes with mobile-first approach
+- **Performance Optimized** - Lazy loading images, efficient React rendering patterns
+- **Type Safety** - Full TypeScript support with updated component interfaces
+- **Clean Architecture** - Clear separation between feed consumption and restaurant management
+
+### 🏷️ Professional Tag System Overhaul (August 30, 2025)
+
+Complete redesign of the tagging system with focus on relevant, food-focused tags:
+
+#### **✅ Streamlined Tag Categories (52+ → 35 Relevant Tags)**
+- **🍽️ Popular Dishes (16)** - Pasta, Burger, Pizza, Sushi, Ramen, Steak, Sandwich, Salad, Tacos, Curry, Poke, Wings, Kebab, BBQ, Seafood, Soup
+- **🌍 Cuisine Type (8)** - Asian, Mexican, Italian, American, Mediterranean, Nordic, French, Indian  
+- **⏰ Meal Type (7)** - Brunch, Lunch, Dinner, Dessert, Coffee, Drinks, Breakfast
+- **✨ Atmosphere (8)** - Casual, Fine Dining, Date Night, Groups, Quick Bite, Cozy, Trendy, Family Friendly
+
+#### **🎨 Modern Chip-Based Interface**
+- **Interactive Selection** - Clickable chips organized by category with emoji icons
+- **Color-Coded Categories** - Orange (dishes), Blue (cuisine), Green (meal), Purple (vibe)  
+- **Real-Time Counter** - Shows "3/5 tags selected" with visual progress
+- **Remove with X Button** - Easy tag removal with hover effects and smooth transitions
+
+#### **📱 Enhanced User Experience**
+- **Review Creation** - Category-organized chip selection instead of overwhelming dropdown
+- **Review Display** - Color-coded badges with category icons throughout the app
+- **Visual Hierarchy** - Clear category sections make selection intuitive and fast
+- **Professional Design** - Matches quality of modern food discovery apps
+
+#### **🔧 Technical Excellence**
+- **Database Optimization** - GIN index on tags array for efficient filtering
+- **Type Safety** - Full TypeScript support with updated validation schemas
+- **Consistent Styling** - Helper functions ensure uniform tag display across components
+- **Filter Integration** - Tags now power the advanced filter system for comprehensive search
+
+### 🖼️ Complete Review System Overhaul (August 30, 2025)
+
+Successfully implemented end-to-end review functionality with Google Places integration and Lovable UI:
+
+#### **✅ Working Review Creation & Display**
+- **Fixed Google Places Integration** - Restaurant search now fetches full details including photos
+- **Database Schema Migration** - Updated reviews table for simplified Lovable format (dish, review, recommend, tips)
+- **Complete Review Flow** - Search → Select restaurant → Create review → Display with images
+- **Restaurant Cover Images** - Google Places photos display in beautiful review cards
+- **Data Mapping Fixed** - Resolved API join issues preventing reviews from displaying
+
+#### **🎨 Lovable UI Integration (Completed)**
+- **Beautiful Review Cards** - Compact design with restaurant images and user avatars
+- **Simplified Review Form** - Single rating with dish, review text, and tips fields
+- **Responsive Design** - Conditional Sheet (mobile) and Dialog (desktop) rendering
+- **Modern Components** - Clean typography, better spacing, and interactive elements
+
+#### **🔧 Technical Improvements**
+- **Foreign Key Relations Fixed** - Proper Supabase joins for restaurants and users data
+- **Type Safety Enhanced** - Updated TypeScript types for both legacy and new review formats
+- **Error Handling Improved** - Better messaging for duplicate reviews and validation errors
+- **Backward Compatibility** - Supports both old multi-dimensional and new simplified review formats
+
+#### **🗺️ Google Places Features**
+- **Automatic Restaurant Data** - Name, address, photos, and details from Google Places
+- **Cost Optimization** - Session tokens and intelligent caching minimize API costs
+- **Smart Search** - Stockholm-focused autocomplete with 300ms debouncing
+- **Database Integration** - find-or-create endpoint with full Google Places data fetching
 
 ## Getting Started
 
@@ -71,28 +284,40 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 **Applied Migrations:**
 - `20250829233334_reset_and_initialize_database.sql` - Complete database with RLS policies
 - `20250830094836_add_google_places_fields.sql` - Google Places integration fields
+- `20250830154739_update_reviews_schema_for_lovable.sql` - Simplified review schema (dish, review, recommend, tips)
+- `20250830180128_add_tags_to_reviews.sql` - Professional tagging system with 35 food-focused tags
+- `20250830203214_invite_code_system.sql` - Modern invite code system with 6-digit codes
+- `20250131000000_fix_signup_issues.sql` - Fixed RLS policies and atomic user creation
+- `20250131000001_configure_auth_settings.sql` - Email confirmation handling for invite-based signups
 
 For future schema changes, see `supabase/README.md` for migration workflow.
 
 ### Authentication Setup
 
-The app uses Supabase Auth with magic links. **No additional setup required** - authentication is production-ready with:
+DineCircle uses a modern invite code system with clean, exclusive design. **New authentication flow features:**
 
-- ✅ PKCE flow for security
-- ✅ Automatic profile creation  
-- ✅ Session persistence across reloads
-- ✅ Robust error handling and fallbacks
+- ✅ **6-digit invite code system** - Exclusive access with hardcoded test code `123456`
+- ✅ **Clean modern design** - Light, professional interface matching contemporary apps
+- ✅ **Email/password authentication** - Simple, secure login for existing users
+- ✅ **Complete account creation flow** - Full name, email, password with real-time validation
+- ✅ **Session-based security** - Proper session management and invite code validation
+- ✅ **Admin management** - Built-in admin panel for invite code oversight
+- ✅ **Fixed signup issues** - Resolved RLS policies, foreign key constraints, and email confirmation
 
-**Callback URL Configuration:**
-In your Supabase project → Authentication → URL Configuration:
-- Site URL: `http://localhost:3000` (development) or your domain (production)
-- Redirect URLs: `http://localhost:3000/auth/callback` (add your production callback too)
+**Pages:**
+- `/welcome` - Landing page with invite code entry
+- `/signup` - Account creation with full validation  
+- `/signin` - Email/password login for existing users
+- `/admin/invite-codes` - Admin management of invite codes
 
 ### Installation
 
 ```bash
 # Install dependencies
 npm install
+
+# Apply the latest database migration (includes tagging system)
+npx supabase db push
 
 # Run development server
 npm run dev
@@ -142,6 +367,11 @@ npm run lint       # Check linting issues
 - Check API key has Places API enabled
 - Verify billing is set up for Google Cloud project
 
+**📱 Duplicate Popups Appearing**
+- **Cause**: Both mobile Sheet and desktop Dialog rendering simultaneously
+- **Fix**: Implemented conditional rendering with `useMediaQuery` hook
+- **Prevention**: Use either Sheet OR Dialog based on screen size, never both
+
 ## Database Schema
 
 ### Core Tables
@@ -171,12 +401,15 @@ npm run lint       # Check linting issues
 
 ### Reviews
 - `GET /api/reviews` - List reviews with filters
-- `POST /api/reviews` - Create new review
+- `POST /api/reviews` - Create new review (simplified schema: restaurant, rating, dish, review, recommend, tips)
 - `PUT /api/reviews/[id]` - Update own review
 - `DELETE /api/reviews/[id]` - Delete own review
 
+### Search
+- `GET /api/search` - Search private database restaurants and reviews only
+
 ### Google Places Integration
-- `POST /api/places/autocomplete` - Search restaurants via Google Places
+- `POST /api/places/autocomplete` - Search restaurants via Google Places (admin only)
 - `POST /api/places/details` - Get detailed restaurant info from Google
 - `POST /api/restaurants/find-or-create` - Find existing or import from Google
 
@@ -220,18 +453,25 @@ Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
 ### Project Structure
 
 ```
-├── app/                 # Next.js app router pages
-├── components/          # React components
+├── app/                    # Next.js app router pages
+│   ├── restaurants/        # Dedicated restaurants page with discovery features
+│   ├── providers.tsx       # Tanstack Query and UI providers
+│   └── home-client.tsx     # Instagram-style review feed homepage
+├── components/             # React components
 │   ├── auth/           # Authentication components
-│   ├── layout/         # Layout components
+│   ├── filters/        # Enhanced filter system (EnhancedFilters, legacy CuisineFilters)
+│   ├── layout/         # Layout components (Header, AuthWrapper, WriteReviewFAB)
 │   ├── restaurant/     # Restaurant-related components
+│   ├── review/         # Review components (ReviewComposer, RatingInput)
+│   ├── search/         # Search components (SearchBar, SearchFAB, GlobalSearchModal)
 │   └── ui/             # shadcn/ui components
 ├── lib/                # Utilities and configurations
 │   ├── supabase/       # Supabase client configuration
-│   ├── hooks/          # Custom React hooks
+│   ├── hooks/          # Custom React hooks (useAuth, useMediaQuery)
 │   └── validations/    # Zod schemas
 ├── types/              # TypeScript type definitions
 ├── constants/          # App constants
+├── lovable-frontend/   # Original Lovable UI code (reference)
 └── supabase/           # Database schema and migrations
 ```
 

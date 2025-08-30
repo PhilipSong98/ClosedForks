@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   name: string;
+  full_name?: string; // New field for full name
   email: string;
   avatar_url?: string;
   home_city?: string;
@@ -33,6 +34,7 @@ export interface Restaurant {
   google_maps_url?: string;
   google_data?: GooglePlaceData;
   last_google_sync?: string;
+  aggregated_tags?: string[]; // Tags aggregated from all reviews for this restaurant
 }
 
 export interface GooglePlaceData {
@@ -59,19 +61,30 @@ export interface Review {
   id: string;
   restaurant_id: string;
   author_id: string;
+  // Legacy multi-dimensional ratings (optional for backward compatibility)
   rating_overall: number;
-  food: number;
-  service: number;
-  vibe: number;
-  value: number;
-  text?: string;
+  food?: number;
+  service?: number;
+  vibe?: number;
+  value?: number;
+  text?: string; // Legacy review text
+  // New simplified review fields (Lovable format)
+  dish?: string;
+  review?: string; // New review text field
+  recommend?: boolean;
+  tips?: string;
+  // Common fields
   visit_date: string;
   price_per_person?: number;
   visibility: 'my_circles' | 'public';
+  tags?: string[]; // Array of tags for categorization and filtering
   created_at: string;
   updated_at: string;
+  // Relationship data (can be from different API response formats)
   author?: User;
   restaurant?: Restaurant;
+  users?: User; // From join query
+  restaurants?: Restaurant; // From join query
   photos?: ReviewPhoto[];
 }
 
@@ -150,4 +163,65 @@ export interface MagicLinkRequestData {
   email: string;
   userAgent?: string;
   ipAddress?: string;
+}
+
+// ============================================================================
+// INVITE CODE SYSTEM TYPES
+// ============================================================================
+
+export interface InviteCode {
+  id: string;
+  code: string;
+  description?: string;
+  max_uses: number;
+  current_uses: number;
+  is_active: boolean;
+  expires_at?: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InviteCodeUsage {
+  id: string;
+  invite_code_id: string;
+  user_id: string;
+  used_at: string;
+  ip_address?: string;
+  user_agent?: string;
+}
+
+export interface InviteCodeValidation {
+  valid: boolean;
+  message: string;
+  code_id?: string;
+  description?: string;
+  uses_remaining?: number;
+}
+
+export interface InviteCodeUsageResult {
+  success: boolean;
+  message: string;
+  code_id?: string;
+}
+
+// New auth flow types
+export interface SignupFormData {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  inviteCode: string;
+}
+
+export interface InviteCodeSession {
+  code: string;
+  validatedAt: string;
+  codeId: string;
+}
+
+export interface AuthError {
+  message: string;
+  code?: string;
+  field?: string;
 }
