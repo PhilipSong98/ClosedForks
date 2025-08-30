@@ -29,37 +29,23 @@ async function getRestaurantReviews(restaurantId: string): Promise<Review[]> {
   try {
     const supabase = await createClient();
     
-    // Simplified query - first get just the reviews
+    // Use the same approach as home page - start from reviews with joins
     const { data: reviews, error } = await supabase
       .from('reviews')
-      .select('*')
+      .select(`
+        *,
+        author:users!reviews_author_id_fkey(id, full_name, email, avatar_url),
+        restaurant:restaurants!reviews_restaurant_id_fkey(*)
+      `)
       .eq('restaurant_id', restaurantId)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching reviews:', error);
+      console.error('Error fetching restaurant reviews:', error);
       return [];
     }
 
-    // If we have reviews, let's get the user data separately for now
-    if (reviews && reviews.length > 0) {
-      const reviewsWithUsers = await Promise.all(
-        reviews.map(async (review) => {
-          const { data: user } = await supabase
-            .from('users')
-            .select('id, full_name, email, avatar_url')
-            .eq('id', review.author_id)
-            .single();
-          
-          return {
-            ...review,
-            author: user
-          };
-        })
-      );
-      
-      return reviewsWithUsers;
-    }
+    console.log(`Found ${reviews?.length || 0} reviews for restaurant ${restaurantId}`);
 
     return reviews || [];
   } catch (error) {

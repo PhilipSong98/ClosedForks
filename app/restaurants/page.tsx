@@ -6,44 +6,26 @@ async function getAllRestaurants(): Promise<Restaurant[]> {
   try {
     const supabase = await createClient();
     
-    const { data: restaurants } = await supabase
+    // Server-side: Only fetch restaurants (no auth needed)
+    // Client-side will handle review aggregation with proper auth
+    const { data: allRestaurants, error: restaurantsError } = await supabase
       .from('restaurants')
-      .select(`
-        *,
-        reviews (
-          rating_overall,
-          tags
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
-    // Process aggregated data for each restaurant
-    const processedRestaurants = restaurants?.map(restaurant => {
-      const reviews = restaurant.reviews || [];
-      
-      // Calculate actual average rating
-      const ratings = reviews
-        .map(r => r.rating_overall)
-        .filter(r => r != null);
-      const avg_rating = ratings.length > 0 
-        ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
-        : 0;
-      
-      // Aggregate unique tags from all reviews
-      const allTags = reviews
-        .flatMap(r => r.tags || [])
-        .filter((tag, index, arr) => arr.indexOf(tag) === index); // Remove duplicates
-      
-      return {
-        ...restaurant,
-        reviews: undefined, // Remove reviews from final object
-        avg_rating,
-        review_count: reviews.length,
-        aggregated_tags: allTags
-      };
-    }) || [];
+    if (restaurantsError) {
+      console.error('Error fetching restaurants:', restaurantsError);
+      return [];
+    }
 
-    return processedRestaurants;
+    // Return restaurants with placeholder values
+    // The client will populate review data with proper authentication
+    return (allRestaurants || []).map(restaurant => ({
+      ...restaurant,
+      avg_rating: 0,
+      review_count: 0,
+      aggregated_tags: []
+    }));
   } catch (error) {
     console.error('Error fetching restaurants:', error);
     return [];
@@ -54,6 +36,8 @@ async function getAllRestaurants(): Promise<Restaurant[]> {
 export default async function RestaurantsPage() {
   // Fetch data server-side
   const allRestaurants = await getAllRestaurants();
+
+  console.log(`Server-side: Found ${allRestaurants.length} restaurants (review data will be loaded client-side)`);
 
   return (
     <RestaurantsClient 

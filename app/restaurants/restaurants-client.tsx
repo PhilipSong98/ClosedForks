@@ -17,6 +17,7 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
   initialRestaurants = []
 }) => {
   const { user } = useAuth();
+  const [restaurants, setRestaurants] = useState<Restaurant[]>(initialRestaurants);
   const [filters, setFilters] = useState<FilterState>({
     tags: [],
     minRating: 0,
@@ -26,8 +27,65 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
     sortBy: 'recent'
   });
 
-  // Use React Query with initial data from server
-  const { data: allRestaurants = initialRestaurants } = useRestaurants();
+  // Fetch reviews and aggregate with restaurants on client-side
+  React.useEffect(() => {
+    if (!user) return;
+
+    const fetchReviewData = async () => {
+      try {
+        const response = await fetch('/api/reviews');
+        if (!response.ok) return;
+        
+        const { reviews } = await response.json();
+        console.log(`Client-side: Found ${reviews.length} reviews`);
+        
+        // Group reviews by restaurant_id
+        const reviewsByRestaurant = reviews.reduce((acc, review) => {
+          const restaurantId = review.restaurant_id;
+          if (!acc[restaurantId]) {
+            acc[restaurantId] = [];
+          }
+          acc[restaurantId].push(review);
+          return acc;
+        }, {} as Record<string, any[]>);
+
+        // Update restaurants with review data
+        const updatedRestaurants = initialRestaurants.map(restaurant => {
+          const restaurantReviews = reviewsByRestaurant[restaurant.id] || [];
+          
+          // Calculate actual average rating from individual review.rating_overall values
+          const ratings = restaurantReviews
+            .map(r => r.rating_overall)
+            .filter(r => r != null);
+          const avg_rating = ratings.length > 0 
+            ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
+            : 0;
+          
+          // Aggregate unique tags from all reviews
+          const allTags = restaurantReviews
+            .flatMap(r => r.tags || [])
+            .filter((tag, index, arr) => arr.indexOf(tag) === index);
+          
+          return {
+            ...restaurant,
+            avg_rating,
+            review_count: restaurantReviews.length,
+            aggregated_tags: allTags
+          };
+        });
+
+        setRestaurants(updatedRestaurants);
+        console.log(`Client-side: Updated ${updatedRestaurants.filter(r => r.review_count > 0).length} restaurants with reviews`);
+      } catch (error) {
+        console.error('Error fetching review data:', error);
+      }
+    };
+
+    fetchReviewData();
+  }, [user, initialRestaurants]);
+
+  // Use the updated restaurants with review data
+  const allRestaurants = restaurants;
 
   const handleRestaurantSelect = () => {
     // SearchBar will handle navigation by default
