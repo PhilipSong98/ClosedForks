@@ -4,16 +4,19 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { MapPin } from 'lucide-react';
+import { MapPin, Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
 import SearchBar from '@/components/search/SearchBar';
 import RatingInput from './RatingInput';
+import { REVIEW_TAGS } from '@/constants';
 
 const reviewSchema = z.object({
   restaurant: z.string().min(1, 'Please select a restaurant'),
@@ -22,6 +25,7 @@ const reviewSchema = z.object({
   review: z.string().min(10, 'Tell us more about your experience (minimum 10 characters)'),
   recommend: z.boolean(),
   tips: z.string().optional(),
+  tags: z.array(z.string()).max(5, 'Maximum 5 tags allowed').optional(),
 });
 
 type ReviewFormData = z.infer<typeof reviewSchema>;
@@ -39,8 +43,23 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(prefilledRestaurant);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  const addTag = (tag: string) => {
+    if (!selectedTags.includes(tag) && selectedTags.length < 5) {
+      const newTags = [...selectedTags, tag];
+      setSelectedTags(newTags);
+      form.setValue('tags', newTags);
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    const newTags = selectedTags.filter(tag => tag !== tagToRemove);
+    setSelectedTags(newTags);
+    form.setValue('tags', newTags);
+  };
 
   const form = useForm<ReviewFormData>({
     resolver: zodResolver(reviewSchema),
@@ -51,6 +70,7 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
       review: '',
       recommend: true,
       tips: '',
+      tags: [],
     },
   });
 
@@ -121,6 +141,7 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
         review: data.review,
         recommend: data.recommend,
         tips: data.tips || '',
+        tags: data.tags || [],
         visit_date: new Date().toISOString(), // Current date
         visibility: 'my_circles' as const,
       };
@@ -290,6 +311,104 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
                     className="min-h-[100px] border-0 bg-gray-50 rounded-xl px-4 py-3 resize-none"
                     {...field}
                   />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Tags Selection */}
+          <FormField
+            control={form.control}
+            name="tags"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2 text-base font-medium">
+                  <Tag className="w-4 h-4" />
+                  Tags (Optional - Max 5)
+                </FormLabel>
+                <FormControl>
+                  <div className="space-y-4">
+                    {/* Selected Tags Display */}
+                    {selectedTags.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedTags.map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant="secondary"
+                            className="flex items-center gap-1 px-3 py-1"
+                          >
+                            {tag}
+                            <button
+                              type="button"
+                              onClick={() => removeTag(tag)}
+                              className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Tag Selection Dropdown */}
+                    {selectedTags.length < 5 && (
+                      <Select onValueChange={addTag}>
+                        <SelectTrigger className="border-0 bg-gray-50 rounded-xl px-4 py-3">
+                          <SelectValue placeholder="Add tags (cuisine, atmosphere, etc.)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {/* Cuisine Tags */}
+                          <div className="p-2">
+                            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                              Cuisine
+                            </div>
+                            {REVIEW_TAGS.CUISINE.filter(tag => !selectedTags.includes(tag)).map((tag) => (
+                              <SelectItem key={tag} value={tag} className="cursor-pointer">
+                                {tag}
+                              </SelectItem>
+                            ))}
+                          </div>
+                          
+                          {/* Experience Tags */}
+                          <div className="p-2">
+                            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                              Experience
+                            </div>
+                            {REVIEW_TAGS.EXPERIENCE.filter(tag => !selectedTags.includes(tag)).map((tag) => (
+                              <SelectItem key={tag} value={tag} className="cursor-pointer">
+                                {tag}
+                              </SelectItem>
+                            ))}
+                          </div>
+                          
+                          {/* Atmosphere Tags */}
+                          <div className="p-2">
+                            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                              Atmosphere
+                            </div>
+                            {REVIEW_TAGS.ATMOSPHERE.filter(tag => !selectedTags.includes(tag)).map((tag) => (
+                              <SelectItem key={tag} value={tag} className="cursor-pointer">
+                                {tag}
+                              </SelectItem>
+                            ))}
+                          </div>
+                          
+                          {/* Dietary Tags */}
+                          <div className="p-2">
+                            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                              Dietary
+                            </div>
+                            {REVIEW_TAGS.DIETARY.filter(tag => !selectedTags.includes(tag)).map((tag) => (
+                              <SelectItem key={tag} value={tag} className="cursor-pointer">
+                                {tag}
+                              </SelectItem>
+                            ))}
+                          </div>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

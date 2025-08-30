@@ -48,6 +48,12 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **API Data Mapping** - Fixed Supabase joins and foreign key relationships
 - [x] **Type Safety Enhancements** - Updated TypeScript types for new review format
 - [x] **Error Handling Improvements** - Better duplicate review and validation error messages
+- [x] **Review Tagging System** - Comprehensive tags for cuisine, experience, atmosphere, and dietary preferences
+- [x] **Enhanced Review Filtering** - Database-indexed tagging system for efficient filtering and categorization
+- [x] **Multi-Category Tag Selection** - Organized dropdown with 52+ predefined tags across 4 categories
+- [x] **Visual Tag Display** - Clean badge system in ReviewCard with hover effects
+- [x] **Instagram-Style Feed** - Single-column stacked layout with large images and optimized card design
+- [x] **Dedicated Restaurants Page** - Separated restaurant discovery from review feed for better UX
 
 ### Pending Features (Future Sprints)
 - [ ] Photo upload for reviews
@@ -412,6 +418,136 @@ npx shadcn@latest add [component-name]
 - **Future Ready**: Nordic cities predefined in `lib/constants/cities.ts`
 - **Expandable**: User-selectable location preferences
 
+## 🏷️ Review Tagging System
+
+### ✅ FULLY IMPLEMENTED AND OPERATIONAL
+
+**Status**: Complete tagging system with 52+ predefined tags across 4 categories
+
+### Key Features
+- **Multi-Category Organization**: Tags grouped by Cuisine, Experience, Atmosphere, and Dietary
+- **Smart UI**: Dropdown with category sections, removable badges, max 5 tags per review
+- **Database Optimization**: GIN index for efficient tag-based filtering queries
+- **Type Safety**: Full TypeScript support with validation
+
+### Tag Categories
+
+#### **Cuisine Tags (22 options)**:
+Italian, Chinese, Japanese, Thai, Indian, Mexican, French, Spanish, American, Korean, Vietnamese, Greek, Mediterranean, Middle Eastern, Nordic, German, British, Brazilian, Peruvian, African, Caribbean, Fusion
+
+#### **Experience Tags (10 options)**:
+Casual Dining, Fine Dining, Fast Food, Street Food, Buffet, Brunch, Late Night, Happy Hour, Takeout, Delivery
+
+#### **Atmosphere Tags (12 options)**:
+Romantic, Family Friendly, Business Lunch, Group Dining, Date Night, Outdoor Seating, Waterfront, Rooftop, Cozy, Trendy, Historic, Modern
+
+#### **Dietary Tags (8 options)**:
+Vegetarian Friendly, Vegan Options, Halal, Kosher, Gluten Free, Healthy Options, Organic, Local Ingredients
+
+### Implementation Components
+
+#### **Database Schema** (`supabase/migrations/20250830180128_add_tags_to_reviews.sql`):
+- `tags TEXT[]` field added to reviews table
+- Constraint: Maximum 5 tags per review
+- GIN index: `idx_reviews_tags` for efficient array operations
+- Default empty array for new reviews
+
+#### **React Components**:
+- **ReviewComposer**: Multi-select dropdown with category grouping and badge display
+- **ReviewCard**: Clean tag badges with hover effects below dish information
+- **Constants**: Centralized tag definitions in `constants/index.ts`
+
+#### **Type System**:
+- Updated Review interface with `tags?: string[]`
+- Validation schema with tag array validation (max 5)
+- Supabase client types updated for database operations
+
+### User Experience
+1. **Review Creation**: Select up to 5 tags from organized dropdown
+2. **Tag Management**: Add/remove tags with visual feedback
+3. **Review Display**: Tags appear as subtle badges for quick scanning
+4. **Future Ready**: System prepared for tag-based filtering features
+
+### Database Migration Required
+```bash
+npx supabase db push
+```
+
+Apply migration `20250830180128_add_tags_to_reviews.sql` to enable tagging functionality.
+
+## 📱 Instagram-Style Feed & Page Architecture
+
+### ✅ FULLY IMPLEMENTED AND OPERATIONAL
+
+**Status**: Complete UI/UX transformation with separated concerns and optimized social media-style feed
+
+### Major Architectural Changes (August 30, 2025)
+
+#### **1. Homepage Transformation to Review Feed**
+- **Single Column Layout**: Changed from multi-column grid to centered single column (max-width: 512px)
+- **Instagram-Style Cards**: Each review in bordered container with proper spacing and shadows
+- **Social Media Flow**: User header → large image → content → actions layout
+- **Increased Review Limit**: From 20 to 50 reviews for richer feed experience
+
+#### **2. Dedicated Restaurants Page (`/restaurants`)**
+- **Separated Concerns**: Restaurant discovery moved from homepage to dedicated page
+- **Full Restaurant Management**: SearchBar, filters, and complete restaurant grid
+- **Server-Side Data Fetching**: Optimized data loading for both all restaurants and top picks
+- **Navigation Integration**: Accessible via Header dropdown menu
+
+#### **3. ReviewCard Component Redesign**
+- **Large Images**: Restaurant photos now use 4:3 aspect ratio (was 80px height)
+- **Full-Width Display**: Images span edge-to-edge for maximum visual impact
+- **Enhanced User Header**: Larger avatars (40px) with improved spacing
+- **Optimized Pro Tips**: Inline style instead of bulky background boxes
+- **Action Footer**: Clean bottom section with separator line
+
+#### **4. Visual Design Improvements**
+- **Card Styling**: Proper borders, shadows, and spacing for Instagram-like appearance
+- **Typography Enhancement**: Better font sizing and spacing throughout
+- **Hover Effects**: Subtle image scaling on restaurant link hover
+- **Tag Optimization**: More subtle badge design with better color scheme
+
+### Implementation Details
+
+#### **Homepage Layout** (`app/home-client.tsx`):
+```jsx
+// Old: Multi-column grid
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+// New: Single column stack
+<div className="max-w-lg mx-auto space-y-6">
+  <div className="bg-card border border-border rounded-lg shadow-sm">
+    <ReviewCard />
+  </div>
+</div>
+```
+
+#### **ReviewCard Structure** (`components/review/ReviewCard.tsx`):
+- **User Section**: Avatar + name + timestamp
+- **Image Section**: Full-width 4:3 aspect ratio restaurant photo
+- **Content Section**: Rating, dish, review text, inline pro tips
+- **Tags Section**: Subtle badges below content
+- **Actions Section**: Like button with separator line
+
+#### **Navigation Flow**:
+1. **Homepage**: Pure review consumption (social feed style)
+2. **Restaurants Page**: Restaurant discovery and management
+3. **Write Review**: Available from both pages via floating action button
+
+### User Experience Benefits
+- **Focused Content Consumption**: Homepage dedicated to reviewing latest posts
+- **Clear Information Architecture**: Separate pages for different tasks
+- **Mobile-First Design**: Optimized for phone usage patterns
+- **Visual Hierarchy**: Large images draw attention, clean content flow
+- **Reduced Cognitive Load**: Single column eliminates choice paralysis
+
+### Technical Implementation
+- **Responsive Design**: Works seamlessly on all screen sizes
+- **Performance Optimized**: Lazy loading images, efficient React rendering
+- **Type Safe**: Full TypeScript support with updated interfaces
+- **SEO Ready**: Proper semantic HTML structure and meta tags
+
 ## 🗄️ Database Schema
 
 ### Core Tables
@@ -421,7 +557,10 @@ npx shadcn@latest add [component-name]
   - `google_maps_url`: Free directions link
   - `google_data`: Cached place details (hours, photos, ratings)
   - `last_google_sync`: Data freshness tracking
-- `reviews`: Multi-dimensional ratings with visit details
+- `reviews`: Multi-dimensional ratings with visit details + **Tagging System**
+  - `tags`: Array of strings for categorization (cuisine, experience, atmosphere, dietary)
+  - GIN index for efficient tag-based filtering
+  - Constraint: Maximum 5 tags per review
 - `invites`: Invitation system with expiring codes
 - `review_photos`: Image metadata for reviews
 - `reports`: Content moderation system
@@ -717,6 +856,6 @@ NEXT_PUBLIC_APP_URL=
 ---
 
 **Last Updated**: 2025-08-30
-**Project Version**: MVP v1.1 - Complete Review System
-**Recent Milestone**: ✅ End-to-end review creation and display with Google Places photos
-**Next AI**: The review system is fully operational! Ready for additional features like photo uploads, restaurant detail pages, and more! 🚀
+**Project Version**: MVP v1.3 - Instagram-Style Feed & Dedicated Restaurants Page
+**Recent Milestone**: ✅ Complete UI/UX transformation with Instagram-style single-column feed and dedicated restaurants page
+**Next AI**: The social feed experience is fully operational! Homepage shows engaging review feed, restaurants page handles discovery. Ready for photo uploads, restaurant detail pages, and advanced social features! 🚀

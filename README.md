@@ -7,13 +7,14 @@ A mobile-first, invite-only restaurant review site for friends & family. Share t
 - 🔐 **Private by Default** - Invite-only access with magic link authentication
 - 🍽️ **Smart Restaurant Discovery** - Google Places API integration with autocomplete search
 - ⭐ **Simplified Review System** - Clean, user-friendly single rating with detailed text reviews
-- 🎨 **Modern UI Design** - Beautiful, clean interface integrated from Lovable with responsive popups
-- 📱 **Mobile-First Design** - Responsive UI optimized for mobile devices with conditional rendering
+- 🎨 **Instagram-Style Feed** - Single-column social media feed with large images and clean card design
+- 📱 **Mobile-First Design** - Optimized for social media consumption patterns with intuitive navigation
 - 🌍 **Location Aware** - Stockholm-focused with 50km radius bias
 - 👥 **Network-Based** - Reviews visible only to your trusted network
 - 📧 **Email Notifications** - Powered by Resend for invites and updates
 - 🔒 **Secure** - Row-level security with Supabase
 - 🗺️ **Maps Integration** - Free Google Maps links for directions and venue details
+- 🏷️ **Smart Tagging System** - 52+ predefined tags across cuisine, experience, atmosphere, and dietary categories
 
 ## Tech Stack
 
@@ -28,7 +29,58 @@ A mobile-first, invite-only restaurant review site for friends & family. Share t
 
 ## Recent Updates
 
-### 🖼️ Complete Review System Overhaul (Latest - August 30, 2025)
+### 📱 Instagram-Style Feed & Page Architecture (Latest - August 30, 2025)
+
+Complete UI/UX transformation with separated concerns and optimized social media-style experience:
+
+#### **✅ Homepage → Review Feed Transformation**
+- **Instagram-Style Layout** - Single-column centered feed (max-width: 512px) instead of multi-column grid  
+- **Large Restaurant Images** - Full-width photos with 4:3 aspect ratio for maximum visual impact
+- **Social Media Flow** - User avatar → large image → content → actions layout like Instagram posts
+- **Optimized Card Design** - Clean borders, shadows, and spacing with proper content hierarchy
+- **Enhanced User Experience** - Larger avatars, better typography, inline pro tips
+
+#### **🏛️ Dedicated Restaurants Page**
+- **Separated Concerns** - Restaurant discovery moved to `/restaurants` page for cleaner UX
+- **Complete Management Interface** - SearchBar, filters, restaurant grid, and top picks carousel
+- **Server-Side Optimization** - Efficient data loading for both restaurant lists and featured content
+- **Easy Navigation** - Accessible via Header dropdown menu
+
+#### **🎨 Component Redesign**
+- **ReviewCard Enhancement** - Full-width images, optimized spacing, improved content layout
+- **Pro Tips Optimization** - Inline style instead of bulky background boxes saves space
+- **Tag System Polish** - More subtle badge design with better visual hierarchy
+- **Action Footer** - Clean separation with proper spacing and hover effects
+
+#### **📐 Technical Implementation**
+- **Responsive Design** - Works seamlessly across all screen sizes with mobile-first approach
+- **Performance Optimized** - Lazy loading images, efficient React rendering patterns
+- **Type Safety** - Full TypeScript support with updated component interfaces
+- **Clean Architecture** - Clear separation between feed consumption and restaurant management
+
+### 🏷️ Review Tagging System Implementation (August 30, 2025)
+
+Added comprehensive tagging system for better review categorization and filtering:
+
+#### **✅ Complete Tagging Implementation**
+- **52+ Predefined Tags** - Organized across Cuisine (22), Experience (10), Atmosphere (12), and Dietary (8) categories
+- **Multi-Select Interface** - Intuitive dropdown with category grouping and removable badges
+- **Database Optimization** - GIN index on tags array for efficient filtering queries
+- **Smart Validation** - Maximum 5 tags per review with real-time feedback
+
+#### **🎨 Enhanced User Experience**
+- **Review Creation** - Organized tag dropdown with category sections
+- **Review Display** - Clean tag badges below dish information with hover effects
+- **Visual Feedback** - Selected tags displayed as removable badges during creation
+- **Future Ready** - System prepared for tag-based filtering features
+
+#### **🔧 Technical Implementation**
+- **Database Migration** - Added `tags TEXT[]` field with constraints and indexing
+- **Type Safety** - Full TypeScript support with updated validation schemas
+- **Component Updates** - Enhanced ReviewComposer and ReviewCard with tag functionality
+- **API Integration** - Seamless tag handling in review creation and retrieval
+
+### 🖼️ Complete Review System Overhaul (August 30, 2025)
 
 Successfully implemented end-to-end review functionality with Google Places integration and Lovable UI:
 
@@ -106,6 +158,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - `20250829233334_reset_and_initialize_database.sql` - Complete database with RLS policies
 - `20250830094836_add_google_places_fields.sql` - Google Places integration fields
 - `20250830154739_update_reviews_schema_for_lovable.sql` - Simplified review schema (dish, review, recommend, tips)
+- `20250830180128_add_tags_to_reviews.sql` - **NEW**: Tagging system with 52+ predefined tags
 
 For future schema changes, see `supabase/README.md` for migration workflow.
 
@@ -128,6 +181,9 @@ In your Supabase project → Authentication → URL Configuration:
 ```bash
 # Install dependencies
 npm install
+
+# Apply the latest database migration (includes tagging system)
+npx supabase db push
 
 # Run development server
 npm run dev
@@ -262,10 +318,11 @@ Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
 ### Project Structure
 
 ```
-├── app/                 # Next.js app router pages
-│   ├── providers.tsx   # Tanstack Query and UI providers
-│   └── home-client.tsx # Main home page client component
-├── components/          # React components
+├── app/                    # Next.js app router pages
+│   ├── restaurants/        # Dedicated restaurants page with discovery features
+│   ├── providers.tsx       # Tanstack Query and UI providers
+│   └── home-client.tsx     # Instagram-style review feed homepage
+├── components/             # React components
 │   ├── auth/           # Authentication components
 │   ├── layout/         # Layout components (Header, AuthWrapper)
 │   ├── restaurant/     # Restaurant-related components

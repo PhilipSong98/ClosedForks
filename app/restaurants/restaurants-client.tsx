@@ -1,28 +1,30 @@
 'use client'
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Header from '@/components/layout/Header';
+import SearchBar from '@/components/search/SearchBar';
 import CuisineFilters from '@/components/filters/CuisineFilters';
-import ReviewCard from '@/components/review/ReviewCard';
+import TopRestaurantsCarousel from '@/components/restaurant/TopRestaurantsCarousel';
+import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import ReviewComposer from '@/components/review/ReviewComposer';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { useReviews } from '@/lib/queries/reviews';
+import { useRestaurants } from '@/lib/queries/restaurants';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
-import { Review } from '@/types';
+import { Restaurant } from '@/types';
 
-interface HomeClientProps {
-  initialReviews?: Review[];
+interface RestaurantsClientProps {
+  initialRestaurants?: Restaurant[];
+  initialTopRestaurants?: Restaurant[];
 }
 
-const HomeClient: React.FC<HomeClientProps> = ({ 
-  initialReviews = []
+const RestaurantsClient: React.FC<RestaurantsClientProps> = ({ 
+  initialRestaurants = [], 
+  initialTopRestaurants = [] 
 }) => {
-  const router = useRouter();
   const { user } = useAuth();
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<'recent' | 'rating'>('recent');
@@ -30,8 +32,11 @@ const HomeClient: React.FC<HomeClientProps> = ({
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Use React Query with initial data from server
-  const { data: reviews = initialReviews } = useReviews();
+  const { data: allRestaurants = initialRestaurants } = useRestaurants();
 
+  const handleRestaurantSelect = () => {
+    // SearchBar will handle navigation by default
+  };
 
   const handleCuisineToggle = (cuisine: string) => {
     setSelectedCuisines(prev => 
@@ -41,10 +46,6 @@ const HomeClient: React.FC<HomeClientProps> = ({
     );
   };
 
-  const handleUserClick = (userId: string) => {
-    router.push(`/profile/${userId}`);
-  };
-
   const handleWriteReview = () => {
     setIsReviewComposerOpen(true);
   };
@@ -52,22 +53,22 @@ const HomeClient: React.FC<HomeClientProps> = ({
   const handleReviewSubmit = (success: boolean) => {
     if (success) {
       setIsReviewComposerOpen(false);
-      // Force refresh of reviews list
+      // Force refresh of data
       window.location.reload(); // Simple solution for now - could use React Query invalidation
     }
   };
 
-  // Filter and sort reviews
-  const filteredReviews = reviews
-    .filter(review => {
+  // Filter and sort restaurants
+  const filteredRestaurants = allRestaurants
+    .filter(restaurant => {
       if (selectedCuisines.length === 0) return true;
-      return review.restaurant?.cuisine?.some(c => selectedCuisines.includes(c));
+      return restaurant.cuisine?.some(c => selectedCuisines.includes(c));
     })
     .sort((a, b) => {
       if (sortBy === 'recent') {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       } else {
-        return b.rating_overall - a.rating_overall;
+        return (b.avg_rating || 0) - (a.avg_rating || 0);
       }
     });
 
@@ -84,16 +85,36 @@ const HomeClient: React.FC<HomeClientProps> = ({
         <section className="mb-12">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-3">
-              Latest Reviews from Your Circle
+              Discover Restaurants
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              See what your friends and family are saying about their latest dining experiences.
+              Find and explore restaurants in your network. 
+              Add new places or browse recommendations from your circle.
             </p>
           </div>
+          
+          <SearchBar onRestaurantSelect={handleRestaurantSelect} />
         </section>
 
-        {/* Reviews Section */}
+        {/* Top Restaurants Carousel */}
+        {initialTopRestaurants.length > 0 && (
+          <TopRestaurantsCarousel 
+            restaurants={initialTopRestaurants}
+          />
+        )}
+
+        {/* All Restaurants Section */}
         <section>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-foreground">
+              All Restaurants
+            </h2>
+            <Button onClick={handleWriteReview} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Write Review
+            </Button>
+          </div>
+
           <CuisineFilters 
             selectedCuisines={selectedCuisines}
             onCuisineToggle={handleCuisineToggle}
@@ -101,16 +122,13 @@ const HomeClient: React.FC<HomeClientProps> = ({
             onSortChange={setSortBy}
           />
 
-          {filteredReviews.length > 0 ? (
-            <div className="max-w-lg mx-auto space-y-6">
-              {filteredReviews.map((review) => (
-                <div key={review.id} className="bg-card border border-border rounded-lg shadow-sm">
-                  <ReviewCard 
-                    review={review} 
-                    onUserClick={handleUserClick}
-                    showRestaurant={true}
-                  />
-                </div>
+          {filteredRestaurants.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredRestaurants.map((restaurant) => (
+                <RestaurantCard 
+                  key={restaurant.id}
+                  restaurant={restaurant}
+                />
               ))}
             </div>
           ) : (
@@ -118,20 +136,16 @@ const HomeClient: React.FC<HomeClientProps> = ({
               <div className="max-w-md mx-auto">
                 <h3 className="text-lg font-medium text-foreground mb-2">
                   {selectedCuisines.length > 0 
-                    ? 'No reviews found for selected cuisines' 
-                    : 'No reviews yet'
+                    ? 'No restaurants found for selected cuisines' 
+                    : 'No restaurants yet'
                   }
                 </h3>
                 <p className="text-muted-foreground mb-6">
                   {selectedCuisines.length > 0
                     ? 'Try selecting different cuisine filters or clearing all filters.'
-                    : 'Be the first to share a restaurant experience with your network! Visit the Restaurants page to discover new places to review.'
+                    : 'Use the search bar above to discover and add new restaurants!'
                   }
                 </p>
-                <Button onClick={handleWriteReview} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Write Your First Review
-                </Button>
               </div>
             </div>
           )}
@@ -184,4 +198,4 @@ const HomeClient: React.FC<HomeClientProps> = ({
   );
 };
 
-export default HomeClient;
+export default RestaurantsClient;

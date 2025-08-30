@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CUISINES } from '@/constants';
+import { CUISINES, ALL_REVIEW_TAGS } from '@/constants';
 
 export const googlePlaceDataSchema = z.object({
   formatted_address: z.string(),
@@ -76,6 +76,7 @@ export const reviewSchema = z.object({
   review: z.string().min(10, 'Review must be at least 10 characters').max(1000),
   recommend: z.boolean().default(true),
   tips: z.string().max(500).optional().default(''),
+  tags: z.array(z.enum(ALL_REVIEW_TAGS as [string, ...string[]])).max(5, 'Maximum 5 tags allowed').optional().default([]),
   visit_date: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid date').default(() => new Date().toISOString()),
   visibility: z.enum(['my_circles', 'public']).default('my_circles'),
   // Legacy fields - optional for backward compatibility

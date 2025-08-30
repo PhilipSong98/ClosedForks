@@ -75,6 +75,7 @@ export interface Review {
   visit_date: string;
   price_per_person?: number;
   visibility: 'my_circles' | 'public';
+  tags?: string[]; // Array of tags for categorization and filtering
   created_at: string;
   updated_at: string;
   // Relationship data (can be from different API response formats)

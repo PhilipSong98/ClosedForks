@@ -101,6 +101,7 @@ export type Database = {
           visit_date: string;
           price_per_person: number | null;
           visibility: 'my_circles' | 'public';
+          tags: string[] | null;
           created_at: string;
           updated_at: string;
         };
@@ -117,6 +118,7 @@ export type Database = {
           visit_date: string;
           price_per_person?: number | null;
           visibility?: 'my_circles' | 'public';
+          tags?: string[] | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -133,6 +135,7 @@ export type Database = {
           visit_date?: string;
           price_per_person?: number | null;
           visibility?: 'my_circles' | 'public';
+          tags?: string[] | null;
           created_at?: string;
           updated_at?: string;
         };

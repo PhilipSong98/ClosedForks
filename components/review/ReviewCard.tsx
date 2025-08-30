@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Star, Heart, MapPin } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { Review } from '@/types';
 
@@ -62,17 +63,17 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
   const tips = review.tips || '';
 
   return (
-    <div className="review-card-compact">
+    <div className="p-4">
       {/* User Info */}
-      <div className="flex items-center space-x-2 mb-3">
+      <div className="flex items-center space-x-3 mb-4">
         <button 
           onClick={handleUserClick}
           className="avatar-clickable"
           disabled={!onUserClick}
         >
-          <Avatar className="w-8 h-8">
+          <Avatar className="w-10 h-10">
             <AvatarImage src={author?.avatar_url} />
-            <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
+            <AvatarFallback className="bg-secondary text-secondary-foreground text-sm">
               {getInitials(author?.name || author?.email || 'U')}
             </AvatarFallback>
           </Avatar>
@@ -92,38 +93,38 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
         </div>
       </div>
 
-      {/* Restaurant Cover & Info */}
+      {/* Restaurant Image - Full Width */}
       {showRestaurant && restaurant && (
-        <div className="mb-3">
+        <div className="mb-4 -mx-4">
           <Link 
             href={`/restaurants/${restaurant.id}`}
             className="block group"
           >
-            <div className="relative w-full h-20 rounded-lg overflow-hidden mb-3">
+            <div className="relative w-full aspect-[4/3] overflow-hidden">
               {restaurantImage ? (
                 <>
                   <img 
                     src={restaurantImage} 
                     alt={restaurant.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 </>
               ) : (
                 <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <span className="text-2xl text-muted-foreground font-medium">
+                  <span className="text-4xl text-muted-foreground font-medium">
                     {restaurant.name.charAt(0)}
                   </span>
                 </div>
               )}
-              <div className="absolute bottom-2 left-2 right-2">
-                <h4 className="font-medium text-white mb-1 text-sm truncate drop-shadow-sm">
+              <div className="absolute bottom-4 left-4 right-4">
+                <h4 className="font-semibold text-white mb-2 text-lg drop-shadow-sm">
                   {restaurant.name}
                 </h4>
-                <div className="flex items-center space-x-1">
-                  <MapPin className="w-3 h-3 text-white/90" />
-                  <span className="text-xs text-white/90 truncate">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-white/90" />
+                  <span className="text-sm text-white/90">
                     {restaurant.address}
                   </span>
                 </div>
@@ -131,35 +132,55 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
             </div>
           </Link>
           
-          <div className="flex items-center space-x-1 mb-2">
-            {renderStars(rating)}
-            <span className="text-xs font-medium text-foreground ml-1">{rating}/5</span>
+          {/* Restaurant Info Below Image */}
+          <div className="px-4 pt-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {renderStars(rating)}
+                <span className="text-sm font-medium text-foreground ml-1">{rating}/5</span>
+              </div>
+              <span className="text-sm font-medium text-primary">Dish: {dish}</span>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Dish */}
-      <div className="mb-2">
-        <span className="text-xs font-medium text-primary">Dish: </span>
-        <span className="text-xs text-foreground">{dish}</span>
-      </div>
 
       {/* Review Text */}
-      <p className="text-sm text-foreground leading-relaxed mb-3 line-clamp-3">{reviewText}</p>
+      <div className="px-4 mb-4">
+        <p className="text-sm text-foreground leading-relaxed mb-3">{reviewText}</p>
+        
+        {/* Tip - Inline Style */}
+        {tips && (
+          <p className="text-sm text-foreground">
+            <span className="text-primary font-medium">💡 Pro tip: </span>
+            <span className="italic">{tips}</span>
+          </p>
+        )}
+      </div>
 
-      {/* Tip */}
-      {tips && (
-        <div className="bg-accent/50 rounded-md p-2 mb-3">
-          <span className="text-xs font-medium text-primary">💡 </span>
-          <span className="text-xs text-foreground line-clamp-2">{tips}</span>
+      {/* Tags */}
+      {review.tags && review.tags.length > 0 && (
+        <div className="px-4 mb-4">
+          <div className="flex flex-wrap gap-1">
+            {review.tags.map((tag, index) => (
+              <Badge
+                key={index}
+                variant="secondary"
+                className="text-xs px-2 py-1 text-muted-foreground"
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-between">
-        <button className="flex items-center space-x-1 text-muted-foreground hover:text-primary transition-colors">
-          <Heart className="w-3 h-3" />
-          <span className="text-xs">0</span>
+      <div className="px-4 pb-2 flex items-center justify-between border-t border-border pt-3">
+        <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors">
+          <Heart className="w-4 h-4" />
+          <span className="text-sm">0</span>
         </button>
       </div>
     </div>
