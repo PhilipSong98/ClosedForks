@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
-import { Menu, User, MapPin, Settings, Shield, LogOut } from 'lucide-react';
+import { Menu, User, MapPin, Settings, Shield, LogOut, Bookmark } from 'lucide-react';
 
 interface MobileMenuProps {
   onProfileClick?: () => void;
@@ -101,6 +101,16 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ onProfileClick }) => {
               >
                 <MapPin className="mr-3 h-5 w-5" />
                 Restaurants
+              </Button>
+
+              {/* To-Eat List */}
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-12 px-4 font-medium"
+                onClick={() => handleNavigation('/to-eat')}
+              >
+                <Bookmark className="mr-3 h-5 w-5" />
+                To-Eat List
               </Button>
 
               {/* Profile */}
