@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LogOut, User, Settings, MapPin, Shield } from 'lucide-react';
+import MobileMenu from './MobileMenu';
 
 interface HeaderProps {
   onProfileClick?: () => void;
@@ -70,60 +71,68 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
 
           {/* User Profile */}
           {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={user.avatar_url || undefined} />
-                    <AvatarFallback className="bg-secondary text-secondary-foreground text-sm">
-                      {getInitials(user.full_name || user.name || user.email || 'U')}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    {(user.full_name || user.name) && (
-                      <p className="font-medium">{user.full_name || user.name}</p>
+            <div className="flex items-center space-x-2">
+              {/* Mobile Menu */}
+              <MobileMenu onProfileClick={onProfileClick} />
+              
+              {/* Desktop Dropdown */}
+              <div className="hidden md:block">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src={user.avatar_url || undefined} />
+                        <AvatarFallback className="bg-secondary text-secondary-foreground text-sm">
+                          {getInitials(user.full_name || user.name || user.email || 'U')}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <div className="flex items-center justify-start gap-2 p-2">
+                      <div className="flex flex-col space-y-1 leading-none">
+                        {(user.full_name || user.name) && (
+                          <p className="font-medium">{user.full_name || user.name}</p>
+                        )}
+                        <p className="w-[200px] truncate text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleProfileClick}>
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/restaurants">
+                        <MapPin className="mr-2 h-4 w-4" />
+                        Restaurants
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/invite">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Manage Invites
+                      </Link>
+                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/invite-codes">
+                          <Shield className="mr-2 h-4 w-4" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
                     )}
-                    <p className="w-[200px] truncate text-sm text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleProfileClick}>
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/restaurants">
-                    <MapPin className="mr-2 h-4 w-4" />
-                    Restaurants
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/invite">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Manage Invites
-                  </Link>
-                </DropdownMenuItem>
-                {isAdmin && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin/invite-codes">
-                      <Shield className="mr-2 h-4 w-4" />
-                      Admin Panel
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
           )}
         </div>
       </div>

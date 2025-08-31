@@ -7,6 +7,7 @@
 
 -- Drop existing problematic policies
 DROP POLICY IF EXISTS "Users can insert own profile" ON users;
+DROP POLICY IF EXISTS "Users can insert profile during signup" ON users;
 
 -- Create new policy that allows both authenticated users and system inserts during signup
 CREATE POLICY "Users can insert profile during signup" ON users
@@ -96,6 +97,7 @@ $$;
 -- ============================================================================
 
 -- Allow system to read user data during signup process
+DROP POLICY IF EXISTS "System can read users during signup" ON users;
 CREATE POLICY "System can read users during signup" ON users
     FOR SELECT USING (true);
 

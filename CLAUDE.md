@@ -39,6 +39,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Fixed restaurant card overflow** - Create Review modal restaurant display optimized for mobile
 - [x] **Fixed username display** - ReviewCard now shows actual usernames instead of "U"
 - [x] **Fixed favorites search** - Restaurant search in favorites modal now finds results correctly
+- [x] **Mobile navigation improvements** - Professional hamburger menu with proper touch targets and no FAB overlaps
 
 ### Pending Features
 - [ ] Photo upload for reviews
@@ -59,10 +60,10 @@ restaurant/
 │   └── profile/           # User profile page
 ├── components/
 │   ├── filters/           # EnhancedFilters system  
-│   ├── layout/            # Header, AuthWrapper, FABs
+│   ├── layout/            # Header, AuthWrapper, FABs, MobileMenu
 │   ├── profile/           # Profile components
 │   ├── review/            # ReviewComposer, ReviewCard
-│   ├── search/            # SearchBar, GlobalSearchModal
+│   ├── search/            # SearchBar, GlobalSearchModal, SearchFAB
 │   └── ui/                # shadcn/ui components
 ├── lib/
 │   ├── supabase/          # Database clients & middleware
@@ -94,6 +95,9 @@ restaurant/
 - `components/restaurant/RestaurantSelector.tsx`: **UPDATED** - Fixed overflow issue with simplified restaurant card display
 - `components/search/SearchBar.tsx`: **UPDATED** - Clickable search with navigation
 - `components/search/GlobalSearchModal.tsx`: Search with keyboard shortcuts
+- `components/search/SearchFAB.tsx`: **UPDATED** - Repositioned to avoid header overlap on mobile
+- `components/layout/MobileMenu.tsx`: **NEW** - Professional hamburger menu for mobile navigation
+- `components/layout/Header.tsx`: **UPDATED** - Integrated MobileMenu for mobile devices
 - `lib/hooks/useAuth.ts`: Authentication with fallback handling
 - `lib/mutations/reviews.ts`: **NEW** - React Query mutation for review creation with cache invalidation
 - `lib/mutations/profile.ts`: **NEW** - Profile update mutations with optimistic updates
@@ -156,9 +160,17 @@ supabase db push                       # Apply to remote
 - **Restaurants Page**: Separated discovery with SearchBar and filters
 
 ### Responsive System
-- **Mobile**: Full-screen sheets, collapsible filters, touch-optimized
-- **Desktop**: Centered dialogs, expanded filters, hover effects
-- **Conditional Rendering**: `useMediaQuery` hook for Sheet vs Dialog
+- **Mobile**: Full-screen sheets, collapsible filters, touch-optimized, hamburger menu navigation
+- **Desktop**: Centered dialogs, expanded filters, hover effects, dropdown menu navigation
+- **Conditional Rendering**: `useMediaQuery` hook for Sheet vs Dialog, MobileMenu vs dropdown
+
+### Mobile Navigation Architecture
+- **Header Layout**: DineCircle logo (left) + Hamburger menu (right) on mobile
+- **MobileMenu Component**: Right-side Sheet with user profile section and navigation links
+- **FAB Positioning**: SearchFAB at `bottom-24 right-6` (mobile) vs `top-4 right-4` (desktop)
+- **Touch Targets**: Proper spacing and sizing for mobile interaction
+- **No Overlaps**: Fixed SearchFAB overlapping with header elements
+- **Navigation Items**: Restaurants, Profile, Manage Invites, Admin Panel, Sign out
 
 ### Review Schema (Simplified)
 ```typescript
@@ -244,6 +256,12 @@ supabase db push                       # Apply to remote
   - **Result**: Clean profile system without image upload complexity
   - **File**: Deleted `app/api/upload/avatar/route.ts`
 
+- **Mobile Navigation Enhancement**: Implemented professional mobile menu system
+  - **Problem**: SearchFAB overlapping with profile button, inaccessible Restaurants page on mobile
+  - **Solution**: Created MobileMenu component with hamburger icon, repositioned SearchFAB
+  - **Result**: Clean mobile header layout with proper touch targets and no overlapping elements
+  - **Files**: `components/layout/MobileMenu.tsx` (new), `components/layout/Header.tsx`, `components/search/SearchFAB.tsx`
+
 ## 🔐 Authentication - Modern Invite Code System
 
 ### New Authentication Flow
@@ -309,4 +327,4 @@ Ready for photo uploads for reviews, restaurant detail maps, and email notificat
 
 ---
 **Last Updated**: 2025-08-31  
-**Status**: MVP v1.9 - Profile Page Feature Complete
+**Status**: MVP v1.10 - Mobile Navigation Enhancement Complete
