@@ -43,17 +43,29 @@ export async function GET() {
     // Get favorite restaurants data if user has favorites
     let favoriteRestaurants: unknown[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((profile as any).favorite_restaurants && (profile as any).favorite_restaurants.length > 0) {
+    const favoriteIds = (profile as any)?.favorite_restaurants;
+    
+    if (favoriteIds && Array.isArray(favoriteIds) && favoriteIds.length > 0) {
+      console.log('Fetching favorite restaurants for IDs:', favoriteIds);
+      
       const { data: favorites, error: favoritesError } = await supabase
         .from('restaurants')
-        .select('id, name, address, city, cuisine, price_level, google_data, avg_rating, review_count')
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .in('id', (profile as any).favorite_restaurants)
-        .order('created_at', { ascending: false });
+        .select('id, name, address, city, cuisine, price_level, google_data')
+        .in('id', favoriteIds);
 
-      if (!favoritesError && favorites) {
-        favoriteRestaurants = favorites;
+      if (favoritesError) {
+        console.error('Error fetching favorite restaurants:', favoritesError);
+      } else if (favorites) {
+        // Maintain the order of favorites as stored in the user's profile
+        favoriteRestaurants = favoriteIds
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .map((id: any) => favorites.find((fav: any) => fav.id === id))
+          .filter(Boolean);
+        
+        console.log('Successfully fetched favorite restaurants:', favoriteRestaurants.length);
       }
+    } else {
+      console.log('No favorite restaurants found for user');
     }
 
     return NextResponse.json({
@@ -62,8 +74,7 @@ export async function GET() {
         ...(profile as any),
         stats: {
           reviewCount: reviewCount || 0,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          favoritesCount: (profile as any).favorite_restaurants?.length || 0,
+          favoritesCount: favoriteIds?.length || 0,
         },
         favoriteRestaurants,
       }
