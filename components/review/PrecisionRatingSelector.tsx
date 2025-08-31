@@ -61,42 +61,6 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
     onChange(preciseRating);
   };
 
-  const handleStarHover = (event: React.MouseEvent, starIndex: number) => {
-    // Completely disable hover during dragging
-    if (disabled || isDragging) return;
-    
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const width = rect.width;
-    const percentage = x / width;
-    
-    const preciseRating = Math.max(1.0, Math.min(5.0, Math.round((starIndex + percentage) * 10) / 10));
-    setHoverRating(preciseRating);
-  };
-
-  const handleStarLeave = () => {
-    // Only clear hover if not dragging
-    if (!isDragging) {
-      setHoverRating(null);
-    }
-  };
-
-  const handleContainerMouseMove = (event: React.MouseEvent) => {
-    // Only handle hover during non-drag state
-    if (disabled || isDragging) return;
-    
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const containerWidth = rect.width;
-    const starWidth = containerWidth / 5;
-    const starIndex = Math.floor(x / starWidth);
-    const positionWithinStar = (x % starWidth) / starWidth;
-    
-    if (starIndex >= 0 && starIndex < 5) {
-      const preciseRating = Math.max(1.0, Math.min(5.0, Math.round((starIndex + positionWithinStar) * 10) / 10));
-      setHoverRating(preciseRating);
-    }
-  };
 
   const handleMouseDown = (event: React.MouseEvent, starIndex: number) => {
     if (disabled) return;
@@ -228,32 +192,28 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
 
   // Render interactive stars
   const renderInteractiveStars = () => {
-    const displayRating = hoverRating || value;
+    // Only show hover rating during actual interaction, not just mouse movement
+    const displayRating = value;
     
     return (
       <div 
         className="flex items-center gap-1 select-none touch-none"
         data-stars-container
-        onMouseMove={handleContainerMouseMove}
-        onMouseLeave={handleStarLeave}
       >
         {[0, 1, 2, 3, 4].map((starIndex) => {
           const fillPercentage = Math.max(0, Math.min(100, (displayRating - starIndex) * 100));
-          const isHovered = hoverRating !== null && starIndex < Math.ceil(hoverRating);
           
           return (
             <div 
               key={starIndex} 
-              className="relative cursor-pointer touch-manipulation"
+              className="relative cursor-pointer touch-manipulation hover:scale-110 transition-transform duration-200"
               onClick={(e) => handleStarClick(e, starIndex)}
               onMouseDown={(e) => handleMouseDown(e, starIndex)}
               onTouchStart={(e) => handleTouchStart(e, starIndex)}
             >
               {/* Background star */}
               <Star
-                className={`${config.star} text-gray-200 transition-all duration-200 ${
-                  isHovered ? 'scale-110' : 'scale-100'
-                }`}
+                className={`${config.star} text-gray-200 transition-all duration-200`}
                 fill="currentColor"
               />
               
@@ -265,14 +225,10 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
                 }}
               >
                 <Star
-                  className={`${config.star} text-amber-400 transition-all duration-200 ${
-                    isHovered ? 'scale-110' : 'scale-100'
-                  }`}
+                  className={`${config.star} text-amber-400 transition-all duration-200`}
                   fill="currentColor"
                   style={{
-                    filter: isHovered 
-                      ? 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.8))' 
-                      : 'drop-shadow(0 0 4px rgba(251, 191, 36, 0.5))'
+                    filter: 'drop-shadow(0 0 4px rgba(251, 191, 36, 0.5))'
                   }}
                 />
               </div>
