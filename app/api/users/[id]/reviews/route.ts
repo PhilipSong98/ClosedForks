@@ -1,6 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+// Define types for the database responses
+interface Restaurant {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  cuisine: string | null;
+  google_data: Record<string, unknown> | null;
+  google_place_id: string | null;
+  google_maps_url: string | null;
+  lat: number | null;
+  lng: number | null;
+  price_level: number | null;
+}
+
+interface Review {
+  id: string;
+  author_id: string;
+  restaurant_id: string;
+  content: string;
+  rating_overall: number;
+  rating_food: number | null;
+  rating_service: number | null;
+  rating_atmosphere: number | null;
+  rating_value: number | null;
+  tags: string[] | null;
+  created_at: string;
+  updated_at: string;
+  restaurants: Restaurant;
+}
+
+interface UserData {
+  id: string;
+  name: string | null;
+  full_name: string | null;
+  email: string;
+  avatar_url: string | null;
+}
+
 // GET /api/users/[id]/reviews - Get user's reviews
 export async function GET(
   request: NextRequest,
@@ -70,22 +109,22 @@ export async function GET(
       .from('users')
       .select('id, name, full_name, email, avatar_url')
       .eq('id', userId)
-      .single();
+      .single() as { data: UserData | null; error: unknown };
 
     if (userError) {
       console.error('Error fetching user data:', userError);
     }
 
     // Format reviews with author data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formattedReviews = (reviews || []).map((review: any) => ({
+    const formattedReviews = (reviews || []).map((review: Review) => ({
       ...review,
       restaurant: review.restaurants,
       author: userData ? {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...(userData as any),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        name: (userData as any).name || (userData as any).full_name || (userData as any).email || 'Unknown User'
+        id: userData.id,
+        name: userData.name || userData.full_name || userData.email || 'Unknown User',
+        full_name: userData.full_name,
+        email: userData.email,
+        avatar_url: userData.avatar_url,
       } : null,
     }));
 

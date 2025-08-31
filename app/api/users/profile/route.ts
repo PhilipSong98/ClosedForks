@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+// Define types for the database responses
+interface UserProfile {
+  id: string;
+  name: string | null;
+  full_name: string | null;
+  email: string;
+  avatar_url: string | null;
+  favorite_restaurants: string[] | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Restaurant {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  cuisine: string | null;
+  price_level: number | null;
+  google_data: Record<string, unknown> | null;
+}
+
 // GET /api/users/profile - Get current user's profile with stats
 export async function GET() {
   try {
@@ -20,9 +42,9 @@ export async function GET() {
       .from('users')
       .select('*')
       .eq('id', user.id)
-      .single();
+      .single() as { data: UserProfile | null; error: unknown };
 
-    if (profileError) {
+    if (profileError || !profile) {
       console.error('Error fetching profile:', profileError);
       return NextResponse.json(
         { error: 'Failed to fetch profile' },
@@ -41,9 +63,8 @@ export async function GET() {
     }
 
     // Get favorite restaurants data if user has favorites
-    let favoriteRestaurants: unknown[] = [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const favoriteIds = (profile as any)?.favorite_restaurants;
+    let favoriteRestaurants: Restaurant[] = [];
+    const favoriteIds = profile?.favorite_restaurants;
     
     if (favoriteIds && Array.isArray(favoriteIds) && favoriteIds.length > 0) {
       console.log('Fetching favorite restaurants for IDs:', favoriteIds);
@@ -57,10 +78,13 @@ export async function GET() {
         console.error('Error fetching favorite restaurants:', favoritesError);
       } else if (favorites) {
         // Maintain the order of favorites as stored in the user's profile
-        favoriteRestaurants = favoriteIds
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .map((id: any) => favorites.find((fav: any) => fav.id === id))
-          .filter(Boolean);
+        favoriteRestaurants = [];
+        for (const id of favoriteIds) {
+          const restaurant = favorites.find((fav: Restaurant) => fav.id === id);
+          if (restaurant) {
+            favoriteRestaurants.push(restaurant);
+          }
+        }
         
         console.log('Successfully fetched favorite restaurants:', favoriteRestaurants.length);
       }
@@ -70,8 +94,14 @@ export async function GET() {
 
     return NextResponse.json({
       profile: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...(profile as any),
+        id: profile.id,
+        name: profile.name,
+        full_name: profile.full_name,
+        email: profile.email,
+        avatar_url: profile.avatar_url,
+        favorite_restaurants: profile.favorite_restaurants,
+        created_at: profile.created_at,
+        updated_at: profile.updated_at,
         stats: {
           reviewCount: reviewCount || 0,
           favoritesCount: favoriteIds?.length || 0,

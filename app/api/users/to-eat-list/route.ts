@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+// Define types for the database responses
+interface Restaurant {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  cuisine: string | null;
+  price_level: number | null;
+  google_data: Record<string, unknown> | null;
+  created_at: string;
+}
+
+interface ToEatListItem {
+  created_at: string;
+  restaurant_id: string;
+  restaurants: Restaurant;
+}
+
 // GET /api/users/to-eat-list - Get current user's to-eat list with restaurant details
 export async function GET() {
   try {
@@ -51,7 +69,7 @@ export async function GET() {
     }
 
     // Get restaurant IDs to fetch reviews for
-    const restaurantIds = toEatList.map((item: any) => item.restaurant_id);
+    const restaurantIds = toEatList.map((item: ToEatListItem) => item.restaurant_id);
 
     // Fetch all reviews for these restaurants
     const { data: reviews, error: reviewsError } = await supabase
@@ -83,7 +101,7 @@ export async function GET() {
     }, {} as Record<string, ReviewData[]>);
 
     // Transform the data and compute avg_rating, review_count, and aggregated_tags
-    const restaurants = (toEatList || []).map((item: any) => {
+    const restaurants = (toEatList || []).map((item: ToEatListItem) => {
       const restaurant = item.restaurants;
       const restaurantReviews = reviewsByRestaurant[restaurant.id] || [];
       
@@ -151,7 +169,7 @@ export async function POST(request: NextRequest) {
       .from('restaurants')
       .select('id, name')
       .eq('id', restaurant_id)
-      .single();
+      .single() as { data: { id: string; name: string } | null; error: unknown };
 
     if (restaurantError || !restaurant) {
       return NextResponse.json(
@@ -183,7 +201,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: `${(restaurant as any).name} added to your to-eat list`,
+      message: `${restaurant.name} added to your to-eat list`,
       restaurant_id,
     });
   } catch (error) {
