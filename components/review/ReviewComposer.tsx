@@ -81,7 +81,7 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
     resolver: zodResolver(reviewSchema),
     defaultValues: {
       restaurant: prefilledRestaurant?.name || '',
-      rating: 0,
+      rating: 3.0,
       dish: '',
       review: '',
       recommend: true,

@@ -167,7 +167,7 @@ function SearchResultItem({
 }) {
   const href = result.type === "review" 
     ? `/?highlight=${result.id}` 
-    : `/restaurants?highlight=${result.id}`;
+    : `/restaurants/${result.restaurantId || result.id}`;
 
   // Helper function to get tag category for styling
   const getTagCategory = (tag: string) => {
