@@ -24,10 +24,10 @@ export function WriteReviewFAB() {
   const fabButton = (
     <Button
       size="icon"
-      className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+      className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 hover:bg-white/90 backdrop-blur-md border border-gray-200/50"
       aria-label="Write a review"
     >
-      <Plus className="w-6 h-6" />
+      <Plus className="w-6 h-6 text-gray-600" />
     </Button>
   );
 
@@ -58,10 +58,10 @@ export function WriteReviewFAB() {
       <Button
         onClick={() => setIsOpen(true)}
         size="icon"
-        className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+        className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 hover:bg-white/90 backdrop-blur-md border border-gray-200/50"
         aria-label="Write a review"
       >
-        <Plus className="w-6 h-6" />
+        <Plus className="w-6 h-6 text-gray-600" />
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

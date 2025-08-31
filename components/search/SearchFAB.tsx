@@ -34,10 +34,10 @@ export function SearchFAB() {
       <Button
         onClick={() => setIsOpen(true)}
         size="icon"
-        className="fixed bottom-24 right-6 md:top-4 md:right-4 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90"
+        className="fixed bottom-24 right-6 md:top-4 md:right-4 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 hover:bg-white/90 backdrop-blur-md border border-gray-200/50"
         aria-label="Open search"
       >
-        <Search className="h-5 w-5" />
+        <Search className="h-5 w-5 text-gray-600" />
       </Button>
       
       <GlobalSearchModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
