@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, Heart, MapPin } from 'lucide-react';
+import { Heart, MapPin } from 'lucide-react';
+import { StarRating } from '@/components/ui/StarRating';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
@@ -43,16 +44,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
     return 'DISHES'; // fallback
   };
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-4 h-4 ${
-          i < rating ? 'fill-primary text-primary' : 'text-muted-foreground'
-        }`}
-      />
-    ));
-  };
+  // Removed old renderStars function - now using StarRating component
 
   // Handle both old and new API response structures
   const restaurant = review.restaurant || review.restaurants;
@@ -149,8 +141,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
           <div className="px-4 pt-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                {renderStars(rating)}
-                <span className="text-sm font-medium text-foreground ml-1">{rating}/5</span>
+                <StarRating rating={rating} size="sm" showNumber={true} />
               </div>
               <span className="text-sm font-medium text-primary">Dish: {dish}</span>
             </div>
@@ -164,8 +155,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
         <div className="px-4 mb-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
-              {renderStars(rating)}
-              <span className="text-sm font-medium text-foreground ml-1">{rating}/5</span>
+              <StarRating rating={rating} size="sm" showNumber={true} />
             </div>
             {dish && dish !== 'Not specified' && (
               <span className="text-sm font-medium text-primary">Dish: {dish}</span>

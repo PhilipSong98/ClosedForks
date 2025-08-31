@@ -15,13 +15,16 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/hooks/useAuth';
 import type { Restaurant } from '@/types';
 import { RestaurantSelector } from '@/components/restaurant/RestaurantSelector';
-import RatingInput from './RatingInput';
+import PrecisionRatingSelector from './PrecisionRatingSelector';
 import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
 import { useCreateReview } from '@/lib/mutations/reviews';
 
 const reviewSchema = z.object({
   restaurant: z.string().min(1, 'Please select a restaurant'),
-  rating: z.number().min(1, 'Please give a rating').max(5),
+  rating: z.number().min(1, 'Please give a rating').max(5).refine(
+    (val) => val * 10 === Math.floor(val * 10), 
+    { message: 'Rating must be in tenth-decimal increments' }
+  ),
   dish: z.string().min(1, 'What did you eat?'),
   review: z.string().min(10, 'Tell us more about your experience (minimum 10 characters)'),
   recommend: z.boolean(),
@@ -193,7 +196,7 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
               <FormItem>
                 <FormLabel className="text-base font-medium">Rating</FormLabel>
                 <FormControl>
-                  <RatingInput
+                  <PrecisionRatingSelector
                     value={field.value}
                     onChange={field.onChange}
                     size="lg"

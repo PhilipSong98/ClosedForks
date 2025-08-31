@@ -71,7 +71,10 @@ export const placeDetailsSchema = z.object({
 // New simplified review schema for Lovable UI
 export const reviewSchema = z.object({
   restaurant_id: z.string().uuid(),
-  rating_overall: z.number().int().min(1).max(5), // Main rating (maps to lovable 'rating')
+  rating_overall: z.number().min(1).max(5).refine(
+    (val) => val * 10 === Math.floor(val * 10), 
+    { message: 'Rating must be in tenth-decimal increments (1.0, 1.1, 1.2, 1.3, ..., 4.8, 4.9, 5.0)' }
+  ), // Main rating with tenth-decimal precision
   dish: z.string().min(1, 'Please specify what dish you had').max(200),
   review: z.string().min(10, 'Review must be at least 10 characters').max(1000),
   recommend: z.boolean().default(true),
@@ -91,7 +94,10 @@ export const reviewSchema = z.object({
 // Legacy schema for backward compatibility if needed
 export const legacyReviewSchema = z.object({
   restaurant_id: z.string().uuid(),
-  rating_overall: z.number().int().min(1).max(5),
+  rating_overall: z.number().min(1).max(5).refine(
+    (val) => val * 10 === Math.floor(val * 10), 
+    { message: 'Rating must be in tenth-decimal increments' }
+  ),
   food: z.number().int().min(1).max(5),
   service: z.number().int().min(1).max(5),
   vibe: z.number().int().min(1).max(5),
