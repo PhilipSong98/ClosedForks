@@ -31,15 +31,17 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 
 ## Recent Updates
 
-### 🔧 UI/UX Improvements (January 2025)
+### 🔧 UI/UX Improvements (August 2025)
 
 Enhanced user experience with cleaner interfaces and fixed search functionality:
 
 #### **✅ Restaurant Detail Page Enhancements**
+- **Hero Cover Images** - Full-width Google Places photos with professional gradient overlay
 - **Dual Rating Display** - Shows both private network rating and Google rating prominently
 - **Proper Rating Calculation** - Real-time calculation from actual private reviews
 - **Enhanced Sidebar** - Sticky restaurant info with contact details, hours, and action buttons
 - **Grid Layout for Reviews** - Responsive grid display for better visual organization
+- **Responsive Design** - 300px mobile, 400px desktop hero heights with Next.js optimization
 - **Fixed Google Maps Links** - Multiple fallback options for reliable map access
 
 #### **✅ Search System Improvements**
@@ -83,7 +85,7 @@ Complete redesign of authentication flow with modern, clean aesthetic and invite
 - **Components** - Consistent card design, input styling, and button treatments
 - **Responsive** - Mobile-first design with proper touch targets and accessibility
 
-### 🔍 Private Network Search System (January 2025)
+### 🔍 Private Network Search System (August 2025)
 
 Private database search functionality with enhanced user experience:
 
@@ -329,17 +331,17 @@ Visit `http://localhost:3000` to see the app.
 
 ### Authentication Issues
 
-**🔄 Infinite Loading After Magic Link**
+**🔄 Session Issues After Signup/Login**
 - **Cause**: Conflicting cookies from multiple Supabase projects
 - **Fix**: Clear all cookies for localhost:3000:
   1. Open DevTools (F12) → Application tab
   2. Storage → Cookies → localhost:3000
   3. Right-click → Clear or delete all cookies
-  4. Refresh and try again
+  4. Refresh and try to sign in again
 
-**❌ "Code verifier should be non-empty" Error**
-- **Cause**: PKCE flow cookies missing or corrupted
-- **Fix**: Clear cookies and request a fresh magic link
+**❌ Invite Code Not Working**
+- **Cause**: Code may be expired or usage limit reached
+- **Fix**: Use the test code `123456` or contact admin for a new code
 
 **⏱️ Profile Fetch Timeout**
 - **Cause**: Database connectivity or RLS policy issues
@@ -353,7 +355,7 @@ Visit `http://localhost:3000` to see the app.
 
 **📦 Build Failures**
 ```bash
-npm run type-check  # Check TypeScript errors first
+npm run build      # Will show TypeScript errors during build
 npm run lint       # Check linting issues
 ```
 
@@ -502,7 +504,7 @@ npm run start        # Start production server
 
 # Code Quality
 npm run lint         # Run ESLint
-npm run type-check   # Run TypeScript checks
+npm run build        # Check TypeScript types during build
 
 # Database
 # Run SQL files in Supabase dashboard SQL editor
@@ -510,13 +512,14 @@ npm run type-check   # Run TypeScript checks
 
 ## Security Features
 
-- **Authentication**: Magic link auth via Supabase
+- **Authentication**: Invite code system with email/password via Supabase
 - **Authorization**: Row-level security policies
 - **Data Privacy**: Reviews visible only to network members
 - **Input Validation**: Zod schemas for all API endpoints
-- **Rate Limiting**: Built-in via Supabase
+- **Rate Limiting**: Built-in invite code validation (5 attempts per 15 minutes)
 - **HTTPS**: Enforced in production
 - **CORS**: Configured for secure API access
+- **Session Management**: Secure 30-minute invite code sessions
 
 ## Business Rules
 
@@ -533,7 +536,7 @@ npm run type-check   # Run TypeScript checks
 1. **Database Connection**: Check Supabase URL and keys
 2. **Authentication**: Verify callback URL in Supabase Auth settings
 3. **Email Delivery**: Confirm Resend API key and domain setup
-4. **Build Errors**: Run `npm run type-check` to identify TypeScript issues
+4. **Build Errors**: Run `npm run build` to identify TypeScript issues
 
 ### Support
 

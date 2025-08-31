@@ -6,8 +6,8 @@ import SearchBar from '@/components/search/SearchBar';
 import EnhancedFilters, { FilterState } from '@/components/filters/EnhancedFilters';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { useAuth } from '@/lib/hooks/useAuth';
-// import { useRestaurants } from '@/lib/queries/restaurants'; // Currently unused
-import { Restaurant, Review } from '@/types';
+import { useRestaurantsWithReviews } from '@/lib/queries/restaurants';
+import { Restaurant } from '@/types';
 
 interface RestaurantsClientProps {
   initialRestaurants?: Restaurant[];
@@ -17,7 +17,7 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
   initialRestaurants = []
 }) => {
   const { user } = useAuth();
-  const [restaurants, setRestaurants] = useState<Restaurant[]>(initialRestaurants);
+  const { data: restaurants = initialRestaurants, isLoading, error } = useRestaurantsWithReviews();
   const [filters, setFilters] = useState<FilterState>({
     tags: [],
     minRating: 0,
@@ -27,75 +27,30 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
     sortBy: 'recent'
   });
 
-  // Fetch reviews and aggregate with restaurants on client-side
-  React.useEffect(() => {
-    if (!user) return;
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8 pb-24">
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading restaurants...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
-    const fetchReviewData = async () => {
-      try {
-        const response = await fetch('/api/reviews');
-        if (!response.ok) return;
-        
-        const { reviews } = await response.json();
-        console.log(`Client-side: Found ${reviews.length} reviews`);
-        
-        // Group reviews by restaurant_id
-        const reviewsByRestaurant = reviews.reduce((acc: Record<string, Review[]>, review: Review) => {
-          const restaurantId = review.restaurant_id;
-          if (!acc[restaurantId]) {
-            acc[restaurantId] = [];
-          }
-          acc[restaurantId].push(review);
-          return acc;
-        }, {} as Record<string, Review[]>);
+  // Show error state
+  if (error) {
+    console.error('Error fetching restaurants:', error);
+  }
 
-        // Update restaurants with review data
-        const updatedRestaurants = initialRestaurants.map(restaurant => {
-          const restaurantReviews = reviewsByRestaurant[restaurant.id] || [];
-          
-          // Calculate actual average rating from individual review.rating_overall values
-          const ratings = restaurantReviews
-            .map((r: Review) => r.rating_overall)
-            .filter((r: number | undefined) => r != null) as number[];
-          const avg_rating = ratings.length > 0 
-            ? Math.round((ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length) * 10) / 10
-            : 0;
-          
-          // Aggregate unique tags from all reviews
-          const allTags = restaurantReviews
-            .flatMap((r: Review) => r.tags || [])
-            .filter((tag: string, index: number, arr: string[]) => arr.indexOf(tag) === index);
-          
-          return {
-            ...restaurant,
-            avg_rating,
-            review_count: restaurantReviews.length,
-            aggregated_tags: allTags
-          };
-        });
+  // Use the restaurants data from the hook
+  const allRestaurants = restaurants || [];
 
-        setRestaurants(updatedRestaurants);
-        console.log(`Client-side: Updated ${updatedRestaurants.filter(r => r.review_count > 0).length} restaurants with reviews`);
-      } catch (error) {
-        console.error('Error fetching review data:', error);
-      }
-    };
-
-    fetchReviewData();
-  }, [user, initialRestaurants]);
-
-  // Use the updated restaurants with review data
-  const allRestaurants = restaurants;
-
-  const handleRestaurantSelect = () => {
-    // SearchBar will handle navigation by default
-  };
-
-
-
-  // Filter and sort restaurants - ensure allRestaurants is an array
-  const restaurantList = Array.isArray(allRestaurants) ? allRestaurants : [];
-  const filteredRestaurants = restaurantList
+  // Filter and sort restaurants
+  const filteredRestaurants = allRestaurants
     .filter(restaurant => {
       // Tag filter (from aggregated tags)
       if (filters.tags.length > 0) {
@@ -147,7 +102,6 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
           </div>
           
           <SearchBar 
-            onRestaurantSelect={handleRestaurantSelect}
             placeholder="Search restaurants from your network..."
           />
         </section>
@@ -164,7 +118,7 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
           <EnhancedFilters 
             filters={filters}
             onFiltersChange={setFilters}
-            reviewCount={restaurantList.length}
+            reviewCount={allRestaurants.length}
             filteredCount={filteredRestaurants.length}
             showAllFilters={false}
             defaultExpanded={false}

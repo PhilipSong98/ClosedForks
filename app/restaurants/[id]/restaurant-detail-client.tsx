@@ -2,13 +2,15 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Star, ExternalLink, Globe, Phone, Clock, DollarSign } from 'lucide-react';
+import Image from 'next/image';
+import { MapPin, ExternalLink, Globe, Phone, Clock, DollarSign } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import ReviewCard from '@/components/review/ReviewCard';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StarRating } from '@/components/ui/StarRating';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { getRestaurantPhotoUrl } from '@/lib/utils';
 import { PRICE_LEVELS } from '@/constants';
 import type { Restaurant, Review, GooglePlaceData } from '@/types';
 
@@ -64,9 +66,58 @@ export default function RestaurantDetailClient({
     );
   }
 
+  // Get the hero image URL
+  const heroImageUrl = getRestaurantPhotoUrl(restaurant, 800);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      
+      {/* Hero Image Section */}
+      <div className="relative h-[300px] md:h-[400px] w-full overflow-hidden">
+        {heroImageUrl ? (
+          <Image 
+            src={heroImageUrl} 
+            alt={`${restaurant?.name} interior`}
+            fill
+            className="object-cover"
+            priority
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200" />
+        )}
+        
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        
+        {/* Restaurant Name Overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+          <div className="container mx-auto">
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 drop-shadow-lg">
+              {restaurant?.name}
+            </h1>
+            <div className="flex items-center gap-2 text-white/90 mb-4">
+              <MapPin className="h-5 w-5" />
+              <span className="text-lg">{restaurant?.address}, {restaurant?.city}</span>
+            </div>
+            
+            {/* Cuisine Badges */}
+            {restaurant?.cuisine && restaurant.cuisine.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {restaurant.cuisine.slice(0, 4).map((cuisine) => (
+                  <Badge 
+                    key={cuisine} 
+                    variant="secondary" 
+                    className="bg-white/20 text-white border-white/30 backdrop-blur-sm"
+                  >
+                    {cuisine}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
       
       <main className="container mx-auto px-4 py-8 pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -74,13 +125,9 @@ export default function RestaurantDetailClient({
           <div className="lg:col-span-1">
             <Card className="sticky top-8">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">
-                  {restaurant?.name || 'Loading...'}
+                <CardTitle className="text-xl font-semibold">
+                  Restaurant Details
                 </CardTitle>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span className="text-sm">{restaurant?.address}, {restaurant?.city}</span>
-                </div>
               </CardHeader>
               
               <CardContent className="space-y-6">
@@ -162,19 +209,6 @@ export default function RestaurantDetailClient({
                   )}
                 </div>
 
-                {/* Cuisine Tags */}
-                {restaurant?.cuisine && restaurant.cuisine.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">Cuisine</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {restaurant.cuisine.map((cuisine) => (
-                        <Badge key={cuisine} variant="secondary" className="text-xs">
-                          {cuisine}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Action Buttons */}
                 <div className="space-y-2 pt-4 border-t">

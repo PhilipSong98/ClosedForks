@@ -17,6 +17,7 @@ import type { Restaurant } from '@/types';
 import { RestaurantSelector } from '@/components/restaurant/RestaurantSelector';
 import RatingInput from './RatingInput';
 import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
+import { useCreateReview } from '@/lib/mutations/reviews';
 
 const reviewSchema = z.object({
   restaurant: z.string().min(1, 'Please select a restaurant'),
@@ -43,11 +44,11 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
   prefilledRestaurant,
   preselectedRestaurant 
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState(prefilledRestaurant || preselectedRestaurant);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
+  const createReviewMutation = useCreateReview();
 
   // Helper function to get tag category for styling
   const getTagCategory = (tag: string) => {
@@ -116,62 +117,41 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
       return;
     }
     
-    setIsSubmitting(true);
-    
-    try {
-      // Map the form data to the API format
-      const reviewData = {
-        restaurant_id: selectedRestaurant.id, // From the restaurant we selected
-        rating_overall: data.rating,
-        dish: data.dish,
-        review: data.review,
-        recommend: data.recommend,
-        tips: data.tips || '',
-        tags: data.tags || [],
-        visit_date: new Date().toISOString(), // Current date
-        visibility: 'my_circles' as const,
-      };
+    // Map the form data to the API format
+    const reviewData = {
+      restaurant_id: selectedRestaurant.id,
+      rating_overall: data.rating,
+      dish: data.dish,
+      review: data.review,
+      recommend: data.recommend,
+      tips: data.tips || '',
+      tags: data.tags || [],
+      visit_date: new Date().toISOString(),
+      visibility: 'my_circles' as const,
+    };
 
-      const response = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(reviewData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
+    createReviewMutation.mutate(reviewData, {
+      onSuccess: () => {
+        toast({
+          title: "Review posted!",
+          description: "Your review has been shared with your network.",
+        });
         
-        // Handle specific error cases with better messaging
-        if (response.status === 409 || errorData.error?.includes('already reviewed')) {
-          throw new Error('You have already reviewed this restaurant. Each user can only write one review per restaurant.');
-        }
-        
-        throw new Error(errorData.error || 'Failed to create review');
-      }
-
-      const result = await response.json();
-      
-      toast({
-        title: "Review posted!",
-        description: "Your review has been shared with your network.",
-      });
-      
-      form.reset();
-      setSelectedRestaurant(undefined);
-      onSubmit(true);
-    } catch (error) {
-      console.error('Error posting review:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to post your review. Please try again.",
-        variant: "destructive",
-      });
-      onSubmit(false);
-    } finally {
-      setIsSubmitting(false);
-    }
+        form.reset();
+        setSelectedRestaurant(undefined);
+        setSelectedTags([]);
+        onSubmit(true);
+      },
+      onError: (error) => {
+        console.error('Error posting review:', error);
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to post your review. Please try again.",
+          variant: "destructive",
+        });
+        onSubmit(false);
+      },
+    });
   };
 
   return (
@@ -392,9 +372,9 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
             type="submit" 
             className="w-full bg-black hover:bg-gray-800 text-white rounded-xl py-4 text-base font-medium" 
             size="lg"
-            disabled={isSubmitting}
+            disabled={createReviewMutation.isPending}
           >
-            {isSubmitting ? 'Posting...' : 'Share Review'}
+            {createReviewMutation.isPending ? 'Posting...' : 'Share Review'}
           </Button>
         </form>
       </Form>
