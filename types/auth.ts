@@ -2,7 +2,7 @@
  * Authentication-related TypeScript type definitions
  */
 
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { User } from './index';
 
 /** Auth state for the useAuth hook */
@@ -34,7 +34,7 @@ export interface ProfileFetchResult {
 /** Session validation result */
 export interface SessionValidationResult {
   isValid: boolean;
-  session: any;
+  session: Session | null;
   error?: AuthError;
 }
 

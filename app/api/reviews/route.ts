@@ -2,6 +2,36 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { reviewSchema } from '@/lib/validations';
 
+// Define types for the database responses
+interface ReviewData {
+  id: string;
+  content: string;
+  rating_overall: number;
+  rating_food: number | null;
+  rating_service: number | null;
+  rating_atmosphere: number | null;
+  rating_value: number | null;
+  tags: string[] | null;
+  author_id: string;
+  restaurant_id: string;
+  created_at: string;
+  updated_at: string;
+  restaurants?: {
+    id: string;
+    name: string;
+    address: string;
+    city: string;
+    cuisine: string | null;
+    google_data: Record<string, unknown> | null;
+  };
+  author_user?: {
+    id: string;
+    name: string;
+    email: string;
+    avatar_url?: string;
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -36,8 +66,7 @@ export async function GET(request: NextRequest) {
       query = query.eq('restaurant_id', restaurantId);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: reviews, error } = await query as { data: any[] | null; error: Error | null };
+    const { data: reviews, error } = await query as { data: ReviewData[] | null; error: Error | null };
 
     if (error) {
       console.error('Error fetching reviews:', error);

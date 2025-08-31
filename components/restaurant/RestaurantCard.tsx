@@ -130,7 +130,7 @@ export function RestaurantCard({ restaurant, showToEatButton = true }: Restauran
     
     {/* To-Eat Button Overlay */}
     {showToEatButton && (
-      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <div className="absolute top-3 right-3">
         <ToEatButton
           restaurantId={restaurant.id}
           restaurantName={restaurant.name}

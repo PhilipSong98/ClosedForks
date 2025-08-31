@@ -126,7 +126,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
               )}
               
               {/* To-Eat Button Overlay */}
-              <div className="absolute top-3 right-3 opacity-0 md:group-hover:opacity-100 opacity-100 md:opacity-0 transition-opacity duration-200">
+              <div className="absolute top-3 right-3">
                 <ToEatButton
                   restaurantId={restaurant.id}
                   restaurantName={restaurant.name}
