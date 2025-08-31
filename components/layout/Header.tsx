@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User, Settings, MapPin, Shield } from 'lucide-react';
+import { LogOut, User, Settings, MapPin, Shield, Bookmark } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 
 interface HeaderProps {
@@ -66,6 +66,12 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
               >
                 Restaurants
               </Link>
+              <Link 
+                href="/to-eat"
+                className="text-foreground hover:text-primary transition-colors font-medium"
+              >
+                To-Eat List
+              </Link>
             </nav>
           </div>
 
@@ -108,6 +114,12 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
                       <Link href="/restaurants">
                         <MapPin className="mr-2 h-4 w-4" />
                         Restaurants
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/to-eat">
+                        <Bookmark className="mr-2 h-4 w-4" />
+                        To-Eat List
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>

@@ -7,6 +7,7 @@ import Header from '@/components/layout/Header';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import RecentReviews from '@/components/profile/RecentReviews';
 import FavoritesSection from '@/components/profile/FavoritesSection';
+import ToEatSection from '@/components/profile/ToEatSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -79,9 +80,10 @@ export default function ProfileClient() {
           
           {/* Profile Content */}
           <Tabs defaultValue="reviews" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="reviews">Recent Reviews</TabsTrigger>
               <TabsTrigger value="favorites">Favorites</TabsTrigger>
+              <TabsTrigger value="to-eat">To-Eat List</TabsTrigger>
             </TabsList>
             
             <TabsContent value="reviews" className="mt-6">
@@ -95,6 +97,10 @@ export default function ProfileClient() {
                   // This will be handled by the mutation in FavoritesSection
                 }}
               />
+            </TabsContent>
+            
+            <TabsContent value="to-eat" className="mt-6">
+              <ToEatSection />
             </TabsContent>
           </Tabs>
         </div>

@@ -226,3 +226,16 @@ export interface AuthError {
   code?: string;
   field?: string;
 }
+
+// To-Eat List types
+export interface ToEatListItem {
+  user_id: string;
+  restaurant_id: string;
+  created_at: string;
+  restaurant: Restaurant;
+}
+
+export interface ToEatListResponse {
+  restaurants: (Restaurant & { savedAt: string })[];
+  count: number;
+}

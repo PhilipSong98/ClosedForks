@@ -7,33 +7,36 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PRICE_LEVELS } from '@/constants';
 import { getRestaurantPhotoUrl } from '@/lib/utils';
+import { ToEatButton } from './ToEatButton';
 import type { Restaurant } from '@/types';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
+  showToEatButton?: boolean;
 }
 
-export function RestaurantCard({ restaurant }: RestaurantCardProps) {
+export function RestaurantCard({ restaurant, showToEatButton = true }: RestaurantCardProps) {
   const avgRating = restaurant.avg_rating ?? 0;
   const reviewCount = restaurant.review_count ?? 0;
   const photoUrl = getRestaurantPhotoUrl(restaurant, 400);
 
   return (
-    <Link href={`/restaurants/${restaurant.id}`}>
-      <Card className="h-full hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
-        <CardContent className="p-0">
-          {/* Cover Image */}
-          {photoUrl && (
-            <div className="relative w-full h-48 overflow-hidden">
-              <Image
-                src={photoUrl}
-                alt={`${restaurant.name} cover photo`}
-                fill
-                className="object-cover transition-transform hover:scale-105"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-            </div>
-          )}
+    <div className="relative group">
+      <Link href={`/restaurants/${restaurant.id}`}>
+        <Card className="h-full hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
+          <CardContent className="p-0">
+            {/* Cover Image */}
+            {photoUrl && (
+              <div className="relative w-full h-48 overflow-hidden">
+                <Image
+                  src={photoUrl}
+                  alt={`${restaurant.name} cover photo`}
+                  fill
+                  className="object-cover transition-transform hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
+            )}
           
           <div className="p-4 space-y-3">
             <div className="space-y-2">
@@ -109,5 +112,20 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
         </CardContent>
       </Card>
     </Link>
+    
+    {/* To-Eat Button Overlay */}
+    {showToEatButton && (
+      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <ToEatButton
+          restaurantId={restaurant.id}
+          restaurantName={restaurant.name}
+          variant="outline"
+          size="icon"
+          showText={false}
+          className="bg-white/90 backdrop-blur-sm border-white/20 hover:bg-white shadow-lg"
+        />
+      </div>
+    )}
+  </div>
   );
 }
