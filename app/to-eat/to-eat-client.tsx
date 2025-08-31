@@ -69,7 +69,7 @@ export default function ToEatPageClient() {
           </div>
           
           {/* To-Eat Section */}
-          <ToEatSection />
+          <ToEatSection showHeader={false} />
         </div>
       </main>
     </div>

@@ -100,7 +100,7 @@ export default function ProfileClient() {
             </TabsContent>
             
             <TabsContent value="to-eat" className="mt-6">
-              <ToEatSection />
+              <ToEatSection showHeader={true} />
             </TabsContent>
           </Tabs>
         </div>

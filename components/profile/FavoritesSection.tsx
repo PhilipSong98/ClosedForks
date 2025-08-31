@@ -171,7 +171,6 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
-          disabled={isSearching}
         />
         {isSearching && (
           <div className="absolute right-3 top-3">

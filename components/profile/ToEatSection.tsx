@@ -17,7 +17,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 
-const ToEatSection: React.FC = () => {
+interface ToEatSectionProps {
+  showHeader?: boolean;
+}
+
+const ToEatSection: React.FC<ToEatSectionProps> = ({ showHeader = true }) => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { toast } = useToast();
   const { data: toEatListData, isLoading, error } = useToEatList();
@@ -144,7 +148,6 @@ const ToEatSection: React.FC = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
-          disabled={isSearching}
         />
         {isSearching && (
           <div className="absolute right-3 top-3">
@@ -341,30 +344,32 @@ const ToEatSection: React.FC = () => {
           </Alert>
         )}
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bookmark className="h-5 w-5 text-orange-500" />
-            <h2 className="text-xl font-semibold text-foreground">
-              To-Eat List
-            </h2>
+{showHeader && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bookmark className="h-5 w-5 text-blue-600" />
+              <h2 className="text-xl font-semibold text-foreground">
+                To-Eat List
+              </h2>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setAddModalOpen(true)}
+              disabled={addToEatListMutation.isPending || removeFromToEatListMutation.isPending}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Restaurant
+            </Button>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setAddModalOpen(true)}
-            disabled={addToEatListMutation.isPending || removeFromToEatListMutation.isPending}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Restaurant
-          </Button>
-        </div>
+        )}
 
         {!error && toEatCount === 0 ? (
           <div className="text-center py-16">
             <div className="relative mx-auto w-20 h-20 mb-6">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full" />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full" />
               <div className="absolute inset-2 bg-white rounded-full shadow-sm flex items-center justify-center">
-                <Bookmark className="h-8 w-8 text-orange-500" />
+                <Bookmark className="h-8 w-8 text-blue-600" />
               </div>
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -376,7 +381,7 @@ const ToEatSection: React.FC = () => {
             <Button 
               onClick={() => setAddModalOpen(true)}
               size="lg"
-              className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               disabled={addToEatListMutation.isPending || removeFromToEatListMutation.isPending}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -389,6 +394,17 @@ const ToEatSection: React.FC = () => {
               <div className="text-sm text-muted-foreground">
                 {toEatCount} restaurant{toEatCount !== 1 ? 's' : ''} saved
               </div>
+              {!showHeader && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setAddModalOpen(true)}
+                  disabled={addToEatListMutation.isPending || removeFromToEatListMutation.isPending}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Restaurant
+                </Button>
+              )}
             </div>
             
             {/* Mobile: Horizontal scroll */}
@@ -458,7 +474,7 @@ const ToEatSection: React.FC = () => {
           <SheetContent side="bottom" className="h-[85vh]">
             <SheetHeader className="mb-6">
               <SheetTitle className="flex items-center gap-2">
-                <Bookmark className="h-5 w-5 text-orange-500" />
+                <Bookmark className="h-5 w-5 text-blue-600" />
                 Add to To-Eat List
               </SheetTitle>
             </SheetHeader>
@@ -472,7 +488,7 @@ const ToEatSection: React.FC = () => {
           <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Bookmark className="h-5 w-5 text-orange-500" />
+                <Bookmark className="h-5 w-5 text-blue-600" />
                 Add to To-Eat List
               </DialogTitle>
             </DialogHeader>
