@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Plus, Search, AlertCircle, Bookmark, Loader2 } from 'lucide-react';
+import { Plus, Search, X, AlertCircle, Bookmark, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { useToast } from '@/hooks/use-toast';
-import { useAddToEatList } from '@/lib/mutations/toEatList';
+import { useAddToEatList, useRemoveFromToEatList } from '@/lib/mutations/toEatList';
 import { useToEatList } from '@/lib/queries/toEatList';
 import { Restaurant } from '@/types';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,7 @@ const ToEatSection: React.FC = () => {
   const { toast } = useToast();
   const { data: toEatListData, isLoading, error } = useToEatList();
   const addToEatListMutation = useAddToEatList();
+  const removeFromToEatListMutation = useRemoveFromToEatList();
   
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,6 +69,24 @@ const ToEatSection: React.FC = () => {
       toast({
         title: 'Failed to add',
         description: 'Could not add restaurant to to-eat list. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRemoveFromToEatList = async (restaurantId: string, restaurantName: string) => {
+    try {
+      await removeFromToEatListMutation.mutateAsync(restaurantId);
+      
+      toast({
+        title: 'Removed from To-Eat List',
+        description: `${restaurantName} has been removed from your to-eat list.`,
+      });
+    } catch (error) {
+      console.error('Error removing from to-eat list:', error);
+      toast({
+        title: 'Failed to remove',
+        description: 'Could not remove restaurant from to-eat list. Please try again.',
         variant: 'destructive',
       });
     }
@@ -333,7 +352,7 @@ const ToEatSection: React.FC = () => {
             variant="outline" 
             size="sm"
             onClick={() => setAddModalOpen(true)}
-            disabled={addToEatListMutation.isPending}
+            disabled={addToEatListMutation.isPending || removeFromToEatListMutation.isPending}
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Restaurant
@@ -358,6 +377,7 @@ const ToEatSection: React.FC = () => {
               onClick={() => setAddModalOpen(true)}
               size="lg"
               className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+              disabled={addToEatListMutation.isPending || removeFromToEatListMutation.isPending}
             >
               <Plus className="w-4 h-4 mr-2" />
               Save Your First Restaurant
@@ -376,7 +396,26 @@ const ToEatSection: React.FC = () => {
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
                 {toEatRestaurants.map((restaurant) => (
                   <div key={restaurant.id} className="relative min-w-[280px] snap-start">
-                    <RestaurantCard restaurant={restaurant} showToEatButton={false} />
+                    <div className="group">
+                      <RestaurantCard restaurant={restaurant} showToEatButton={false} />
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="absolute top-3 right-3 h-7 w-7 p-0 opacity-90 hover:opacity-100 shadow-lg transition-opacity"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleRemoveFromToEatList(restaurant.id, restaurant.name);
+                        }}
+                        disabled={removeFromToEatListMutation.isPending}
+                      >
+                        {removeFromToEatListMutation.isPending ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <X className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -389,6 +428,23 @@ const ToEatSection: React.FC = () => {
                   <div className="transition-transform group-hover:scale-[1.02]">
                     <RestaurantCard restaurant={restaurant} showToEatButton={false} />
                   </div>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="absolute top-3 right-3 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 shadow-lg transition-opacity"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleRemoveFromToEatList(restaurant.id, restaurant.name);
+                    }}
+                    disabled={removeFromToEatListMutation.isPending}
+                  >
+                    {removeFromToEatListMutation.isPending ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <X className="h-3 w-3" />
+                    )}
+                  </Button>
                 </div>
               ))}
             </div>
