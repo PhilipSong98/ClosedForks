@@ -30,11 +30,11 @@ export function SearchFAB() {
 
   return (
     <>
-      {/* Global Search FAB - Top Right */}
+      {/* Global Search FAB - Positioned to avoid overlap */}
       <Button
         onClick={() => setIsOpen(true)}
         size="icon"
-        className="fixed top-3 right-3 md:top-4 md:right-4 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90"
+        className="fixed bottom-24 right-6 md:top-4 md:right-4 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90"
         aria-label="Open search"
       >
         <Search className="h-5 w-5" />
