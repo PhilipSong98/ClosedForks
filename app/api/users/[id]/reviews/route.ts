@@ -1,0 +1,118 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+
+// GET /api/users/[id]/reviews - Get user's reviews
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const supabase = await createClient();
+    const { searchParams } = new URL(request.url);
+    
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const offset = (page - 1) * limit;
+    
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { id: userId } = await params;
+
+    // For now, only allow users to fetch their own reviews
+    // Later this could be extended for public profiles
+    if (userId !== user.id) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      );
+    }
+
+    // Get user's reviews with restaurant data
+    const { data: reviews, error: reviewsError } = await supabase
+      .from('reviews')
+      .select(`
+        *,
+        restaurants(
+          id,
+          name,
+          address,
+          city,
+          cuisine,
+          google_data,
+          google_place_id,
+          google_maps_url,
+          lat,
+          lng,
+          price_level
+        )
+      `)
+      .eq('author_id', userId)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (reviewsError) {
+      console.error('Error fetching user reviews:', reviewsError);
+      return NextResponse.json(
+        { error: 'Failed to fetch reviews' },
+        { status: 500 }
+      );
+    }
+
+    // Get user data for the reviews
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('id, name, full_name, email, avatar_url')
+      .eq('id', userId)
+      .single();
+
+    if (userError) {
+      console.error('Error fetching user data:', userError);
+    }
+
+    // Format reviews with author data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const formattedReviews = (reviews || []).map((review: any) => ({
+      ...review,
+      restaurant: review.restaurants,
+      author: userData ? {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...(userData as any),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        name: (userData as any).name || (userData as any).full_name || (userData as any).email || 'Unknown User'
+      } : null,
+    }));
+
+    // Get total count for pagination
+    const { count: totalCount, error: countError } = await supabase
+      .from('reviews')
+      .select('*', { count: 'exact', head: true })
+      .eq('author_id', userId);
+
+    if (countError) {
+      console.error('Error fetching review count:', countError);
+    }
+
+    return NextResponse.json({
+      reviews: formattedReviews,
+      pagination: {
+        page,
+        limit,
+        total: totalCount || 0,
+        totalPages: Math.ceil((totalCount || 0) / limit),
+      }
+    });
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

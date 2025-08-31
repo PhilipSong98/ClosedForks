@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertCircle, CheckCircle, MapPin, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { PlacesAutocomplete } from '@/components/places/PlacesAutocomplete';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -124,64 +124,25 @@ export function RestaurantSelector({ onSelect, selectedRestaurant, className = "
 
       {/* Selected Restaurant */}
       {selectedRestaurant && !isLoading && (
-        <Card>
+        <Card className="w-full overflow-hidden">
           <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start space-x-3 flex-1">
-                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-gray-900">
+                  <div className="font-semibold text-gray-900 truncate">
                     {selectedRestaurant.name}
                   </div>
-                  <div className="flex items-center text-sm text-gray-600 mt-1">
-                    <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                    <span className="truncate">
-                      {selectedRestaurant.address}, {selectedRestaurant.city}
-                    </span>
+                  <div className="text-sm text-gray-600 truncate">
+                    {selectedRestaurant.city}
                   </div>
-                  
-                  {/* Additional restaurant info */}
-                  <div className="flex items-center space-x-4 mt-2">
-                    {selectedRestaurant.cuisine.length > 0 && (
-                      <div className="text-xs text-gray-500">
-                        {selectedRestaurant.cuisine.slice(0, 2).join(', ')}
-                        {selectedRestaurant.cuisine.length > 2 && ' +more'}
-                      </div>
-                    )}
-                    
-                    {selectedRestaurant.google_data?.rating && (
-                      <div className="text-xs text-gray-500 flex items-center">
-                        ⭐ {selectedRestaurant.google_data.rating}
-                        {selectedRestaurant.google_data.user_ratings_total && (
-                          <span className="ml-1">
-                            ({selectedRestaurant.google_data.user_ratings_total})
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {selectedRestaurant.google_data?.opening_hours?.open_now !== undefined && (
-                      <div className={`text-xs px-2 py-1 rounded-full ${
-                        selectedRestaurant.google_data.opening_hours.open_now
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {selectedRestaurant.google_data.opening_hours.open_now ? 'Open' : 'Closed'}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Quick action links */}
-                  {selectedRestaurant.google_maps_url && (
-                    <div className="mt-2">
-                      <a
-                        href={selectedRestaurant.google_maps_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                      >
-                        View on Google Maps →
-                      </a>
+                  {selectedRestaurant.google_data?.opening_hours?.open_now !== undefined && (
+                    <div className={`inline-block text-xs px-2 py-1 rounded-full mt-1 ${
+                      selectedRestaurant.google_data.opening_hours.open_now
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {selectedRestaurant.google_data.opening_hours.open_now ? 'Open' : 'Closed'}
                     </div>
                   )}
                 </div>
@@ -191,7 +152,7 @@ export function RestaurantSelector({ onSelect, selectedRestaurant, className = "
                 variant="outline"
                 size="sm"
                 onClick={handleClearSelection}
-                className="ml-3 flex-shrink-0"
+                className="flex-shrink-0"
               >
                 Change
               </Button>

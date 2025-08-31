@@ -56,6 +56,12 @@ Enhanced user experience with cleaner interfaces and fixed search functionality:
 - **Expandable on Demand** - Full functionality available when needed
 - **Consistent Experience** - Same behavior across all pages
 
+#### **✅ Create Review Modal Optimization**
+- **Restaurant Card Overflow Fix** - Resolved horizontal scrolling issue in Create Review modal
+- **Simplified Display** - Restaurant cards now show only essential information (name, city, status)
+- **Mobile-Optimized** - Removed lengthy content (full address, cuisine type, Google ratings) that caused overflow
+- **Enhanced Width Constraints** - Proper truncation and flex layout for responsive design
+
 ### 🎨 Modern Authentication System & Clean Design (Latest - August 30, 2025)
 
 Complete redesign of authentication flow with modern, clean aesthetic and invite code system:
@@ -463,7 +469,7 @@ Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
 │   ├── auth/           # Authentication components
 │   ├── filters/        # Enhanced filter system (EnhancedFilters, legacy CuisineFilters)
 │   ├── layout/         # Layout components (Header, AuthWrapper, WriteReviewFAB)
-│   ├── restaurant/     # Restaurant-related components
+│   ├── restaurant/     # Restaurant-related components (RestaurantSelector - fixed overflow)
 │   ├── review/         # Review components (ReviewComposer, RatingInput)
 │   ├── search/         # Search components (SearchBar, SearchFAB, GlobalSearchModal)
 │   └── ui/             # shadcn/ui components

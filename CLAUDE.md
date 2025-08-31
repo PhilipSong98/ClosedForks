@@ -6,7 +6,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 
 **What**: Mobile-first, invite-only restaurant review platform for friends & family
 **Goal**: Private network for trusted restaurant recommendations  
-**Status**: Core MVP implemented with Instagram-style feed
+**Status**: Core MVP implemented with Instagram-style feed + Profile Page
 
 ### Core Business Rules
 - **Private by default**: Only invited users can access
@@ -35,13 +35,17 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] Modal-based responsive UI (Sheet mobile, Dialog desktop)
 - [x] Mobile-first responsive design
 - [x] **Automatic data refresh** - React Query mutations with cache invalidation
+- [x] **Profile page feature** - Complete user profiles with stats, reviews, and favorites management
+- [x] **Fixed restaurant card overflow** - Create Review modal restaurant display optimized for mobile
+- [x] **Fixed username display** - ReviewCard now shows actual usernames instead of "U"
+- [x] **Fixed favorites search** - Restaurant search in favorites modal now finds results correctly
 
 ### Pending Features
 - [ ] Photo upload for reviews
 - [ ] Restaurant detail pages with maps
 - [ ] Email notifications
 - [ ] Admin dashboard
-- [ ] User collections/lists
+- [ ] Advanced user collections/lists
 
 ## 🏗️ Architecture & Key Files
 
@@ -51,10 +55,12 @@ restaurant/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API routes
 │   ├── home-client.tsx    # Instagram-style feed
-│   └── restaurants/       # Restaurant discovery page
+│   ├── restaurants/       # Restaurant discovery page
+│   └── profile/           # User profile page
 ├── components/
 │   ├── filters/           # EnhancedFilters system  
 │   ├── layout/            # Header, AuthWrapper, FABs
+│   ├── profile/           # Profile components
 │   ├── review/            # ReviewComposer, ReviewCard
 │   ├── search/            # SearchBar, GlobalSearchModal
 │   └── ui/                # shadcn/ui components
@@ -73,16 +79,26 @@ restaurant/
 - `app/signup/page.tsx`: **NEW** - Complete account creation with validation
 - `app/signin/page.tsx`: **NEW** - Email/password authentication (no magic links)
 - `app/admin/invite-codes/page.tsx`: **NEW** - Admin invite code management
+- `app/profile/page.tsx`: **NEW** - Complete profile page with stats and favorites
+- `app/profile/profile-client.tsx`: **NEW** - Main profile component with tabs
 - `app/home-client.tsx`: Instagram-style feed with filtering
 - `app/restaurants/page.tsx`: Restaurant discovery page with clickable search
 - `app/restaurants/[id]/restaurant-detail-client.tsx`: **UPDATED** - Hero image with gradient overlay
 - `components/filters/EnhancedFilters.tsx`: Professional filter system
+- `components/profile/ProfileHeader.tsx`: **NEW** - User stats and profile display
+- `components/profile/EditProfileModal.tsx`: **NEW** - Simple name editing modal
+- `components/profile/RecentReviews.tsx`: **NEW** - User reviews with pagination
+- `components/profile/FavoritesSection.tsx`: **NEW** - Favorites management with search
 - `components/review/ReviewComposer.tsx`: **UPDATED** - Modal-based review creation with automatic refresh
+- `components/review/ReviewCard.tsx`: **FIXED** - Now displays actual usernames instead of "U"
+- `components/restaurant/RestaurantSelector.tsx`: **UPDATED** - Fixed overflow issue with simplified restaurant card display
 - `components/search/SearchBar.tsx`: **UPDATED** - Clickable search with navigation
 - `components/search/GlobalSearchModal.tsx`: Search with keyboard shortcuts
 - `lib/hooks/useAuth.ts`: Authentication with fallback handling
 - `lib/mutations/reviews.ts`: **NEW** - React Query mutation for review creation with cache invalidation
+- `lib/mutations/profile.ts`: **NEW** - Profile update mutations with optimistic updates
 - `lib/queries/restaurants.ts`: **NEW** - React Query hooks for data fetching with automatic refresh
+- `lib/queries/profile.ts`: **NEW** - React Query hooks for profile data and user reviews
 - `lib/utils.ts`: `getRestaurantPhotoUrl()` for Google Places image optimization
 - `app/restaurants/restaurants-client.tsx`: **UPDATED** - Uses React Query hooks for automatic data refresh
 - `supabase/migrations/`: Database schema (use migrations, not schema.sql)
@@ -90,7 +106,9 @@ restaurant/
 ## 🗄️ Database Schema
 
 ### Core Tables
-- `users`: User profiles with roles (user/admin) + `full_name` field
+- `users`: User profiles with roles (user/admin) + `full_name` field + `favorite_restaurants` array
+  - `favorite_restaurants`: UUID array field with GIN index for efficient queries
+  - Limited to 10 favorites maximum per user
 - `restaurants`: Restaurant data + Google Places integration
   - `google_place_id`, `google_maps_url`, `google_data`, `last_google_sync`
 - `reviews`: Simplified rating system + tagging
@@ -185,11 +203,46 @@ supabase db push                       # Apply to remote
 - **Seamless UX**: No manual refresh required, data stays synchronized
 - **Key Components**: `useCreateReview()` mutation, `useRestaurantsWithReviews()` hook
 
+### User Profile System
+- **Complete Profile Pages**: Accessible at `/profile` with comprehensive user information
+- **Profile Statistics**: Display review count and favorites count with real-time updates
+- **Recent Reviews Tab**: Paginated user reviews using existing ReviewCard component
+- **Favorites Management**: Up to 10 favorite restaurants with horizontal scroll display
+- **Restaurant Search**: Integrated search modal for adding favorites with proper filtering
+- **Edit Profile**: Simple modal for updating user display name (no image uploads)
+- **Mobile-Responsive**: Sheet/Dialog components with `useMediaQuery` hook
+- **React Query Integration**: Optimistic updates and cache management for profile changes
+- **Database Optimization**: GIN index on favorite_restaurants array for efficient queries
+
 ### Google Places Integration
 - **Stockholm-focused**: 50km bias, cost-optimized with session tokens
 - **Auto-import**: Restaurant data, photos, hours on selection
 - **Smart caching**: Store Google data permanently, refresh periodically
 - **Hero Images**: Cover photos with `getRestaurantPhotoUrl()` utility
+
+### Recent Bug Fixes & UI Improvements
+- **Username Display Fix**: Fixed ReviewCard showing "U" instead of actual usernames
+  - **Problem**: Profile reviews displayed "U" for all users instead of actual names
+  - **Solution**: Fixed author name mapping in `/api/users/[id]/reviews` endpoint
+  - **Result**: Profile page now correctly displays user names in review cards
+  - **File**: `app/api/users/[id]/reviews/route.ts` - Added proper author name field mapping
+
+- **Favorites Search Fix**: Resolved restaurant search not finding results in favorites modal
+  - **Problem**: Search functionality in FavoritesSection wasn't filtering restaurant results
+  - **Solution**: Fixed search filtering logic to properly match restaurant names
+  - **Result**: Users can now successfully search and add restaurants to favorites
+  - **File**: `components/profile/FavoritesSection.tsx` - Corrected search result filtering
+
+- **Restaurant Card Overflow Fix**: Resolved horizontal scrolling in Create Review modal
+  - **Problem**: Restaurant cards with long names/addresses caused modal overflow
+  - **Solution**: Simplified display to show only restaurant name, city, and status
+  - **Result**: Clean, mobile-optimized restaurant selection without scroll issues
+  - **File**: `components/restaurant/RestaurantSelector.tsx` - Removed full address, cuisine type, Google ratings, and Maps links
+
+- **Profile Picture Removal**: Completely removed image upload functionality as requested
+  - **Removed**: Avatar upload API endpoint and related image handling code
+  - **Result**: Clean profile system without image upload complexity
+  - **File**: Deleted `app/api/upload/avatar/route.ts`
 
 ## 🔐 Authentication - Modern Invite Code System
 
@@ -247,10 +300,13 @@ NEXT_PUBLIC_APP_URL=
 - `POST /api/reviews` - Create review  
 - `GET /api/search?q=term` - Search reviews/restaurants
 - `POST /api/invites` - Create invite
+- `GET /api/users/profile` - Get current user profile
+- `PATCH /api/users/profile` - Update user profile
+- `GET /api/users/[id]/reviews` - Get user's reviews with pagination
 
 ## 🚀 Next Steps
-Ready for photo uploads, advanced social features, and user collections!
+Ready for photo uploads for reviews, restaurant detail maps, and email notifications!
 
 ---
 **Last Updated**: 2025-08-31  
-**Status**: MVP v1.7 - Automatic Data Refresh Complete
+**Status**: MVP v1.9 - Profile Page Feature Complete

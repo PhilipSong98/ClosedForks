@@ -4,6 +4,7 @@ export interface User {
   full_name?: string; // New field for full name
   email: string;
   avatar_url?: string;
+  favorite_restaurants?: string[]; // Array of favorite restaurant IDs
   home_city?: string;
   role: 'user' | 'admin';
   created_at: string;
