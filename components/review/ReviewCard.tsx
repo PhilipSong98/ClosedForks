@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { Review } from '@/types';
 import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
+import { ToEatButton } from '@/components/restaurant/ToEatButton';
 
 interface ReviewCardProps {
   review: Review;
@@ -123,6 +124,19 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
                   </span>
                 </div>
               )}
+              
+              {/* To-Eat Button Overlay */}
+              <div className="absolute top-3 right-3 opacity-0 md:group-hover:opacity-100 opacity-100 md:opacity-0 transition-opacity duration-200">
+                <ToEatButton
+                  restaurantId={restaurant.id}
+                  restaurantName={restaurant.name}
+                  variant="outline"
+                  size="icon"
+                  showText={false}
+                  className="bg-white/90 backdrop-blur-sm border-white/50 hover:bg-white shadow-lg"
+                />
+              </div>
+              
               <div className="absolute bottom-4 left-4 right-4">
                 <h4 className="font-semibold text-white mb-2 text-lg drop-shadow-sm">
                   {restaurant.name}

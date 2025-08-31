@@ -17,6 +17,7 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 - 🗺️ **Maps Integration** - Free Google Maps links for directions and venue details
 - 🏷️ **Professional Tag System** - 35 relevant food-focused tags across dishes, cuisine, meal type, and vibe categories
 - 🔍 **Advanced Filter System** - Instagram-level filtering with rating, price, date, and recommendation filters
+- 📋 **To-Eat List (Wishlist)** - Unlimited restaurant bookmarking with blue-themed UI and dedicated management page
 
 ## Tech Stack
 
@@ -327,6 +328,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - `20250830203214_invite_code_system.sql` - Modern invite code system with 6-digit codes
 - `20250131000000_fix_signup_issues.sql` - Fixed RLS policies and atomic user creation
 - `20250131000001_configure_auth_settings.sql` - Email confirmation handling for invite-based signups
+- `20250831203848_add_to_eat_list_table.sql` - To-Eat List (restaurant wishlist) system with unlimited capacity
 
 For future schema changes, see `supabase/README.md` for migration workflow.
 
@@ -347,6 +349,7 @@ DineCircle uses a modern invite code system with clean, exclusive design. **New 
 - `/signup` - Account creation with full validation  
 - `/signin` - Email/password login for existing users
 - `/admin/invite-codes` - Admin management of invite codes
+- `/to-eat` - Dedicated To-Eat List page for restaurant wishlist management
 
 ### Installation
 
@@ -420,6 +423,7 @@ npm run lint       # Check linting issues
 - **invites** - Invitation system with codes and expiry
 - **reports** - Content moderation system
 - **review_photos** - Photo storage for reviews
+- **to_eat_list** - Restaurant wishlist system with unlimited capacity
 
 ### Key Features
 
@@ -455,6 +459,11 @@ npm run lint       # Check linting issues
 - `GET /api/invites` - List user's invites
 - `POST /api/invites` - Create new invite
 - `POST /api/invites/[code]/accept` - Accept invite (public)
+
+### To-Eat List
+- `GET /api/users/to-eat-list` - Get user's to-eat list restaurants
+- `POST /api/users/to-eat-list` - Add restaurant to to-eat list
+- `DELETE /api/users/to-eat-list` - Remove restaurant from to-eat list
 
 ## Feature Flags
 
@@ -493,17 +502,21 @@ Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
 ```
 ├── app/                    # Next.js app router pages
 │   ├── restaurants/        # Dedicated restaurants page with discovery features
+│   ├── to-eat/            # To-Eat List page with wishlist management
 │   ├── providers.tsx       # Tanstack Query and UI providers
 │   └── home-client.tsx     # Instagram-style review feed homepage
 ├── components/             # React components
 │   ├── auth/           # Authentication components
 │   ├── filters/        # Enhanced filter system (EnhancedFilters, legacy CuisineFilters)
 │   ├── layout/         # Layout components (Header, AuthWrapper, WriteReviewFAB, MobileMenu)
-│   ├── restaurant/     # Restaurant-related components (RestaurantSelector - fixed overflow)
+│   ├── profile/        # Profile components (including ToEatSection)
+│   ├── restaurant/     # Restaurant-related components (RestaurantSelector, ToEatButton)
 │   ├── review/         # Review components (ReviewComposer, RatingInput)
 │   ├── search/         # Search components (SearchBar, SearchFAB, GlobalSearchModal)
 │   └── ui/             # shadcn/ui components
 ├── lib/                # Utilities and configurations
+│   ├── mutations/      # React Query mutations (including toEatList.ts)
+│   ├── queries/        # React Query data fetching (including toEatList.ts)
 │   ├── supabase/       # Supabase client configuration
 │   ├── hooks/          # Custom React hooks (useAuth, useMediaQuery)
 │   └── validations/    # Zod schemas

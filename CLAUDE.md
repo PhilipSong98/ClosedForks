@@ -6,7 +6,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 
 **What**: Mobile-first, invite-only restaurant review platform for friends & family
 **Goal**: Private network for trusted restaurant recommendations  
-**Status**: Core MVP implemented with Instagram-style feed + Profile Page
+**Status**: Core MVP implemented with Instagram-style feed + Profile Page + To-Eat List
 
 ### Core Business Rules
 - **Private by default**: Only invited users can access
@@ -36,6 +36,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] Mobile-first responsive design
 - [x] **Automatic data refresh** - React Query mutations with cache invalidation
 - [x] **Profile page feature** - Complete user profiles with stats, reviews, and favorites management
+- [x] **To-Eat List feature** - Complete restaurant wishlist system with unlimited capacity
 - [x] **Fixed restaurant card overflow** - Create Review modal restaurant display optimized for mobile
 - [x] **Fixed username display** - ReviewCard now shows actual usernames instead of "U"
 - [x] **Fixed favorites search** - Restaurant search in favorites modal now finds results correctly
@@ -46,7 +47,6 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [ ] Restaurant detail pages with maps
 - [ ] Email notifications
 - [ ] Admin dashboard
-- [ ] Advanced user collections/lists
 
 ## 🏗️ Architecture & Key Files
 
@@ -57,19 +57,21 @@ restaurant/
 │   ├── api/               # API routes
 │   ├── home-client.tsx    # Instagram-style feed
 │   ├── restaurants/       # Restaurant discovery page
-│   └── profile/           # User profile page
+│   ├── profile/           # User profile page
+│   └── to-eat/            # To-Eat List page
 ├── components/
 │   ├── filters/           # EnhancedFilters system  
 │   ├── layout/            # Header, AuthWrapper, FABs, MobileMenu
-│   ├── profile/           # Profile components
+│   ├── profile/           # Profile components (includes ToEatSection)
+│   ├── restaurant/        # Restaurant components (includes ToEatButton)
 │   ├── review/            # ReviewComposer, ReviewCard
 │   ├── search/            # SearchBar, GlobalSearchModal, SearchFAB
 │   └── ui/                # shadcn/ui components
 ├── lib/
 │   ├── supabase/          # Database clients & middleware
 │   ├── hooks/             # useAuth, useMediaQuery, etc.
-│   ├── mutations/         # React Query mutation hooks
-│   ├── queries/           # React Query hooks for data fetching
+│   ├── mutations/         # React Query mutation hooks (includes toEatList.ts)
+│   ├── queries/           # React Query hooks for data fetching (includes toEatList.ts)
 │   └── validations/       # Zod schemas
 ├── supabase/migrations/   # Database migrations
 └── constants/             # Tags, cuisines, cities
@@ -82,6 +84,8 @@ restaurant/
 - `app/admin/invite-codes/page.tsx`: **NEW** - Admin invite code management
 - `app/profile/page.tsx`: **NEW** - Complete profile page with stats and favorites
 - `app/profile/profile-client.tsx`: **NEW** - Main profile component with tabs
+- `app/to-eat/page.tsx`: **NEW** - Dedicated To-Eat List page for wishlist management
+- `app/to-eat/to-eat-client.tsx`: **NEW** - To-Eat List client component with search and management
 - `app/home-client.tsx`: Instagram-style feed with filtering
 - `app/restaurants/page.tsx`: Restaurant discovery page with clickable search
 - `app/restaurants/[id]/restaurant-detail-client.tsx`: **UPDATED** - Hero image with gradient overlay
@@ -90,6 +94,8 @@ restaurant/
 - `components/profile/EditProfileModal.tsx`: **NEW** - Simple name editing modal
 - `components/profile/RecentReviews.tsx`: **NEW** - User reviews with pagination
 - `components/profile/FavoritesSection.tsx`: **NEW** - Favorites management with search
+- `components/profile/ToEatSection.tsx`: **NEW** - To-Eat List management with unlimited capacity
+- `components/restaurant/ToEatButton.tsx`: **NEW** - Bookmark button for adding/removing from to-eat list
 - `components/review/ReviewComposer.tsx`: **UPDATED** - Modal-based review creation with automatic refresh
 - `components/review/ReviewCard.tsx`: **FIXED** - Now displays actual usernames instead of "U"
 - `components/restaurant/RestaurantSelector.tsx`: **UPDATED** - Fixed overflow issue with simplified restaurant card display
@@ -101,8 +107,10 @@ restaurant/
 - `lib/hooks/useAuth.ts`: Authentication with fallback handling
 - `lib/mutations/reviews.ts`: **NEW** - React Query mutation for review creation with cache invalidation
 - `lib/mutations/profile.ts`: **NEW** - Profile update mutations with optimistic updates
+- `lib/mutations/toEatList.ts`: **NEW** - To-Eat List mutations with optimistic updates
 - `lib/queries/restaurants.ts`: **NEW** - React Query hooks for data fetching with automatic refresh
 - `lib/queries/profile.ts`: **NEW** - React Query hooks for profile data and user reviews
+- `lib/queries/toEatList.ts`: **NEW** - React Query hooks for to-eat list data with automatic refresh
 - `lib/utils.ts`: `getRestaurantPhotoUrl()` for Google Places image optimization
 - `app/restaurants/restaurants-client.tsx`: **UPDATED** - Uses React Query hooks for automatic data refresh
 - `supabase/migrations/`: Database schema (use migrations, not schema.sql)
@@ -123,6 +131,9 @@ restaurant/
   - Rate limiting and usage tracking
 - `invite_code_usage`: **NEW** - Audit trail for code usage
   - `invite_code_id`, `user_id`, `ip_address`, `user_agent`, `used_at`
+- `to_eat_list`: **NEW** - Restaurant wishlist system
+  - `user_id`, `restaurant_id`, `added_at` (composite primary key)
+  - GIN indexes for efficient queries, unlimited capacity
 
 ### RLS Policies
 - Network-based review visibility
@@ -170,7 +181,7 @@ supabase db push                       # Apply to remote
 - **FAB Positioning**: SearchFAB at `bottom-24 right-6` (mobile) vs `top-4 right-4` (desktop)
 - **Touch Targets**: Proper spacing and sizing for mobile interaction
 - **No Overlaps**: Fixed SearchFAB overlapping with header elements
-- **Navigation Items**: Restaurants, Profile, Manage Invites, Admin Panel, Sign out
+- **Navigation Items**: Restaurants, To-Eat List, Profile, Manage Invites, Admin Panel, Sign out
 
 ### Review Schema (Simplified)
 ```typescript
@@ -218,13 +229,30 @@ supabase db push                       # Apply to remote
 ### User Profile System
 - **Complete Profile Pages**: Accessible at `/profile` with comprehensive user information
 - **Profile Statistics**: Display review count and favorites count with real-time updates
+- **Three-Tab Interface**: Recent Reviews, Favorites (10 max), and To-Eat List (unlimited)
 - **Recent Reviews Tab**: Paginated user reviews using existing ReviewCard component
 - **Favorites Management**: Up to 10 favorite restaurants with horizontal scroll display
-- **Restaurant Search**: Integrated search modal for adding favorites with proper filtering
+- **To-Eat List Management**: Unlimited restaurant wishlist with search and add functionality
+- **Restaurant Search**: Integrated search modal for adding to both favorites and to-eat list
 - **Edit Profile**: Simple modal for updating user display name (no image uploads)
 - **Mobile-Responsive**: Sheet/Dialog components with `useMediaQuery` hook
 - **React Query Integration**: Optimistic updates and cache management for profile changes
-- **Database Optimization**: GIN index on favorite_restaurants array for efficient queries
+- **Database Optimization**: GIN indexes on both favorite_restaurants array and to_eat_list table
+
+### To-Eat List (Restaurant Wishlist) System
+- **Unlimited Capacity**: No limit on to-eat list items (unlike 10-item favorites limit)
+- **Dedicated Page**: Standalone `/to-eat` page for focused wishlist management
+- **Profile Integration**: Third tab in profile page for easy access
+- **Bookmark Button**: Hover-to-reveal bookmark button on restaurant cards
+- **Professional UI**: Blue/indigo color scheme differentiating from red favorites
+- **Optimistic Updates**: Instant UI feedback with automatic error rollback
+- **Search Integration**: Reuses existing restaurant search API for adding items
+- **Mobile-First Design**: Horizontal scroll on mobile, responsive grid on desktop
+- **Consistent Card Heights**: Uniform layout with photo placeholders and proper spacing
+- **Remove Functionality**: X button on hover (desktop) or always visible (mobile)
+- **Empty States**: Engaging empty states with call-to-action buttons
+- **Navigation Integration**: Added to both header navigation and mobile menu
+- **TypeScript Support**: Fully typed interfaces with comprehensive error handling
 
 ### Google Places Integration
 - **Stockholm-focused**: 50km bias, cost-optimized with session tokens
@@ -321,10 +349,13 @@ NEXT_PUBLIC_APP_URL=
 - `GET /api/users/profile` - Get current user profile
 - `PATCH /api/users/profile` - Update user profile
 - `GET /api/users/[id]/reviews` - Get user's reviews with pagination
+- `GET /api/users/to-eat-list` - Get user's to-eat list restaurants
+- `POST /api/users/to-eat-list` - Add restaurant to to-eat list
+- `DELETE /api/users/to-eat-list` - Remove restaurant from to-eat list
 
 ## 🚀 Next Steps
 Ready for photo uploads for reviews, restaurant detail maps, and email notifications!
 
 ---
 **Last Updated**: 2025-08-31  
-**Status**: MVP v1.10 - Mobile Navigation Enhancement Complete
+**Status**: MVP v1.11 - To-Eat List Feature Complete
