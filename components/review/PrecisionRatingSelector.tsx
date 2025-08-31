@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Star, Edit3, Plus, Minus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 
 interface PrecisionRatingSelectorProps {
   value: number;
@@ -21,6 +20,8 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempValue, setTempValue] = useState(value.toString());
+  const [hoverRating, setHoverRating] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const sizeConfig = {
     sm: { star: 'h-6 w-6', text: 'text-lg' },
@@ -44,10 +45,79 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
     return 'Terrible';
   };
 
-  // Slider change handler
-  const handleSliderChange = (values: number[]) => {
-    const newRating = Math.round(values[0] * 10) / 10; // Ensure 0.1 precision
-    onChange(newRating);
+  // Star interaction handlers
+  const handleStarClick = (event: React.MouseEvent, starIndex: number) => {
+    if (disabled) return;
+    
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const width = rect.width;
+    const percentage = x / width;
+    
+    // Calculate precise rating based on click position within the star
+    const baseRating = starIndex + 1;
+    const preciseRating = Math.max(1.0, Math.min(5.0, Math.round((starIndex + percentage) * 10) / 10));
+    
+    onChange(preciseRating);
+  };
+
+  const handleStarHover = (event: React.MouseEvent, starIndex: number) => {
+    // Completely disable hover during dragging
+    if (disabled || isDragging) return;
+    
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const width = rect.width;
+    const percentage = x / width;
+    
+    const preciseRating = Math.max(1.0, Math.min(5.0, Math.round((starIndex + percentage) * 10) / 10));
+    setHoverRating(preciseRating);
+  };
+
+  const handleStarLeave = () => {
+    // Only clear hover if not dragging
+    if (!isDragging) {
+      setHoverRating(null);
+    }
+  };
+
+  const handleContainerMouseMove = (event: React.MouseEvent) => {
+    // Only handle hover during non-drag state
+    if (disabled || isDragging) return;
+    
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const containerWidth = rect.width;
+    const starWidth = containerWidth / 5;
+    const starIndex = Math.floor(x / starWidth);
+    const positionWithinStar = (x % starWidth) / starWidth;
+    
+    if (starIndex >= 0 && starIndex < 5) {
+      const preciseRating = Math.max(1.0, Math.min(5.0, Math.round((starIndex + positionWithinStar) * 10) / 10));
+      setHoverRating(preciseRating);
+    }
+  };
+
+  const handleMouseDown = (event: React.MouseEvent, starIndex: number) => {
+    if (disabled) return;
+    event.preventDefault();
+    setIsDragging(true);
+    handleStarClick(event, starIndex);
+  };
+
+  // Touch handler for mobile start
+  const handleTouchStart = (event: React.TouchEvent, starIndex: number) => {
+    if (disabled) return;
+    event.preventDefault();
+    setIsDragging(true);
+    const touch = event.touches[0];
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const width = rect.width;
+    const percentage = x / width;
+    
+    const preciseRating = Math.max(1.0, Math.min(5.0, Math.round((starIndex + percentage) * 10) / 10));
+    onChange(preciseRating);
   };
 
   // Number input handlers
@@ -90,18 +160,100 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
     onChange(newValue);
   };
 
-  // Render star visualization (read-only)
-  const renderStars = () => {
+  // Global event handlers for smooth dragging
+  React.useEffect(() => {
+    const handleGlobalMouseMove = (event: MouseEvent) => {
+      if (!isDragging || disabled) return;
+      
+      // Find the stars container to calculate position
+      const starsContainer = document.querySelector('[data-stars-container]') as HTMLElement;
+      if (!starsContainer) return;
+      
+      const rect = starsContainer.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const containerWidth = rect.width;
+      const starWidth = containerWidth / 5;
+      const starIndex = Math.floor(x / starWidth);
+      const positionWithinStar = (x % starWidth) / starWidth;
+      
+      if (starIndex >= 0 && starIndex < 5) {
+        const preciseRating = Math.max(1.0, Math.min(5.0, Math.round((starIndex + positionWithinStar) * 10) / 10));
+        onChange(preciseRating);
+        setHoverRating(preciseRating);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+      // Clear hover rating when drag ends
+      setHoverRating(null);
+    };
+
+    const handleGlobalTouchMove = (event: TouchEvent) => {
+      if (!isDragging || disabled) return;
+      event.preventDefault();
+      
+      const touch = event.touches[0];
+      const starsContainer = document.querySelector('[data-stars-container]') as HTMLElement;
+      if (!starsContainer) return;
+      
+      const rect = starsContainer.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const containerWidth = rect.width;
+      const starWidth = containerWidth / 5;
+      const starIndex = Math.floor(x / starWidth);
+      const positionWithinStar = (x % starWidth) / starWidth;
+      
+      if (starIndex >= 0 && starIndex < 5) {
+        const preciseRating = Math.max(1.0, Math.min(5.0, Math.round((starIndex + positionWithinStar) * 10) / 10));
+        onChange(preciseRating);
+        setHoverRating(preciseRating);
+      }
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
+      document.addEventListener('touchend', handleGlobalMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleGlobalMouseMove);
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+        document.removeEventListener('touchmove', handleGlobalTouchMove);
+        document.removeEventListener('touchend', handleGlobalMouseUp);
+      };
+    }
+  }, [isDragging, disabled, onChange]);
+
+  // Render interactive stars
+  const renderInteractiveStars = () => {
+    const displayRating = hoverRating || value;
+    
     return (
-      <div className="flex items-center gap-1">
+      <div 
+        className="flex items-center gap-1 select-none touch-none"
+        data-stars-container
+        onMouseMove={handleContainerMouseMove}
+        onMouseLeave={handleStarLeave}
+      >
         {[0, 1, 2, 3, 4].map((starIndex) => {
-          const fillPercentage = Math.max(0, Math.min(100, (value - starIndex) * 100));
+          const fillPercentage = Math.max(0, Math.min(100, (displayRating - starIndex) * 100));
+          const isHovered = hoverRating !== null && starIndex < Math.ceil(hoverRating);
           
           return (
-            <div key={starIndex} className="relative">
+            <div 
+              key={starIndex} 
+              className="relative cursor-pointer touch-manipulation"
+              onClick={(e) => handleStarClick(e, starIndex)}
+              onMouseDown={(e) => handleMouseDown(e, starIndex)}
+              onTouchStart={(e) => handleTouchStart(e, starIndex)}
+            >
               {/* Background star */}
               <Star
-                className={`${config.star} text-gray-200 transition-all duration-200`}
+                className={`${config.star} text-gray-200 transition-all duration-200 ${
+                  isHovered ? 'scale-110' : 'scale-100'
+                }`}
                 fill="currentColor"
               />
               
@@ -113,10 +265,14 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
                 }}
               >
                 <Star
-                  className={`${config.star} text-amber-400 transition-all duration-200`}
+                  className={`${config.star} text-amber-400 transition-all duration-200 ${
+                    isHovered ? 'scale-110' : 'scale-100'
+                  }`}
                   fill="currentColor"
                   style={{
-                    filter: 'drop-shadow(0 0 4px rgba(251, 191, 36, 0.5))'
+                    filter: isHovered 
+                      ? 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.8))' 
+                      : 'drop-shadow(0 0 4px rgba(251, 191, 36, 0.5))'
                   }}
                 />
               </div>
@@ -129,25 +285,14 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
 
   return (
     <div className="flex flex-col items-center space-y-6">
-      {/* Stars visualization */}
-      <div className="flex items-center justify-center py-4">
-        {renderStars()}
-      </div>
-
-      {/* Professional Radix UI Slider */}
-      <div className="w-full max-w-sm px-4">
-        <Slider
-          value={[value]}
-          onValueChange={handleSliderChange}
-          min={1}
-          max={5}
-          step={0.1}
-          disabled={disabled}
-          className="w-full"
-        />
+      {/* Interactive Stars */}
+      <div className="flex flex-col items-center">
+        <div className="flex items-center justify-center py-4 px-4">
+          {renderInteractiveStars()}
+        </div>
         
-        {/* Tick marks for visual reference */}
-        <div className="flex justify-between text-xs text-muted-foreground mt-2 px-2">
+        {/* Rating labels for reference */}
+        <div className="flex justify-between text-xs text-muted-foreground mt-2 w-full max-w-xs px-2">
           <span>1</span>
           <span>2</span>
           <span>3</span>
@@ -218,7 +363,7 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
 
         {/* Instructions */}
         <div className="text-xs text-center text-muted-foreground max-w-sm">
-          Drag across stars for precise rating • Click number to edit • Use +/- for fine-tuning
+          Click or drag across stars for precise rating • Click number to edit • Use +/- for fine-tuning
         </div>
       </div>
     </div>
