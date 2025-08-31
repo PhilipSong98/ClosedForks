@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Restaurant } from '@/types';
+import { Restaurant, Review } from '@/types';
 
 export function useRestaurants(options?: {
   city?: string;
@@ -57,4 +57,73 @@ export function useRestaurant(restaurantId: string) {
     },
     enabled: !!restaurantId,
   });
+}
+
+export function useRestaurantsWithReviews() {
+  const restaurantsQuery = useRestaurants();
+  const reviewsQuery = useQuery({
+    queryKey: ['reviews'],
+    queryFn: async (): Promise<Review[]> => {
+      const response = await fetch('/api/reviews');
+      if (!response.ok) {
+        throw new Error('Failed to fetch reviews');
+      }
+      const data = await response.json();
+      return data.reviews || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const combinedData = {
+    data: undefined as Restaurant[] | undefined,
+    isLoading: restaurantsQuery.isLoading || reviewsQuery.isLoading,
+    error: restaurantsQuery.error || reviewsQuery.error,
+    isSuccess: restaurantsQuery.isSuccess && reviewsQuery.isSuccess,
+    isError: restaurantsQuery.isError || reviewsQuery.isError,
+  };
+
+  // Combine restaurants with review data when both queries are successful
+  if (restaurantsQuery.data && reviewsQuery.data) {
+    const restaurants = restaurantsQuery.data;
+    const reviews = reviewsQuery.data;
+
+    // Group reviews by restaurant_id
+    const reviewsByRestaurant = reviews.reduce((acc: Record<string, Review[]>, review: Review) => {
+      const restaurantId = review.restaurant_id;
+      if (!acc[restaurantId]) {
+        acc[restaurantId] = [];
+      }
+      acc[restaurantId].push(review);
+      return acc;
+    }, {} as Record<string, Review[]>);
+
+    // Update restaurants with review data
+    const updatedRestaurants = restaurants.map(restaurant => {
+      const restaurantReviews = reviewsByRestaurant[restaurant.id] || [];
+      
+      // Calculate actual average rating from individual review.rating_overall values
+      const ratings = restaurantReviews
+        .map((r: Review) => r.rating_overall)
+        .filter((r: number | undefined) => r != null) as number[];
+      const avg_rating = ratings.length > 0 
+        ? Math.round((ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length) * 10) / 10
+        : 0;
+      
+      // Aggregate unique tags from all reviews
+      const allTags = restaurantReviews
+        .flatMap((r: Review) => r.tags || [])
+        .filter((tag: string, index: number, arr: string[]) => arr.indexOf(tag) === index);
+      
+      return {
+        ...restaurant,
+        avg_rating,
+        review_count: restaurantReviews.length,
+        aggregated_tags: allTags
+      };
+    });
+
+    combinedData.data = updatedRestaurants;
+  }
+
+  return combinedData;
 }

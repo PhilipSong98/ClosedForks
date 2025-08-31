@@ -34,6 +34,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Restaurant detail pages** - Dual ratings, sidebar layout, grid reviews
 - [x] Modal-based responsive UI (Sheet mobile, Dialog desktop)
 - [x] Mobile-first responsive design
+- [x] **Automatic data refresh** - React Query mutations with cache invalidation
 
 ### Pending Features
 - [ ] Photo upload for reviews
@@ -60,6 +61,8 @@ restaurant/
 ├── lib/
 │   ├── supabase/          # Database clients & middleware
 │   ├── hooks/             # useAuth, useMediaQuery, etc.
+│   ├── mutations/         # React Query mutation hooks
+│   ├── queries/           # React Query hooks for data fetching
 │   └── validations/       # Zod schemas
 ├── supabase/migrations/   # Database migrations
 └── constants/             # Tags, cuisines, cities
@@ -71,11 +74,17 @@ restaurant/
 - `app/signin/page.tsx`: **NEW** - Email/password authentication (no magic links)
 - `app/admin/invite-codes/page.tsx`: **NEW** - Admin invite code management
 - `app/home-client.tsx`: Instagram-style feed with filtering
-- `app/restaurants/page.tsx`: Restaurant discovery page
+- `app/restaurants/page.tsx`: Restaurant discovery page with clickable search
+- `app/restaurants/[id]/restaurant-detail-client.tsx`: **UPDATED** - Hero image with gradient overlay
 - `components/filters/EnhancedFilters.tsx`: Professional filter system
-- `components/review/ReviewComposer.tsx`: Modal-based review creation
+- `components/review/ReviewComposer.tsx`: **UPDATED** - Modal-based review creation with automatic refresh
+- `components/search/SearchBar.tsx`: **UPDATED** - Clickable search with navigation
 - `components/search/GlobalSearchModal.tsx`: Search with keyboard shortcuts
 - `lib/hooks/useAuth.ts`: Authentication with fallback handling
+- `lib/mutations/reviews.ts`: **NEW** - React Query mutation for review creation with cache invalidation
+- `lib/queries/restaurants.ts`: **NEW** - React Query hooks for data fetching with automatic refresh
+- `lib/utils.ts`: `getRestaurantPhotoUrl()` for Google Places image optimization
+- `app/restaurants/restaurants-client.tsx`: **UPDATED** - Uses React Query hooks for automatic data refresh
 - `supabase/migrations/`: Database schema (use migrations, not schema.sql)
 
 ## 🗄️ Database Schema
@@ -159,11 +168,28 @@ supabase db push                       # Apply to remote
 - **API**: `/api/search` searches only private reviews and restaurants
 - **Enhanced UX**: Fixed React controlled input warnings, proper fallbacks
 - **Smart Results**: Shows restaurants + restaurants from reviews with deduplication
+- **Clickable Results**: Search results navigate directly to restaurant detail pages
+
+### Restaurant Detail Pages
+- **Hero Cover Images**: Full-width Google Places photos with gradient overlay
+- **Professional Layout**: Restaurant name and location prominently displayed on hero
+- **Dual Ratings**: Private network vs Google ratings comparison
+- **Responsive Design**: 300px mobile, 400px desktop hero heights
+- **Fallback Graphics**: Elegant gray gradient when no photo available
+- **Next.js Optimization**: Optimized images with 800px resolution and priority loading
+
+### Automatic Data Refresh System
+- **React Query Integration**: Custom mutation hooks with automatic cache invalidation
+- **Real-time Updates**: New reviews appear instantly across homepage and restaurant lists
+- **Smart Cache Management**: Invalidates both 'reviews' and 'restaurants' query cache on creation
+- **Seamless UX**: No manual refresh required, data stays synchronized
+- **Key Components**: `useCreateReview()` mutation, `useRestaurantsWithReviews()` hook
 
 ### Google Places Integration
 - **Stockholm-focused**: 50km bias, cost-optimized with session tokens
 - **Auto-import**: Restaurant data, photos, hours on selection
 - **Smart caching**: Store Google data permanently, refresh periodically
+- **Hero Images**: Cover photos with `getRestaurantPhotoUrl()` utility
 
 ## 🔐 Authentication - Modern Invite Code System
 
@@ -223,8 +249,8 @@ NEXT_PUBLIC_APP_URL=
 - `POST /api/invites` - Create invite
 
 ## 🚀 Next Steps
-Ready for photo uploads, restaurant detail pages, and advanced social features!
+Ready for photo uploads, advanced social features, and user collections!
 
 ---
-**Last Updated**: 2025-01-31  
-**Status**: MVP v1.4 - Enhanced UX & Private Search Complete
+**Last Updated**: 2025-08-31  
+**Status**: MVP v1.7 - Automatic Data Refresh Complete
