@@ -5,14 +5,14 @@ This file provides comprehensive context for AI assistants working on the Restau
 ## 🎯 Project Overview
 
 **What**: Mobile-first, invite-only restaurant review platform for friends & family
-**Goal**: Private network for trusted restaurant recommendations  
-**Status**: Core MVP implemented with Instagram-style feed + Profile Page + To-Eat List
+**Goal**: Private group-based network for trusted restaurant recommendations  
+**Status**: Core MVP with Group System - Instagram-style feed + Group-Scoped Reviews + Profile Page + To-Eat List
 
 ### Core Business Rules
-- **Private by default**: Only invited users can access
-- **One review per user per restaurant**: No duplicate reviews
-- **Network-based visibility**: Reviews visible to authenticated network members
-- **Admin powers**: Admins can edit restaurants, resolve reports
+- **Invite-Only Group System**: Users join groups via invite codes, reviews are scoped to groups
+- **Group-Based Visibility**: Reviews visible only to users in the same groups
+- **One review per user per restaurant**: No duplicate reviews within groups
+- **Group Admin Powers**: Group owners/admins can manage memberships and moderate content
 - **Geographic focus**: City-based restaurant organization
 
 ## ✅ Current Implementation Status
@@ -42,6 +42,9 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Fixed favorites search** - Restaurant search in favorites modal now finds results correctly
 - [x] **Mobile navigation improvements** - Professional hamburger menu with proper touch targets and no FAB overlaps
 - [x] **Instagram-style like system** - Heart button interactions with optimistic updates, like counts, and proper database triggers
+- [x] **Invite-Only Group System** - Users join groups via invite codes, reviews scoped to group membership
+- [x] **Group-Scoped Feed** - Homepage shows reviews from users in the same groups
+- [x] **Database Security Model** - Implemented with security functions instead of complex RLS policies
 
 ### Pending Features
 - [ ] Photo upload for reviews
@@ -123,27 +126,37 @@ restaurant/
 - `users`: User profiles with roles (user/admin) + `full_name` field + `favorite_restaurants` array
   - `favorite_restaurants`: UUID array field with GIN index for efficient queries
   - Limited to 10 favorites maximum per user
+- `groups`: **NEW** - Group system for invite-only access
+  - `id`, `name`, `description`, `created_by`, `created_at`, `updated_at`
+  - Groups organize users and scope review visibility
+- `user_groups`: **NEW** - Junction table for group membership
+  - `user_id`, `group_id`, `role` (owner/admin/member), `joined_at`
+  - Composite unique constraint prevents duplicate memberships
 - `restaurants`: Restaurant data + Google Places integration
   - `google_place_id`, `google_maps_url`, `google_data`, `last_google_sync`
-- `reviews`: Simplified rating system + tagging + like system
-  - `rating_overall`, `dish`, `review`, `recommend`, `tips`, `tags[]`, `like_count`
+- `reviews`: Simplified rating system + tagging + like system + **group scoping**
+  - `rating_overall`, `dish`, `review`, `recommend`, `tips`, `tags[]`, `like_count`, **`group_id`**
+  - Reviews are scoped to groups for visibility control
   - GIN index on tags for efficient filtering
-- `review_likes`: **NEW** - Instagram-style like system
+- `review_likes`: Instagram-style like system
   - `review_id`, `user_id`, `created_at` (composite primary key)
   - Tracks individual user likes with one like per user per review
-- `invite_codes`: **NEW** - 6-digit code management system
-  - `code`, `max_uses`, `current_uses`, `is_active`, `expires_at`
+- `invite_codes`: 6-digit code management system **with group linking**
+  - `code`, `max_uses`, `current_uses`, `is_active`, `expires_at`, **`group_id`**
+  - Invite codes now link to specific groups or create new groups
   - Rate limiting and usage tracking
-- `invite_code_usage`: **NEW** - Audit trail for code usage
+- `invite_code_usage`: Audit trail for code usage
   - `invite_code_id`, `user_id`, `ip_address`, `user_agent`, `used_at`
-- `to_eat_list`: **NEW** - Restaurant wishlist system
+- `to_eat_list`: Restaurant wishlist system
   - `user_id`, `restaurant_id`, `added_at` (composite primary key)
   - GIN indexes for efficient queries, unlimited capacity
 
-### RLS Policies
-- Network-based review visibility
-- Users edit only their own content  
-- Admins bypass restrictions
+### Security Model
+- **Simplified RLS Policies**: Non-recursive policies to avoid infinite loops
+- **Security Functions**: `get_user_visible_reviews()`, `get_group_reviews()`, `get_group_members()`
+- **Group-Based Access**: Reviews visible only within shared groups
+- **Role-Based Permissions**: Group owners/admins can manage memberships
+- **User Content Control**: Users can edit only their own reviews and memberships
 
 ## 🔧 Development Workflow
 
@@ -203,6 +216,15 @@ supabase db push                       # Apply to remote
 
 ## 🔍 Key Features
 
+### Invite-Only Group System
+- **Group Creation**: Invite codes create new groups or join existing ones
+- **Group Membership**: Users can belong to multiple groups with different roles (owner/admin/member)
+- **Review Scoping**: All reviews are scoped to groups - visible only within group boundaries
+- **Invite Code Linking**: Each invite code can link to a specific group or auto-create groups
+- **Security Functions**: Database functions handle complex group-based queries safely
+- **Migration Support**: Existing users automatically added to "Family & Friends" default group
+- **API Integration**: All review endpoints use group-aware security functions
+
 ### Enhanced Filtering System
 - **Tag-based**: 35 food-focused tags in 4 color-coded categories
 - **Advanced Controls**: Rating slider, price range, date filters
@@ -210,12 +232,13 @@ supabase db push                       # Apply to remote
 - **Mobile UX**: Expandable interface with live results counter
 - **Real-time**: Client-side filtering for instant results
 
-### Private Network Search
-- **Database-Only**: Restaurant page search limited to private network
-- **API**: `/api/search` searches only private reviews and restaurants
+### Group-Based Search System
+- **Group-Scoped Search**: Restaurant page search limited to user's groups
+- **API**: `/api/search` searches only group-accessible reviews and restaurants
 - **Enhanced UX**: Fixed React controlled input warnings, proper fallbacks
 - **Smart Results**: Shows restaurants + restaurants from reviews with deduplication
 - **Clickable Results**: Search results navigate directly to restaurant detail pages
+- **Security Functions**: Uses `get_user_visible_reviews()` for proper group filtering
 
 ### Restaurant Detail Pages
 - **Hero Cover Images**: Full-width Google Places photos with gradient overlay
@@ -275,6 +298,34 @@ supabase db push                       # Apply to remote
 - **Auto-import**: Restaurant data, photos, hours on selection
 - **Smart caching**: Store Google data permanently, refresh periodically
 - **Hero Images**: Cover photos with `getRestaurantPhotoUrl()` utility
+
+### Group System Implementation (September 1, 2025)
+
+**Major Feature**: Complete invite-only group system with database security fixes
+
+- **Invite-Only Groups**: Users join groups via invite codes, creating isolated review communities
+  - **Problem**: Platform was a single network - all users could see all reviews
+  - **Solution**: Implemented group-based access with invite codes linking to specific groups
+  - **Result**: Private groups where reviews are visible only to group members
+  - **Technical**: New `groups` and `user_groups` tables with role-based permissions
+
+- **Group-Scoped Review Feed**: Homepage now shows reviews only from user's groups
+  - **Problem**: Feed showed all reviews regardless of user relationships
+  - **Solution**: Created `get_user_visible_reviews()` security function for group-based filtering
+  - **Result**: Personalized feed showing only reviews from users in shared groups
+  - **Performance**: Efficient queries using join operations on group membership
+
+- **Database Security Model Overhaul**: Fixed RLS recursion issues with security functions
+  - **Problem**: Complex RLS policies caused infinite recursion and 500 errors
+  - **Solution**: Replaced complex policies with simple ones + security functions
+  - **Result**: Stable database operations without recursion, proper access control
+  - **Files**: 4 migration files applied to fix all security and performance issues
+
+- **Invite Code Group Integration**: Invite codes now create or join specific groups
+  - **Problem**: Invite codes only controlled access, didn't organize users
+  - **Solution**: Enhanced invite system to link codes to groups or auto-create groups
+  - **Result**: Seamless group creation during signup process
+  - **Function**: `use_invite_code_with_group()` handles group assignment logic
 
 ### Recent Bug Fixes & UI Improvements
 - **Username Display Fix**: Fixed ReviewCard showing "U" instead of actual usernames
@@ -341,6 +392,12 @@ supabase db push                       # Apply to remote
 3. `supabase db push`
 4. Update types if needed
 
+### Group System Database Migrations (Applied)
+- `20250901142625_group_system_implementation.sql` - Initial group system with tables and RLS
+- `20250901152334_fix_user_groups_rls_recursion.sql` - Fixed recursive RLS policies
+- `20250901155104_comprehensive_database_fixes.sql` - Security functions and simplified policies
+- `20250901160000_fix_ambiguous_columns_in_functions.sql` - Fixed PostgreSQL column ambiguity
+
 ## 📋 Quick Reference
 
 ### Environment Variables
@@ -358,22 +415,25 @@ NEXT_PUBLIC_APP_URL=
 - Invite expiry: 7 days
 
 ### API Endpoints
-- `GET /api/restaurants` - List restaurants
-- `POST /api/reviews` - Create review  
-- `GET /api/search?q=term` - Search reviews/restaurants
-- `POST /api/invites` - Create invite
+- `GET /api/restaurants` - List restaurants (group-scoped)
+- `POST /api/reviews` - Create review (automatically scoped to user's groups)
+- `GET /api/reviews` - Get reviews using group security functions
+- `GET /api/search?q=term` - Search reviews/restaurants (group-scoped)
+- `POST /api/invites` - Create invite with optional group linking
 - `GET /api/users/profile` - Get current user profile
 - `PATCH /api/users/profile` - Update user profile
-- `GET /api/users/[id]/reviews` - Get user's reviews with pagination
+- `GET /api/users/[id]/reviews` - Get user's reviews with pagination (group-visible only)
 - `GET /api/users/to-eat-list` - Get user's to-eat list restaurants
 - `POST /api/users/to-eat-list` - Add restaurant to to-eat list
 - `DELETE /api/users/to-eat-list` - Remove restaurant from to-eat list
 - `POST /api/reviews/[id]/like` - Toggle like/unlike status for a review
 - `GET /api/reviews/[id]/like` - Get like status and count for a review
+- `GET /api/groups` - Get user's groups (uses `get_user_groups()` function)
+- `GET /api/groups/[id]/members` - Get group members (uses `get_group_members()` function)
 
 ## 🚀 Next Steps
 Ready for photo uploads for reviews, restaurant detail maps, and email notifications!
 
 ---
 **Last Updated**: 2025-09-01  
-**Status**: MVP v1.12 - Instagram-Style Like System Complete
+**Status**: MVP v1.13 - Invite-Only Group System Complete with Database Security Fixes

@@ -1,19 +1,19 @@
 # DineCircle - Where Your Circle Dines
 
-A mobile-first, invite-only restaurant review platform for friends & family. Share trusted restaurant recommendations within your private network with a beautiful, modern interface.
+A mobile-first, invite-only restaurant review platform for friends & family. Share trusted restaurant recommendations within your private group-based network with a beautiful, modern interface.
 
 ## Features
 
-- 🔐 **Private by Default** - Exclusive invite-only access with 6-digit invite code system
+- 🔐 **Invite-Only Group System** - Exclusive group-based access with 6-digit invite codes that create or join private groups
 - 🍽️ **Smart Restaurant Discovery** - Google Places API integration with autocomplete search
 - ⭐ **Simplified Review System** - Clean, user-friendly single rating with detailed text reviews
 - 🎨 **Instagram-Style Feed** - Single-column social media feed with large images, clean card design, and interactive heart likes
+- 👥 **Group-Scoped Reviews** - Reviews visible only to users within the same groups
 - 🎯 **Global FAB Interface** - Single floating action button for review creation across all pages
 - 📱 **Mobile-First Design** - Optimized for social media consumption patterns with intuitive navigation
 - 🌍 **Location Aware** - Stockholm-focused with 50km radius bias
-- 👥 **Network-Based** - Reviews visible only to your trusted network
 - 📧 **Email Notifications** - Powered by Resend for invites and updates
-- 🔒 **Secure** - Row-level security with Supabase
+- 🔒 **Secure** - Database security functions with simplified RLS policies
 - 🗺️ **Maps Integration** - Free Google Maps links for directions and venue details
 - 🏷️ **Professional Tag System** - 35 relevant food-focused tags across dishes, cuisine, meal type, and vibe categories
 - 🔍 **Advanced Filter System** - Instagram-level filtering with rating, price, date, and recommendation filters
@@ -32,6 +32,37 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 - **UI Components**: Custom responsive popup system with Sheet (mobile) and Dialog (desktop)
 
 ## Recent Updates
+
+### 👥 Invite-Only Group System (September 1, 2025)
+
+Complete implementation of group-based access control with database security fixes:
+
+#### **✅ Group-Based Access Control**
+- **Invite Code Groups** - Invite codes now create new groups or join existing ones
+- **Group Membership** - Users can belong to multiple groups with roles (owner/admin/member)
+- **Review Scoping** - All reviews are scoped to groups, visible only to group members
+- **Isolated Communities** - Each group forms its own private review network
+- **Seamless Migration** - Existing users automatically added to "Family & Friends" default group
+
+#### **🔧 Technical Implementation**
+- **Database Schema** - New `groups` and `user_groups` tables with role-based permissions
+- **Security Functions** - `get_user_visible_reviews()`, `get_group_reviews()`, `get_group_members()`
+- **Enhanced Invite System** - `use_invite_code_with_group()` function handles group assignment
+- **Fixed RLS Policies** - Replaced complex recursive policies with simple, stable ones
+- **API Integration** - All review endpoints now use group-aware security functions
+
+#### **🎯 User Experience**
+- **Group-Scoped Feed** - Homepage shows reviews only from users in shared groups
+- **Private Communities** - Reviews create intimate circles of trusted recommendations
+- **Role Management** - Group owners and admins can manage memberships
+- **Automatic Group Creation** - First user of an invite code becomes group owner
+- **Multiple Group Support** - Users can participate in multiple review circles
+
+#### **🔜 Database Migrations Applied**
+- `20250901142625_group_system_implementation.sql` - Initial group system
+- `20250901152334_fix_user_groups_rls_recursion.sql` - Fixed infinite recursion
+- `20250901155104_comprehensive_database_fixes.sql` - Security functions
+- `20250901160000_fix_ambiguous_columns_in_functions.sql` - PostgreSQL fixes
 
 ### ❤️ Instagram-Style Like System (September 1, 2025)
 
@@ -354,27 +385,36 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - `20250131000000_fix_signup_issues.sql` - Fixed RLS policies and atomic user creation
 - `20250131000001_configure_auth_settings.sql` - Email confirmation handling for invite-based signups
 - `20250831203848_add_to_eat_list_table.sql` - To-Eat List (restaurant wishlist) system with unlimited capacity
+- `20250831231918_add_review_likes_system.sql` - Instagram-style like system
+- `20250901142625_group_system_implementation.sql` - **NEW** Group system implementation
+- `20250901152334_fix_user_groups_rls_recursion.sql` - **NEW** Fixed RLS recursion issues
+- `20250901155104_comprehensive_database_fixes.sql` - **NEW** Security functions and simplified policies
+- `20250901160000_fix_ambiguous_columns_in_functions.sql` - **NEW** Fixed PostgreSQL column ambiguity
 
 For future schema changes, see `supabase/README.md` for migration workflow.
 
 ### Authentication Setup
 
-DineCircle uses a modern invite code system with clean, exclusive design. **New authentication flow features:**
+DineCircle uses a modern invite code system with clean, exclusive design. **Group-based authentication features:**
 
-- ✅ **6-digit invite code system** - Exclusive access with hardcoded test code `123456`
+- ✅ **6-digit invite code system** - Exclusive access with codes that create or join groups (test code: `123456`)
+- ✅ **Group-based signup** - Invite codes automatically assign users to groups
 - ✅ **Clean modern design** - Light, professional interface matching contemporary apps
 - ✅ **Email/password authentication** - Simple, secure login for existing users
 - ✅ **Complete account creation flow** - Full name, email, password with real-time validation
 - ✅ **Session-based security** - Proper session management and invite code validation
 - ✅ **Admin management** - Built-in admin panel for invite code oversight
 - ✅ **Fixed signup issues** - Resolved RLS policies, foreign key constraints, and email confirmation
+- ✅ **Group migration** - Existing users automatically added to default "Family & Friends" group
 
 **Pages:**
-- `/welcome` - Landing page with invite code entry
-- `/signup` - Account creation with full validation  
+- `/welcome` - Landing page with invite code entry (creates/joins groups)
+- `/signup` - Account creation with full validation and automatic group assignment
 - `/signin` - Email/password login for existing users
-- `/admin/invite-codes` - Admin management of invite codes
+- `/admin/invite-codes` - Admin management of invite codes with group linking
+- `/profile` - User profile with group membership information
 - `/to-eat` - Dedicated To-Eat List page for restaurant wishlist management
+- `/groups` - **NEW** Group management page for viewing memberships and roles
 
 ### Installation
 
@@ -443,9 +483,12 @@ npm run lint       # Check linting issues
 ### Core Tables
 
 - **users** - User profiles with roles (user/admin)
+- **groups** - **NEW** Group system for invite-only access with roles and membership
+- **user_groups** - **NEW** Junction table managing group memberships with owner/admin/member roles
 - **restaurants** - Restaurant information with location and details
-- **reviews** - Multi-dimensional ratings with text and photos
+- **reviews** - Multi-dimensional ratings with text and photos + **group_id for scoping**
 - **invites** - Invitation system with codes and expiry
+- **invite_codes** - **UPDATED** Now links to specific groups or creates new ones
 - **reports** - Content moderation system
 - **review_photos** - Photo storage for reviews
 - **to_eat_list** - Restaurant wishlist system with unlimited capacity
@@ -468,15 +511,23 @@ npm run lint       # Check linting issues
 - `DELETE /api/restaurants/[id]` - Delete restaurant (admin only)
 
 ### Reviews
-- `GET /api/reviews` - List reviews with filters (includes like data)
-- `POST /api/reviews` - Create new review (simplified schema: restaurant, rating, dish, review, recommend, tips)
+- `GET /api/reviews` - List reviews with filters (group-scoped, includes like data)
+- `POST /api/reviews` - Create new review (automatically scoped to user's groups)
 - `PUT /api/reviews/[id]` - Update own review
 - `DELETE /api/reviews/[id]` - Delete own review
 - `POST /api/reviews/[id]/like` - Toggle like/unlike status for a review
 - `GET /api/reviews/[id]/like` - Get like status and count for a review
 
 ### Search
-- `GET /api/search` - Search private database restaurants and reviews only
+- `GET /api/search` - Search group-accessible restaurants and reviews using security functions
+
+### Groups
+- `GET /api/groups` - Get user's groups (uses `get_user_groups()` function)
+- `GET /api/groups/[id]/members` - Get group members (uses `get_group_members()` function)
+- `POST /api/groups` - Create new group
+- `PUT /api/groups/[id]` - Update group (owner/admin only)
+- `POST /api/groups/[id]/members` - Add member to group (owner/admin only)
+- `DELETE /api/groups/[id]/members/[userId]` - Remove member from group (owner/admin only)
 
 ### Google Places Integration
 - `POST /api/places/autocomplete` - Search restaurants via Google Places (admin only)
@@ -601,10 +652,12 @@ npm run build        # Check TypeScript types during build
 ## Business Rules
 
 1. **Restaurant Duplicates**: Prevented by name+city combination
-2. **Review Limits**: One review per user per restaurant
-3. **Network Visibility**: Reviews visible to authenticated users (MVP treats all as network)
-4. **Admin Powers**: Admins can edit restaurants and moderate content
-5. **Invite Expiry**: Invites expire after 7 days by default
+2. **Review Limits**: One review per user per restaurant within groups
+3. **Group-Based Visibility**: Reviews visible only to users in the same groups
+4. **Group Permissions**: Group owners/admins can manage memberships and moderate content
+5. **Invite Code Groups**: Each invite code creates or joins a specific group
+6. **Multiple Group Membership**: Users can belong to multiple groups simultaneously
+7. **Invite Expiry**: Invites expire after 7 days by default
 
 ## Troubleshooting
 
