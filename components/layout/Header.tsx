@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User, Settings, MapPin, Shield, Bookmark, Users } from 'lucide-react';
+import { LogOut, User, MapPin, Bookmark, Users } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 
 interface HeaderProps {
@@ -21,7 +21,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut } = useAuth();
   const router = useRouter();
 
   const getInitials = (name: string) => {
@@ -134,14 +134,6 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
                         To-Eat List
                       </Link>
                     </DropdownMenuItem>
-                    {isAdmin && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/admin/invite-codes">
-                          <Shield className="mr-2 h-4 w-4" />
-                          Admin Panel
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="mr-2 h-4 w-4" />

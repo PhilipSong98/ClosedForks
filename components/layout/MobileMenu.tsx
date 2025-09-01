@@ -12,14 +12,14 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
-import { Menu, User, MapPin, Settings, Shield, LogOut, Bookmark, Users } from 'lucide-react';
+import { Menu, User, MapPin, LogOut, Bookmark, Users } from 'lucide-react';
 
 interface MobileMenuProps {
   onProfileClick?: () => void;
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ onProfileClick }) => {
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut } = useAuth();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -132,19 +132,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ onProfileClick }) => {
                 <User className="mr-3 h-5 w-5" />
                 Profile
               </Button>
-
-
-              {/* Admin Panel */}
-              {isAdmin && (
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start h-12 px-4 font-medium"
-                  onClick={() => handleNavigation('/admin/invite-codes')}
-                >
-                  <Shield className="mr-3 h-5 w-5" />
-                  Admin Panel
-                </Button>
-              )}
             </nav>
           </div>
 

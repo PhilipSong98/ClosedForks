@@ -44,7 +44,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Instagram-style like system** - Heart button interactions with optimistic updates, like counts, and proper database triggers
 - [x] **Invite-Only Group System** - Users join groups via invite codes, reviews scoped to group membership
 - [x] **Group-Scoped Feed** - Homepage shows reviews from users in the same groups
-- [x] **Group Management System** - Simplified group editing (name-only) and member invite code generation
+- [x] **Complete Group Management System** - Full create/edit functionality with browser extension protection
 - [x] **Database Security Model** - Implemented with security functions instead of complex RLS policies
 - [x] **Global Navigation Progress Indicator** - Sleek horizontal progress bar for page navigation with smooth animations
 
@@ -67,7 +67,7 @@ restaurant/
 │   └── to-eat/            # To-Eat List page
 ├── components/
 │   ├── filters/           # EnhancedFilters system  
-│   ├── groups/            # Group management components (EditGroupModal, InviteCodeModal)
+│   ├── groups/            # Group management components (CreateGroupModal, EditGroupModal, InviteCodeModal)
 │   ├── layout/            # Header, AuthWrapper, FABs, MobileMenu, NavigationProgress
 │   ├── profile/           # Profile components (includes ToEatSection)
 │   ├── restaurant/        # Restaurant components (includes ToEatButton)
@@ -105,8 +105,10 @@ restaurant/
 - `components/profile/FavoritesSection.tsx`: **NEW** - Favorites management with search
 - `components/profile/ToEatSection.tsx`: **NEW** - To-Eat List management with unlimited capacity
 - `components/restaurant/ToEatButton.tsx`: **NEW** - Bookmark button for adding/removing from to-eat list
-- `components/groups/EditGroupModal.tsx`: **NEW** - Modal component for editing group names (simplified)
+- `components/groups/CreateGroupModal.tsx`: **NEW** - Modal component for creating new groups with browser extension protection
+- `components/groups/EditGroupModal.tsx`: **NEW** - Modal component for editing group names with extension-resistant inputs
 - `components/groups/InviteCodeModal.tsx`: **NEW** - Modal component for generating group invite codes
+- `components/ui/extension-resistant-input.tsx`: **NEW** - Anti-browser extension input component
 - `lib/mutations/inviteCode.ts`: **NEW** - React Query mutation for invite code generation
 - `components/review/ReviewComposer.tsx`: **UPDATED** - Modal-based review creation with automatic refresh
 - `components/review/ReviewCard.tsx`: **UPDATED** - Instagram-style like button with optimistic updates, displays usernames correctly
@@ -124,7 +126,7 @@ restaurant/
 - `lib/mutations/likes.ts`: **NEW** - Like/unlike mutations with optimistic updates and proper error handling
 - `lib/mutations/profile.ts`: **NEW** - Profile update mutations with optimistic updates
 - `lib/mutations/toEatList.ts`: **NEW** - To-Eat List mutations with optimistic updates
-- `lib/mutations/groups.ts`: **NEW** - Group update mutations with optimistic updates
+- `lib/mutations/groups.ts`: **NEW** - Group create/update mutations with optimistic updates
 - `lib/queries/restaurants.ts`: **NEW** - React Query hooks for data fetching with automatic refresh
 - `lib/queries/profile.ts`: **NEW** - React Query hooks for profile data and user reviews
 - `lib/queries/toEatList.ts`: **NEW** - React Query hooks for to-eat list data with automatic refresh
@@ -311,23 +313,35 @@ supabase db push                       # Apply to remote
 - **Navigation Integration**: Added to both header navigation and mobile menu
 - **TypeScript Support**: Fully typed interfaces with comprehensive error handling
 
-### Group Management System
+### Complete Group Management System
 - **Groups Page**: Dedicated `/groups` page displaying all user's group memberships
+- **Full Group Creation**: Administrators can create new groups with clean modal interface
+  - **Create Button**: Plus icon for admins to create new groups
+  - **Browser Extension Protection**: ExtensionResistantInput prevents extension interference
+  - **Form Stability**: Optimized React component architecture prevents input blocking
+  - **Admin Access**: Only users with admin role can create groups
 - **Simplified Group Editing**: Clean name-only editing for group owners and admins
   - **Removed**: Description field from editing interface for cleaner UX
   - **Focused Design**: Single-field modal with essential functionality only
   - **Role-Based Access**: Only owners/admins can edit group names
+  - **Extension Resistant**: Protected against browser password manager interference
 - **Member Invite System**: Any group member can generate invite codes for their group
   - **Democratic Access**: All members (not just admins) can invite others to grow the group
   - **6-digit Codes**: Follows existing invite code patterns with group-specific linking
   - **Professional UI**: InviteCodeModal with copy-to-clipboard functionality
   - **Usage Tracking**: Shows expiration dates and usage limits for generated codes
 - **Hover-to-Reveal**: Clean card interface with action buttons appearing on hover
+  - **Create Button**: Plus icon for admins to create new groups
   - **Edit Button**: Pencil icon for owners/admins to edit group names
   - **Invite Button**: UserPlus icon for all members to generate invite codes
-- **Responsive Design**: Both modals use Sheet (mobile) / Dialog (desktop) pattern
+- **Responsive Design**: All modals use Sheet (mobile) / Dialog (desktop) pattern
 - **Optimistic Updates**: Real-time UI updates with automatic rollback on errors
-- **Security Validation**: Backend enforces group membership before allowing code generation
+- **Security Validation**: Backend enforces permissions before allowing operations
+- **Browser Extension Compatibility**: Comprehensive protection against form interference
+  - **Anti-Extension Attributes**: Prevents LastPass, 1Password, Bitwarden interference
+  - **Stable Event Handlers**: useCallback prevents function recreation issues
+  - **Component Architecture**: FormContent extracted outside component functions
+  - **Input Protection**: Custom ExtensionResistantInput component with fallback handling
 
 ### Google Places Integration
 - **Stockholm-focused**: 50km bias, cost-optimized with session tokens
@@ -415,6 +429,22 @@ supabase db push                       # Apply to remote
   - **Features**: Industry-standard timing patterns, blue theme color, high z-index positioning, smooth transitions
   - **Files**: `components/layout/NavigationProgress.tsx` (new), `components/layout/NavigationProgressProvider.tsx` (new), `app/providers.tsx` (updated), `app/layout.tsx` (updated)
 
+- **Complete Group Creation System**: Fixed missing create group functionality with browser compatibility
+  - **Problem**: Create Group button was non-functional due to missing CreateGroupModal component
+  - **Solution**: Added complete CreateGroupModal with responsive design and API integration
+  - **Result**: Administrators can now successfully create new groups through clean modal interface
+  - **Technical**: New modal component, useCreateGroup mutation hook, proper cache invalidation
+  - **Files**: `components/groups/CreateGroupModal.tsx` (new), `lib/mutations/groups.ts` (updated), `app/groups/groups-client.tsx` (updated)
+
+- **Critical Input Blocking Bug Fix**: Resolved browser extension interference in group modals
+  - **Problem**: Users could only type one character in group name fields before input became unresponsive
+  - **Root Cause**: Browser extension interference (LastPass, 1Password, etc.) + React component recreation
+  - **Solution**: Created ExtensionResistantInput component with comprehensive anti-extension protection
+  - **Result**: All group name inputs now work reliably regardless of browser extensions
+  - **Technical**: Custom input component, stable event handlers with useCallback, FormContent extraction
+  - **Protected Extensions**: LastPass, 1Password, Bitwarden, Dashlane, RoboForm, and others
+  - **Files**: `components/ui/extension-resistant-input.tsx` (new), `components/groups/CreateGroupModal.tsx` (updated), `components/groups/EditGroupModal.tsx` (updated)
+
 ## 🔐 Authentication - Modern Invite Code System
 
 ### New Authentication Flow
@@ -489,6 +519,7 @@ NEXT_PUBLIC_APP_URL=
 - `GET /api/groups` - Get user's groups (uses `get_user_groups()` function)
 - `GET /api/groups/[id]/members` - Get group members (uses `get_group_members()` function)
 - `PATCH /api/groups/[id]` - Update group name only (owners/admins only)
+- `POST /api/groups` - Create new group (admin only)
 - `POST /api/groups/[id]/invite-code` - Generate invite code for group (any member)
 
 ## 🚀 Next Steps
@@ -496,4 +527,4 @@ Ready for photo uploads for reviews, restaurant detail maps, and email notificat
 
 ---
 **Last Updated**: 2025-09-01  
-**Status**: MVP v1.16 - Global Navigation Progress Indicator Complete
+**Status**: MVP v1.17 - Complete Group Management with Browser Extension Protection
