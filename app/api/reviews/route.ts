@@ -3,79 +3,64 @@ import { createClient } from '@/lib/supabase/server';
 import { reviewSchema } from '@/lib/validations';
 
 // Define types for the database responses
-interface ReviewData {
-  id: string;
-  content: string;
-  rating_overall: number;
-  rating_food: number | null;
-  rating_service: number | null;
-  rating_atmosphere: number | null;
-  rating_value: number | null;
-  tags: string[] | null;
-  author_id: string;
-  restaurant_id: string;
-  created_at: string;
-  updated_at: string;
-  like_count: number;
-  isLikedByUser?: boolean;
-  restaurants?: {
-    id: string;
-    name: string;
-    address: string;
-    city: string;
-    cuisine: string | null;
-    google_data: Record<string, unknown> | null;
-  };
-  author_user?: {
-    id: string;
-    name: string;
-    email: string;
-    avatar_url?: string;
-  };
-}
-
-interface UserLike {
-  review_id: string;
-}
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     
-    // Check authentication for user-specific like data
-    const { data: { user } } = await supabase.auth.getUser();
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
     
     const restaurantId = searchParams.get('restaurant_id');
+    const groupId = searchParams.get('group_id');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from('reviews')
-      .select(`
-        *,
-        restaurants(
-          id,
-          name,
-          address,
-          city,
-          cuisine,
-          google_data,
-          google_place_id,
-          google_maps_url,
-          lat,
-          lng
-        )
-      `)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    let reviews;
+    let error;
 
-    if (restaurantId) {
-      query = query.eq('restaurant_id', restaurantId);
+    if (groupId) {
+      // Use the security function for group-specific reviews
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: groupReviewsError } = await (supabase as any)
+        .rpc('get_group_reviews', {
+          group_id_param: groupId,
+          user_id_param: user.id,
+          limit_param: limit,
+          offset_param: offset
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as { data: any[] | null; error: unknown; };
+      
+      reviews = data;
+      error = groupReviewsError;
+    } else {
+      // Use the security function for all user-visible reviews
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: visibleReviewsError } = await (supabase as any)
+        .rpc('get_user_visible_reviews', {
+          user_id_param: user.id,
+          limit_param: limit,
+          offset_param: offset
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as { data: any[] | null; error: unknown; };
+      
+      reviews = data;
+      error = visibleReviewsError;
     }
 
-    const { data: reviews, error } = await query as { data: ReviewData[] | null; error: Error | null };
+    // Filter by restaurant if specified
+    if (restaurantId && reviews) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      reviews = (reviews as any[]).filter((review: { restaurant_id: string }) => review.restaurant_id === restaurantId);
+    }
 
     if (error) {
       console.error('Error fetching reviews:', error);
@@ -85,53 +70,79 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // If we have reviews, manually fetch the user data for each one
-    let reviewsWithUsers = reviews || [];
-    if (reviewsWithUsers.length > 0) {
-      const authorIds = reviewsWithUsers.map(review => review.author_id);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Process the reviews from the security functions
+    let processedReviews = reviews || [];
+    
+    if (processedReviews.length > 0) {
+      // Fetch user data for authors
+      const authorIds = processedReviews.map((review: { author_id: string }) => review.author_id);
       const { data: users, error: usersError } = await supabase
         .from('users')
-        .select('id, name, email, avatar_url')
-        .in('id', authorIds) as { data: { id: string; name: string; email: string; avatar_url?: string }[] | null; error: Error | null };
+        .select('id, name, full_name, email, avatar_url')
+        .in('id', authorIds);
 
-      if (!usersError && users) {
-        // Map user data to reviews
-        reviewsWithUsers = reviewsWithUsers.map(review => ({
-          ...review,
-          author_user: users.find(user => user.id === review.author_id)
-        }));
-      }
-    }
+      // Fetch restaurant data
+      const restaurantIds = processedReviews.map((review: { restaurant_id: string }) => review.restaurant_id);
+      const { data: restaurants, error: restaurantsError } = await supabase
+        .from('restaurants')
+        .select('id, name, address, city, cuisine, google_data, google_place_id, google_maps_url, lat, lng')
+        .in('id', restaurantIds);
 
-    // Get user's like status for each review if authenticated
-    let reviewsWithLikes = reviewsWithUsers;
-    if (user && reviewsWithUsers.length > 0) {
-      const reviewIds = reviewsWithUsers.map(review => review.id);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: userLikes, error: likesError } = await supabase
+      // Get user's like status for each review
+      const reviewIds = processedReviews.map((review: { review_id: string }) => review.review_id);
+      const { data: userLikes } = await supabase
         .from('review_likes')
         .select('review_id')
         .eq('user_id', user.id)
-        .in('review_id', reviewIds) as { data: UserLike[] | null; error: Error | null };
+        .in('review_id', reviewIds);
 
-      if (!likesError && userLikes) {
-        const likedReviewIds = new Set(userLikes.map(like => like.review_id));
-        reviewsWithLikes = reviewsWithUsers.map(review => ({
-          ...review,
-          isLikedByUser: likedReviewIds.has(review.id)
+      if (!usersError && !restaurantsError && users && restaurants) {
+        const likedReviewIds = new Set((userLikes || []).map((like: { review_id: string }) => like.review_id));
+        
+        // Transform the data to match expected format
+        processedReviews = processedReviews.map((review: { 
+          review_id: string; 
+          restaurant_id: string; 
+          author_id: string; 
+          rating_overall: number; 
+          dish: string; 
+          review_text: string; 
+          recommend: boolean; 
+          tips: string; 
+          tags: string[]; 
+          visit_date: string; 
+          price_per_person: number; 
+          visibility: string; 
+          created_at: string; 
+          updated_at: string; 
+          like_count: number; 
+          group_id: string;
+        }) => ({
+          id: review.review_id,
+          restaurant_id: review.restaurant_id,
+          author_id: review.author_id,
+          rating_overall: review.rating_overall,
+          dish: review.dish,
+          review: review.review_text,
+          recommend: review.recommend,
+          tips: review.tips,
+          tags: review.tags,
+          visit_date: review.visit_date,
+          price_per_person: review.price_per_person,
+          visibility: review.visibility,
+          created_at: review.created_at,
+          updated_at: review.updated_at,
+          like_count: review.like_count || 0,
+          group_id: review.group_id,
+          isLikedByUser: likedReviewIds.has(review.review_id),
+          // Add joined data
+          author: users.find((u: { id: string }) => u.id === review.author_id),
+          restaurant: restaurants.find((r: { id: string }) => r.id === review.restaurant_id)
         }));
       }
     }
 
-    // Transform the data to match expected format with manually joined user data
-    const formattedReviews = reviewsWithLikes.map(review => ({
-      ...review,
-      restaurant: review.restaurants,  // Map joined restaurant data to expected name
-      author: review.author_user,      // Map manually joined user data
-    }));
-
-    return NextResponse.json({ reviews: formattedReviews });
+    return NextResponse.json({ reviews: processedReviews });
   } catch (error) {
     console.error('Unexpected error:', error);
     return NextResponse.json(
@@ -171,7 +182,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already reviewed this restaurant
+    // Get user's primary group (first joined group) for the review
+    const { data: userGroup, error: groupError } = await supabase
+      .from('user_groups')
+      .select('group_id')
+      .eq('user_id', user.id)
+      .order('joined_at', { ascending: true })
+      .limit(1)
+      .single() as { data: { group_id: string } | null; error: unknown; };
+
+    if (groupError || !userGroup) {
+      return NextResponse.json(
+        { error: 'You must be a member of a group to create reviews' },
+        { status: 403 }
+      );
+    }
+
+    // Check if user already reviewed this restaurant in any of their groups
     const { data: existingReview } = await supabase
       .from('reviews')
       .select('id')
@@ -191,6 +218,7 @@ export async function POST(request: NextRequest) {
       .insert({
         ...validatedData,
         author_id: user.id,
+        group_id: userGroup.group_id,
       })
       .select('*')
       .single();

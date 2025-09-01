@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 // import { notFound } from 'next/navigation'; // Currently unused
 import RestaurantDetailClient from './restaurant-detail-client';
-import { Restaurant, Review } from '@/types';
+import { Restaurant } from '@/types';
 
 async function getRestaurant(id: string): Promise<Restaurant | null> {
   try {

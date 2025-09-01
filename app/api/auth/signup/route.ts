@@ -99,7 +99,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user profile and record invite code usage atomically
+    // Create user profile first
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: userError } = await (supabase as any)
+      .from('users')
+      .insert([{
+        id: authData.user.id,
+        email: email,
+        name: fullName,
+        full_name: fullName,
+      }]);
+
+    if (userError) {
+      console.error('User profile creation failed:', userError);
+      return NextResponse.json(
+        { 
+          error: 'Failed to create user profile. Please try again.',
+          field: 'general'
+        },
+        { status: 500 }
+      );
+    }
+
+    // Use the new group-aware invite code function
     const clientIP = request.headers.get('x-forwarded-for')?.split(',')[0] || 
       request.headers.get('x-real-ip') || 
       'unknown';
@@ -107,12 +129,10 @@ export async function POST(request: NextRequest) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: creationResult, error: creationError } = await (supabase as any)
-      .rpc('create_user_with_invite', {
+      .rpc('use_invite_code_with_group', {
+        code_to_use: inviteCode,
         user_id_param: authData.user.id,
-        email_param: email,
-        name_param: fullName,
-        full_name_param: fullName,
-        invite_code_param: inviteCode,
+        group_name: null, // Let the function determine group name
         ip_address_param: clientIP,
         user_agent_param: userAgent
       });
@@ -133,7 +153,7 @@ export async function POST(request: NextRequest) {
 
     // For invite-based signups, we can attempt auto sign-in
     // since we know the invite code was valid
-    const { data: _signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -171,7 +191,8 @@ export async function POST(request: NextRequest) {
         id: authData.user.id,
         email: authData.user.email,
         full_name: fullName,
-      }
+      },
+      group_id: creationResult?.group_id // Include group information
     });
 
   } catch (error) {
