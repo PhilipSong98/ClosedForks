@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
 
     // For invite-based signups, we can attempt auto sign-in
     // since we know the invite code was valid
-    const { data: _signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import HomeClient from './home-client';
-import { Review } from '@/types';
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getRecentReviews(): Promise<any[]> {

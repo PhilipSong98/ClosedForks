@@ -6,7 +6,7 @@ function generateInviteCode(): string {
   return Math.random().toString(36).substring(2, 10).toUpperCase();
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
     

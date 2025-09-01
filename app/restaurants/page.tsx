@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import RestaurantsClient from './restaurants-client';
-import { Restaurant } from '@/types';
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getAllRestaurants(): Promise<any[]> {

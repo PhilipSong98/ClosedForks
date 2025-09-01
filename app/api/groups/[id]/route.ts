@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { GroupWithDetails, UpdateGroupRequest, GroupRole } from '@/types';
+import { GroupWithDetails, GroupRole } from '@/types';
 
 export async function GET(
   request: NextRequest,
@@ -189,7 +189,7 @@ export async function PATCH(
     }
 
     // Validate input
-    const updates: Partial<{ name: string }> = {};
+    const updates: Partial<{ name: string; description: string | null }> = {};
     if (body.name !== undefined) {
       if (!body.name || body.name.trim().length === 0) {
         return NextResponse.json(
@@ -205,11 +205,14 @@ export async function PATCH(
       }
       updates.name = body.name.trim();
     }
+    if (body.description !== undefined) {
+      updates.description = body.description;
+    }
 
     // Update group
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: updatedGroup, error: updateError } = await (supabase
-      .from('groups') as any)
+    const { data: updatedGroup, error: updateError } = await (supabase as any)
+      .from('groups')
       .update(updates)
       .eq('id', groupId)
       .select()
