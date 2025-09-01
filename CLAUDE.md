@@ -41,6 +41,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Fixed username display** - ReviewCard now shows actual usernames instead of "U"
 - [x] **Fixed favorites search** - Restaurant search in favorites modal now finds results correctly
 - [x] **Mobile navigation improvements** - Professional hamburger menu with proper touch targets and no FAB overlaps
+- [x] **Instagram-style like system** - Heart button interactions with optimistic updates, like counts, and proper database triggers
 
 ### Pending Features
 - [ ] Photo upload for reviews
@@ -97,7 +98,7 @@ restaurant/
 - `components/profile/ToEatSection.tsx`: **NEW** - To-Eat List management with unlimited capacity
 - `components/restaurant/ToEatButton.tsx`: **NEW** - Bookmark button for adding/removing from to-eat list
 - `components/review/ReviewComposer.tsx`: **UPDATED** - Modal-based review creation with automatic refresh
-- `components/review/ReviewCard.tsx`: **FIXED** - Now displays actual usernames instead of "U"
+- `components/review/ReviewCard.tsx`: **UPDATED** - Instagram-style like button with optimistic updates, displays usernames correctly
 - `components/restaurant/RestaurantSelector.tsx`: **UPDATED** - Fixed overflow issue with simplified restaurant card display
 - `components/search/SearchBar.tsx`: **UPDATED** - Clickable search with navigation
 - `components/search/GlobalSearchModal.tsx`: Search with keyboard shortcuts
@@ -106,6 +107,7 @@ restaurant/
 - `components/layout/Header.tsx`: **UPDATED** - Integrated MobileMenu for mobile devices
 - `lib/hooks/useAuth.ts`: Authentication with fallback handling
 - `lib/mutations/reviews.ts`: **NEW** - React Query mutation for review creation with cache invalidation
+- `lib/mutations/likes.ts`: **NEW** - Like/unlike mutations with optimistic updates and proper error handling
 - `lib/mutations/profile.ts`: **NEW** - Profile update mutations with optimistic updates
 - `lib/mutations/toEatList.ts`: **NEW** - To-Eat List mutations with optimistic updates
 - `lib/queries/restaurants.ts`: **NEW** - React Query hooks for data fetching with automatic refresh
@@ -123,9 +125,12 @@ restaurant/
   - Limited to 10 favorites maximum per user
 - `restaurants`: Restaurant data + Google Places integration
   - `google_place_id`, `google_maps_url`, `google_data`, `last_google_sync`
-- `reviews`: Simplified rating system + tagging
-  - `rating_overall`, `dish`, `review`, `recommend`, `tips`, `tags[]`
+- `reviews`: Simplified rating system + tagging + like system
+  - `rating_overall`, `dish`, `review`, `recommend`, `tips`, `tags[]`, `like_count`
   - GIN index on tags for efficient filtering
+- `review_likes`: **NEW** - Instagram-style like system
+  - `review_id`, `user_id`, `created_at` (composite primary key)
+  - Tracks individual user likes with one like per user per review
 - `invite_codes`: **NEW** - 6-digit code management system
   - `code`, `max_uses`, `current_uses`, `is_active`, `expires_at`
   - Rate limiting and usage tracking
@@ -167,7 +172,8 @@ supabase db push                       # Apply to remote
 
 ### Instagram-Style Feed
 - **Homepage**: Single-column review feed (max-width: 512px)
-- **ReviewCard**: Large 4:3 images, user headers, inline tips, tag badges
+- **ReviewCard**: Large 4:3 images, user headers, inline tips, tag badges, interactive heart button
+- **Like System**: Red filled heart when liked, optimistic updates, real-time like counts
 - **Restaurants Page**: Separated discovery with SearchBar and filters
 
 ### Responsive System
@@ -226,11 +232,21 @@ supabase db push                       # Apply to remote
 - **Seamless UX**: No manual refresh required, data stays synchronized
 - **Key Components**: `useCreateReview()` mutation, `useRestaurantsWithReviews()` hook
 
+### Instagram-Style Like System
+- **Heart Button Interactions**: Red filled heart when liked, outline when not liked
+- **One Like Per User**: Database constraint prevents duplicate likes per review
+- **Optimistic Updates**: Instant UI feedback with automatic rollback on errors
+- **Like Counts**: Real-time display of total likes with proper pluralization
+- **API Endpoints**: Toggle like/unlike, get like status and count
+- **Database Triggers**: Automatic like_count updates in reviews table
+- **React Query Integration**: Proper cache invalidation and optimistic mutations
+- **TypeScript Support**: Fully typed interfaces with comprehensive error handling
+
 ### User Profile System
 - **Complete Profile Pages**: Accessible at `/profile` with comprehensive user information
 - **Profile Statistics**: Display review count and favorites count with real-time updates
 - **Three-Tab Interface**: Recent Reviews, Favorites (10 max), and To-Eat List (unlimited)
-- **Recent Reviews Tab**: Paginated user reviews using existing ReviewCard component
+- **Recent Reviews Tab**: Paginated user reviews using existing ReviewCard component with like functionality
 - **Favorites Management**: Up to 10 favorite restaurants with horizontal scroll display
 - **To-Eat List Management**: Unlimited restaurant wishlist with search and add functionality
 - **Restaurant Search**: Integrated search modal for adding to both favorites and to-eat list
@@ -352,10 +368,12 @@ NEXT_PUBLIC_APP_URL=
 - `GET /api/users/to-eat-list` - Get user's to-eat list restaurants
 - `POST /api/users/to-eat-list` - Add restaurant to to-eat list
 - `DELETE /api/users/to-eat-list` - Remove restaurant from to-eat list
+- `POST /api/reviews/[id]/like` - Toggle like/unlike status for a review
+- `GET /api/reviews/[id]/like` - Get like status and count for a review
 
 ## 🚀 Next Steps
 Ready for photo uploads for reviews, restaurant detail maps, and email notifications!
 
 ---
-**Last Updated**: 2025-08-31  
-**Status**: MVP v1.11 - To-Eat List Feature Complete
+**Last Updated**: 2025-09-01  
+**Status**: MVP v1.12 - Instagram-Style Like System Complete

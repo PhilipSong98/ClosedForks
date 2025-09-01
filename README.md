@@ -7,7 +7,7 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 - 🔐 **Private by Default** - Exclusive invite-only access with 6-digit invite code system
 - 🍽️ **Smart Restaurant Discovery** - Google Places API integration with autocomplete search
 - ⭐ **Simplified Review System** - Clean, user-friendly single rating with detailed text reviews
-- 🎨 **Instagram-Style Feed** - Single-column social media feed with large images and clean card design
+- 🎨 **Instagram-Style Feed** - Single-column social media feed with large images, clean card design, and interactive heart likes
 - 🎯 **Global FAB Interface** - Single floating action button for review creation across all pages
 - 📱 **Mobile-First Design** - Optimized for social media consumption patterns with intuitive navigation
 - 🌍 **Location Aware** - Stockholm-focused with 50km radius bias
@@ -18,6 +18,7 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 - 🏷️ **Professional Tag System** - 35 relevant food-focused tags across dishes, cuisine, meal type, and vibe categories
 - 🔍 **Advanced Filter System** - Instagram-level filtering with rating, price, date, and recommendation filters
 - 📋 **To-Eat List (Wishlist)** - Unlimited restaurant bookmarking with blue-themed UI and dedicated management page
+- ❤️ **Instagram-Style Likes** - Heart button interactions with optimistic updates, like counts, and one like per user per review
 
 ## Tech Stack
 
@@ -31,6 +32,30 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 - **UI Components**: Custom responsive popup system with Sheet (mobile) and Dialog (desktop)
 
 ## Recent Updates
+
+### ❤️ Instagram-Style Like System (September 1, 2025)
+
+Complete implementation of Instagram-style like functionality for reviews:
+
+#### **✅ Interactive Heart Button System**
+- **Visual Feedback** - Red filled heart when liked, outline when not liked
+- **Like Counts** - Real-time display of total likes with proper pluralization ("1 like", "5 likes")
+- **One Like Per User** - Database constraint prevents duplicate likes per review
+- **Optimistic Updates** - Instant UI feedback with automatic rollback on errors
+- **Touch-Friendly** - Proper touch targets and visual states for mobile interaction
+
+#### **🔧 Technical Implementation**
+- **Database Schema** - New `review_likes` table with composite primary key (review_id, user_id)
+- **Automatic Counters** - Database triggers maintain like_count field in reviews table
+- **API Endpoints** - `POST /api/reviews/[id]/like` for toggling, `GET /api/reviews/[id]/like` for status
+- **React Query Integration** - Proper cache invalidation and optimistic mutations
+- **TypeScript Support** - Fully typed interfaces with comprehensive error handling
+
+#### **🎯 User Experience**
+- **Seamless Interactions** - No loading states, instant visual feedback
+- **Error Handling** - Automatic rollback if server request fails
+- **Consistent Design** - Matches Instagram's heart button behavior and styling
+- **Performance Optimized** - Efficient database queries and minimal API calls
 
 ### 📱 Mobile Navigation Enhancement (August 31, 2025)
 
@@ -424,6 +449,7 @@ npm run lint       # Check linting issues
 - **reports** - Content moderation system
 - **review_photos** - Photo storage for reviews
 - **to_eat_list** - Restaurant wishlist system with unlimited capacity
+- **review_likes** - Instagram-style like system with composite primary key (review_id, user_id)
 
 ### Key Features
 
@@ -442,10 +468,12 @@ npm run lint       # Check linting issues
 - `DELETE /api/restaurants/[id]` - Delete restaurant (admin only)
 
 ### Reviews
-- `GET /api/reviews` - List reviews with filters
+- `GET /api/reviews` - List reviews with filters (includes like data)
 - `POST /api/reviews` - Create new review (simplified schema: restaurant, rating, dish, review, recommend, tips)
 - `PUT /api/reviews/[id]` - Update own review
 - `DELETE /api/reviews/[id]` - Delete own review
+- `POST /api/reviews/[id]/like` - Toggle like/unlike status for a review
+- `GET /api/reviews/[id]/like` - Get like status and count for a review
 
 ### Search
 - `GET /api/search` - Search private database restaurants and reviews only
@@ -515,7 +543,7 @@ Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
 │   ├── search/         # Search components (SearchBar, SearchFAB, GlobalSearchModal)
 │   └── ui/             # shadcn/ui components
 ├── lib/                # Utilities and configurations
-│   ├── mutations/      # React Query mutations (including toEatList.ts)
+│   ├── mutations/      # React Query mutations (including toEatList.ts, likes.ts)
 │   ├── queries/        # React Query data fetching (including toEatList.ts)
 │   ├── supabase/       # Supabase client configuration
 │   ├── hooks/          # Custom React hooks (useAuth, useMediaQuery)
