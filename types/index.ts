@@ -326,7 +326,6 @@ export interface CreateGroupRequest {
 
 export interface UpdateGroupRequest {
   name?: string;
-  description?: string;
 }
 
 export interface CreateGroupResponse {

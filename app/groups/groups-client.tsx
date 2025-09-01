@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Crown, Shield, User, Calendar, ChevronDown, ChevronUp, Plus, Edit2 } from 'lucide-react';
+import { Users, Crown, Shield, User, Calendar, ChevronDown, ChevronUp, Plus, Edit2, UserPlus } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useUserGroups, useGroup } from '@/lib/queries/groups';
 import { useUpdateGroup } from '@/lib/mutations/groups';
+import { useGenerateInviteCode } from '@/lib/mutations/inviteCode';
 import { EditGroupModal } from '@/components/groups/EditGroupModal';
+import { InviteCodeModal } from '@/components/groups/InviteCodeModal';
 import { Group } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -22,9 +24,10 @@ interface GroupCardProps {
   onViewDetails: (groupId: string) => void;
   isExpanded: boolean;
   onEditGroup: (group: Group) => void;
+  onInviteToGroup: (group: Group) => void;
 }
 
-const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded, onEditGroup }) => {
+const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded, onEditGroup, onInviteToGroup }) => {
   const { data: groupDetails, isLoading } = useGroup(group.id, isExpanded);
 
   const getRoleIcon = (role: string) => {
@@ -62,17 +65,30 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
                 <CardTitle className="text-lg font-semibold text-gray-900 truncate">
                   {group.name}
                 </CardTitle>
-                {(group.user_role === 'owner' || group.user_role === 'admin') && (
+                <div className="flex items-center gap-1">
+                  {/* Invite button - visible to all members */}
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onEditGroup(group)}
+                    onClick={() => onInviteToGroup(group)}
                     className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100 transition-opacity"
-                    title="Edit group name and description"
+                    title="Invite friends to this group"
                   >
-                    <Edit2 className="h-3 w-3" />
+                    <UserPlus className="h-3 w-3" />
                   </Button>
-                )}
+                  {/* Edit button - only for owners/admins */}
+                  {(group.user_role === 'owner' || group.user_role === 'admin') && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEditGroup(group)}
+                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100 transition-opacity"
+                      title="Edit group name"
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
               </div>
               {group.description && (
                 <p className="text-sm text-gray-600 mt-1 line-clamp-2">
@@ -186,8 +202,10 @@ const GroupsClient: React.FC = () => {
   const { user } = useAuth();
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+  const [invitingGroup, setInvitingGroup] = useState<Group | null>(null);
   const { data: userGroups = [], isLoading: groupsLoading } = useUserGroups();
   const updateGroupMutation = useUpdateGroup();
+  const generateInviteCodeMutation = useGenerateInviteCode();
 
   const handleViewDetails = (groupId: string) => {
     setExpandedGroupId(expandedGroupId === groupId ? null : groupId);
@@ -197,18 +215,26 @@ const GroupsClient: React.FC = () => {
     setEditingGroup(group);
   };
 
-  const handleSaveGroup = async (name: string, description?: string) => {
+  const handleInviteToGroup = (group: Group) => {
+    setInvitingGroup(group);
+  };
+
+  const handleSaveGroup = async (name: string) => {
     if (!editingGroup) return;
 
     try {
       await updateGroupMutation.mutateAsync({
         groupId: editingGroup.id,
-        updates: { name, description }
+        updates: { name }
       });
     } catch (error) {
       console.error('Failed to update group:', error);
       throw error; // Re-throw to let the modal handle the error
     }
+  };
+
+  const handleGenerateInviteCode = async (groupId: string) => {
+    return await generateInviteCodeMutation.mutateAsync(groupId);
   };
 
   if (!user) {
@@ -294,6 +320,7 @@ const GroupsClient: React.FC = () => {
                   onViewDetails={handleViewDetails}
                   isExpanded={expandedGroupId === group.id}
                   onEditGroup={handleEditGroup}
+                  onInviteToGroup={handleInviteToGroup}
                 />
               ))}
             </div>
@@ -331,6 +358,17 @@ const GroupsClient: React.FC = () => {
           onOpenChange={(open) => !open && setEditingGroup(null)}
           onSave={handleSaveGroup}
           isLoading={updateGroupMutation.isPending}
+        />
+      )}
+
+      {/* Invite Code Modal */}
+      {invitingGroup && (
+        <InviteCodeModal
+          group={invitingGroup}
+          isOpen={!!invitingGroup}
+          onOpenChange={(open) => !open && setInvitingGroup(null)}
+          onGenerateCode={handleGenerateInviteCode}
+          isLoading={generateInviteCodeMutation.isPending}
         />
       )}
     </div>

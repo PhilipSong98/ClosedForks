@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
   Dialog,
@@ -27,7 +26,7 @@ interface EditGroupModalProps {
   group: Group;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (name: string, description?: string) => Promise<void>;
+  onSave: (name: string) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -40,7 +39,6 @@ export function EditGroupModal({
 }: EditGroupModalProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [name, setName] = useState(group.name);
-  const [description, setDescription] = useState(group.description || '');
   const [nameError, setNameError] = useState('');
 
   const validateName = (value: string) => {
@@ -64,7 +62,7 @@ export function EditGroupModal({
     }
 
     try {
-      await onSave(name.trim(), description.trim() || undefined);
+      await onSave(name.trim());
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving group:', error);
@@ -74,7 +72,6 @@ export function EditGroupModal({
   const handleCancel = () => {
     // Reset form to original values
     setName(group.name);
-    setDescription(group.description || '');
     setNameError('');
     onOpenChange(false);
   };
@@ -107,21 +104,6 @@ export function EditGroupModal({
         </p>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="group-description">Description</Label>
-        <Textarea
-          id="group-description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter group description (optional)"
-          rows={3}
-          maxLength={500}
-          disabled={isLoading}
-        />
-        <p className="text-xs text-muted-foreground">
-          {description.length}/500 characters
-        </p>
-      </div>
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 space-y-2 sm:space-y-0 space-y-reverse">
         <Button 
@@ -157,7 +139,7 @@ export function EditGroupModal({
           <SheetHeader>
             <SheetTitle>Edit Group</SheetTitle>
             <SheetDescription>
-              Update your group name and description. Only owners and admins can edit group details.
+              Update your group name. Only owners and admins can edit group details.
             </SheetDescription>
           </SheetHeader>
           <div className="mt-6">
@@ -174,7 +156,7 @@ export function EditGroupModal({
         <DialogHeader>
           <DialogTitle>Edit Group</DialogTitle>
           <DialogDescription>
-            Update your group name and description. Only owners and admins can edit group details.
+            Update your group name. Only owners and admins can edit group details.
           </DialogDescription>
         </DialogHeader>
         <div className="mt-4">

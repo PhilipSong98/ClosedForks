@@ -189,7 +189,7 @@ export async function PATCH(
     }
 
     // Validate input
-    const updates: Partial<{ name: string; description: string | null }> = {};
+    const updates: Partial<{ name: string }> = {};
     if (body.name !== undefined) {
       if (!body.name || body.name.trim().length === 0) {
         return NextResponse.json(
@@ -206,15 +206,11 @@ export async function PATCH(
       updates.name = body.name.trim();
     }
 
-    if (body.description !== undefined) {
-      updates.description = body.description?.trim() || null;
-    }
-
     // Update group
-    const { data: updatedGroup, error: updateError } = await supabase
-      .from('groups')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .update(updates as any)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: updatedGroup, error: updateError } = await (supabase
+      .from('groups') as any)
+      .update(updates)
       .eq('id', groupId)
       .select()
       .single();
