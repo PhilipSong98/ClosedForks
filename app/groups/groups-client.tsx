@@ -90,11 +90,6 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
                   )}
                 </div>
               </div>
-              {group.description && (
-                <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                  {group.description}
-                </p>
-              )}
             </div>
           </div>
           <Badge className={`${getRoleColor(group.user_role || 'member')} flex items-center gap-1 shrink-0`}>
