@@ -81,6 +81,9 @@ export interface Review {
   tags?: string[]; // Array of tags for categorization and filtering
   created_at: string;
   updated_at: string;
+  // Like system fields
+  like_count: number;
+  isLikedByUser?: boolean;
   // Relationship data (can be from different API response formats)
   author?: User;
   restaurant?: Restaurant;

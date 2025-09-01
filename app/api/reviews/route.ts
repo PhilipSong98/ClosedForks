@@ -16,6 +16,8 @@ interface ReviewData {
   restaurant_id: string;
   created_at: string;
   updated_at: string;
+  like_count: number;
+  isLikedByUser?: boolean;
   restaurants?: {
     id: string;
     name: string;
@@ -32,10 +34,17 @@ interface ReviewData {
   };
 }
 
+interface UserLike {
+  review_id: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
+    
+    // Check authentication for user-specific like data
+    const { data: { user } } = await supabase.auth.getUser();
     
     const restaurantId = searchParams.get('restaurant_id');
     const page = parseInt(searchParams.get('page') || '1');
@@ -95,8 +104,28 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Get user's like status for each review if authenticated
+    let reviewsWithLikes = reviewsWithUsers;
+    if (user && reviewsWithUsers.length > 0) {
+      const reviewIds = reviewsWithUsers.map(review => review.id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: userLikes, error: likesError } = await supabase
+        .from('review_likes')
+        .select('review_id')
+        .eq('user_id', user.id)
+        .in('review_id', reviewIds) as { data: UserLike[] | null; error: Error | null };
+
+      if (!likesError && userLikes) {
+        const likedReviewIds = new Set(userLikes.map(like => like.review_id));
+        reviewsWithLikes = reviewsWithUsers.map(review => ({
+          ...review,
+          isLikedByUser: likedReviewIds.has(review.id)
+        }));
+      }
+    }
+
     // Transform the data to match expected format with manually joined user data
-    const formattedReviews = reviewsWithUsers.map(review => ({
+    const formattedReviews = reviewsWithLikes.map(review => ({
       ...review,
       restaurant: review.restaurants,  // Map joined restaurant data to expected name
       author: review.author_user,      // Map manually joined user data

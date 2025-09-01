@@ -11,6 +11,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Review } from '@/types';
 import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
 import { ToEatButton } from '@/components/restaurant/ToEatButton';
+import { useLikeReview } from '@/lib/mutations/reviewLikes';
 
 interface ReviewCardProps {
   review: Review;
@@ -23,6 +24,8 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
   onUserClick,
   showRestaurant = true 
 }) => {
+  const likeReview = useLikeReview();
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -33,6 +36,10 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
     } catch {
       return new Date(timestamp).toLocaleDateString();
     }
+  };
+
+  const handleLikeClick = () => {
+    likeReview.mutate(review.id);
   };
 
   // Helper function to get tag category for styling
@@ -214,9 +221,21 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
 
       {/* Actions */}
       <div className="px-4 pb-2 flex items-center justify-between border-t border-border pt-3">
-        <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors">
-          <Heart className="w-4 h-4" />
-          <span className="text-sm">0</span>
+        <button 
+          onClick={handleLikeClick}
+          disabled={likeReview.isPending}
+          className="flex items-center space-x-2 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50 group"
+        >
+          <Heart 
+            className={`w-4 h-4 transition-colors ${
+              review.isLikedByUser 
+                ? 'fill-red-500 text-red-500' 
+                : 'group-hover:text-red-500'
+            }`} 
+          />
+          <span className="text-sm font-medium">
+            {review.like_count || 0}
+          </span>
         </button>
       </div>
     </div>
