@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
     console.log("Search query:", query);
 
     // Search reviews - let RLS handle visibility
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: reviewResults, error: reviewError } = await supabase
       .from("reviews")
       .select(`

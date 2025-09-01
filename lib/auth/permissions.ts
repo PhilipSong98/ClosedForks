@@ -3,8 +3,7 @@ import {
   Capability, 
   PermissionContext, 
   PermissionCheck, 
-  GroupRole,
-  User
+  GroupRole
 } from '@/types';
 
 /**
@@ -25,13 +24,14 @@ export class PermissionService {
   ): Promise<boolean> {
     try {
       const supabase = await createClient();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (supabase as unknown as {
+        rpc: (name: string, params: Record<string, unknown>) => Promise<{data: boolean; error: unknown}>
+      })
         .rpc('can_user_perform', {
           user_id_param: userId,
           capability_param: capability,
           group_id_param: context?.groupId || null
-        }) as { data: boolean; error: any };
+        });
 
       if (error) {
         console.error('Permission check error:', error);
@@ -75,19 +75,19 @@ export class PermissionService {
       const supabase = await createClient();
       
       // Get user's global role
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: globalRole } = await (supabase as any)
-        .rpc('get_user_global_role', { user_id_param: userId }) as { data: string };
+      const { data: globalRole } = await (supabase as unknown as {
+        rpc: (name: string, params: Record<string, unknown>) => Promise<{data: string}>
+      }).rpc('get_user_global_role', { user_id_param: userId });
 
       // Get user's group role if group specified
       let groupRole: GroupRole | undefined;
       if (groupId) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: groupRoleData } = await (supabase as any)
-          .rpc('get_user_group_role', { 
+        const { data: groupRoleData } = await (supabase as unknown as {
+          rpc: (name: string, params: Record<string, unknown>) => Promise<{data: string}>
+        }).rpc('get_user_group_role', { 
             user_id_param: userId,
             group_id_param: groupId 
-          }) as { data: string };
+          });
         
         if (groupRoleData && groupRoleData !== 'none') {
           groupRole = groupRoleData as GroupRole;
@@ -95,12 +95,12 @@ export class PermissionService {
       }
 
       // Get user's capabilities
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: capabilities } = await (supabase as any)
-        .rpc('get_user_capabilities', {
+      const { data: capabilities } = await (supabase as unknown as {
+        rpc: (name: string, params: Record<string, unknown>) => Promise<{data: string[]}>
+      }).rpc('get_user_capabilities', {
           user_id_param: userId,
           group_id_param: groupId || null
-        }) as { data: string[] };
+        });
 
       return {
         userId,

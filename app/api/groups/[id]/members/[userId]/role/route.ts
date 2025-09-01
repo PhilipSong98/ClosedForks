@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { UpdateRoleRequest, UpdateRoleResponse, GroupRole } from '@/types';
+import { UpdateRoleResponse, GroupRole } from '@/types';
 import { permissionService, getRequestInfo } from '@/lib/auth/permissions';
 
 /**
@@ -37,7 +37,7 @@ export async function PATCH(
     // Check if user has permission to manage roles in this group
     try {
       await permissionService.ensureCan(user.id, 'manage_roles', { groupId });
-    } catch (permissionError: any) {
+    } catch (permissionError) {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 
@@ -81,8 +81,18 @@ export async function PATCH(
     const { ip, userAgent } = getRequestInfo(request);
 
     // Use database function to update role with audit logging
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: result, error: updateError } = await (supabase as any)
+    const { data: result, error: updateError } = await (supabase as unknown as {
+      rpc: (name: string, params: Record<string, unknown>) => Promise<{
+        data: {
+          success: boolean;
+          old_role: GroupRole;
+          new_role: GroupRole;
+          audit_id: string;
+          message: string;
+        } | null;
+        error: unknown;
+      }>
+    })
       .rpc('update_group_role', {
         target_user_id: targetUserId,
         group_id_param: groupId,
@@ -91,13 +101,7 @@ export async function PATCH(
         reason_param: body.reason || null,
         ip_address_param: ip,
         user_agent_param: userAgent
-      }) as { data: {
-        success: boolean;
-        old_role: GroupRole;
-        new_role: GroupRole;
-        audit_id: string;
-        message: string;
-      } | null; error: unknown; };
+      });
 
     if (updateError || !result?.success) {
       console.error('Error updating role:', updateError);
@@ -152,7 +156,7 @@ export async function DELETE(
     // Check if user has permission to remove members from this group
     try {
       await permissionService.ensureCan(user.id, 'remove_member', { groupId });
-    } catch (permissionError: any) {
+    } catch (permissionError) {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 
@@ -181,8 +185,17 @@ export async function DELETE(
     const { ip, userAgent } = getRequestInfo(request);
 
     // Use database function to remove member with audit logging
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: result, error: removeError } = await (supabase as any)
+    const { data: result, error: removeError } = await (supabase as unknown as {
+      rpc: (name: string, params: Record<string, unknown>) => Promise<{
+        data: {
+          success: boolean;
+          removed_role: GroupRole;
+          audit_id: string;
+          message: string;
+        } | null;
+        error: unknown;
+      }>
+    })
       .rpc('remove_group_member', {
         target_user_id: targetUserId,
         group_id_param: groupId,
@@ -190,12 +203,7 @@ export async function DELETE(
         reason_param: reason,
         ip_address_param: ip,
         user_agent_param: userAgent
-      }) as { data: {
-        success: boolean;
-        removed_role: GroupRole;
-        audit_id: string;
-        message: string;
-      } | null; error: unknown; };
+      });
 
     if (removeError || !result?.success) {
       console.error('Error removing member:', removeError);

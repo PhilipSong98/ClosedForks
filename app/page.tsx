@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import '@/types';
 import HomeClient from './home-client';
 
 
@@ -8,7 +9,6 @@ async function getRecentReviews(): Promise<any[]> {
     const supabase = await createClient();
     
     // First get the reviews
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: reviews, error } = await supabase
     .from('reviews')
     .select('*')

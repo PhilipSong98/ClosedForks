@@ -31,7 +31,6 @@ async function getRestaurantReviews(restaurantId: string): Promise<any[]> {
     const supabase = await createClient();
     
     // First get the reviews for this restaurant
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: reviews, error } = await supabase
       .from('reviews')
       .select('*')

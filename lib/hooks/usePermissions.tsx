@@ -5,8 +5,7 @@ import { useAuth } from './useAuth';
 import { 
   Capability, 
   PermissionContext, 
-  PermissionCheck,
-  GroupRole
+  PermissionCheck
 } from '@/types';
 
 /**
@@ -213,7 +212,7 @@ export function useCapabilities(capabilities: Capability[], groupId?: string) {
 /**
  * Higher-order component for conditional rendering based on permissions
  */
-export function withPermission<T extends Record<string, any>>(
+export function withPermission<T extends Record<string, unknown>>(
   Component: React.ComponentType<T>,
   capability: Capability,
   fallback?: React.ComponentType<T> | React.ReactElement | null

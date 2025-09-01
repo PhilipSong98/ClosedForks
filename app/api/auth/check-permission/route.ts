@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { Capability, PermissionCheck } from '@/types';
+import { Capability } from '@/types';
 import { permissionService } from '@/lib/auth/permissions';
 
 /**

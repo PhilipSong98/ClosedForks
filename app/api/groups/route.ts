@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { CreateGroupRequest, GroupsResponse, GroupRole } from '@/types';
 import { permissionService, getRequestInfo } from '@/lib/auth/permissions';
-import { auditService, createAuditContext } from '@/lib/auth/audit';
+import '@/lib/auth/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,17 +22,20 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
 
     // Use our custom function to get user's groups with member counts
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: groups, error } = await (supabase as any)
-      .rpc('get_user_groups', { user_id_param: user.id }) as { data: {
-        group_id: string;
-        group_name: string;
-        group_description: string;
-        user_role: string;
-        member_count: string | number;
-        joined_at: string;
-        created_at: string;
-      }[] | null; error: unknown; };
+    const { data: groups, error } = await (supabase as unknown as {
+      rpc: (name: string, params: Record<string, unknown>) => Promise<{
+        data: {
+          group_id: string;
+          group_name: string;
+          group_description: string;
+          user_role: string;
+          member_count: string | number;
+          joined_at: string;
+          created_at: string;
+        }[] | null;
+        error: unknown;
+      }>
+    }).rpc('get_user_groups', { user_id_param: user.id });
 
     if (error) {
       console.error('Error fetching user groups:', error);
@@ -85,7 +88,7 @@ export async function POST(request: NextRequest) {
     // Check if user has permission to create groups (Admin only)
     try {
       await permissionService.ensureCan(user.id, 'create_group');
-    } catch (permissionError: any) {
+    } catch (permissionError) {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 
@@ -116,20 +119,23 @@ export async function POST(request: NextRequest) {
     const { ip, userAgent } = getRequestInfo(request);
 
     // Use enhanced function to create group with audit logging
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: result, error: creationError } = await (supabase as any)
-      .rpc('create_group_with_audit', {
+    const { data: result, error: creationError } = await (supabase as unknown as {
+      rpc: (name: string, params: Record<string, unknown>) => Promise<{
+        data: {
+          success: boolean;
+          group_id?: string;
+          audit_id?: string;
+          message: string;
+        } | null;
+        error: unknown;
+      }>
+    }).rpc('create_group_with_audit', {
         group_name: body.name.trim(),
         group_description: body.description?.trim() || null,
         owner_user_id: user.id,
         ip_address_param: ip,
         user_agent_param: userAgent
-      }) as { data: {
-        success: boolean;
-        group_id?: string;
-        audit_id?: string;
-        message: string;
-      } | null; error: unknown; };
+      });
 
     if (creationError || !result?.success) {
       console.error('Error creating group:', creationError);

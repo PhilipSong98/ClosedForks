@@ -25,15 +25,16 @@ export class AuditService {
     targetType: AuditTargetType;
     targetId: string;
     groupId?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     reason?: string;
     ipAddress?: string;
     userAgent?: string;
   }): Promise<string | null> {
     try {
       const supabase = await createClient();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: auditId, error } = await (supabase as any)
+      const { data: auditId, error } = await (supabase as unknown as {
+        rpc: (name: string, params: Record<string, unknown>) => Promise<{data: string; error: unknown}>
+      })
         .rpc('log_audit_event', {
           actor_id_param: params.actorId,
           action_param: params.action,
@@ -44,7 +45,7 @@ export class AuditService {
           reason_param: params.reason || null,
           ip_address_param: params.ipAddress || null,
           user_agent_param: params.userAgent || null
-        }) as { data: string; error: any };
+        });
 
       if (error) {
         console.error('Audit logging error:', error);
@@ -112,7 +113,8 @@ export class AuditService {
       if (to_date) query = query.lte('created_at', to_date);
 
       // Get total count for pagination
-      const { count: totalCount } = await query.select('*', { count: 'exact', head: true });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { count: totalCount } = await (query as any).select('*', { count: 'exact', head: true });
 
       // Apply pagination
       query = query.range(offset, offset + limit - 1);
@@ -141,11 +143,12 @@ export class AuditService {
   /**
    * Enhance audit entries with target user information
    */
-  private async enhanceAuditEntries(entries: any[]): Promise<AuditLogEntry[]> {
-    const userTargetEntries = entries.filter(entry => entry.target_type === 'user');
+  private async enhanceAuditEntries(entries: unknown[]): Promise<AuditLogEntry[]> {
+    const typedEntries = entries as AuditLogEntry[];
+    const userTargetEntries = typedEntries.filter(entry => entry.target_type === 'user');
     
     if (userTargetEntries.length === 0) {
-      return entries;
+      return typedEntries;
     }
 
     // Get user information for target users
@@ -156,10 +159,11 @@ export class AuditService {
       .select('id, name, full_name, email')
       .in('id', targetUserIds);
 
-    const userMap = new Map((targetUsers || []).map(user => [user.id, user]));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userMap = new Map((targetUsers || []).map((user: any) => [user.id, user]));
 
     // Enhance entries with target user info
-    return entries.map(entry => ({
+    return typedEntries.map(entry => ({
       ...entry,
       target_user: entry.target_type === 'user' ? userMap.get(entry.target_id) : undefined
     }));
@@ -197,7 +201,7 @@ export class AuditService {
   async logGroupUpdated(params: {
     actorId: string;
     groupId: string;
-    changes: Record<string, any>;
+    changes: Record<string, unknown>;
     ipAddress?: string;
     userAgent?: string;
   }): Promise<string | null> {
@@ -358,7 +362,7 @@ export class AuditService {
       const { data: actionData } = await actionQuery;
 
       const eventsByAction: Record<string, number> = {};
-      (actionData || []).forEach((row: any) => {
+      (actionData || []).forEach((row: {action: string}) => {
         eventsByAction[row.action] = (eventsByAction[row.action] || 0) + 1;
       });
 

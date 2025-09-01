@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint for admin to view pending requests
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createClient()
     

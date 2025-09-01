@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
 
     // Search restaurants that have at least one review
     // This ensures we only show restaurants with user-generated content
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: restaurants, error } = await supabase
       .from('restaurants')
       .select(`
@@ -42,7 +41,7 @@ export async function GET(request: NextRequest) {
       if (!acc.find(r => r.id === restaurant.id)) {
         // Remove the reviews array since we only used it for filtering
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { reviews: _reviews, ...restaurantData } = restaurant as any;
+        const { reviews, ...restaurantData } = restaurant as any;
         acc.push(restaurantData);
       }
       return acc;

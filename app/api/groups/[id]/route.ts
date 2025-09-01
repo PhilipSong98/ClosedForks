@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { GroupWithDetails, GroupRole } from '@/types';
 import { permissionService, getRequestInfo } from '@/lib/auth/permissions';
-import { auditService, createAuditContext } from '@/lib/auth/audit';
+import { auditService } from '@/lib/auth/audit';
 
 export async function GET(
   request: NextRequest,
@@ -175,7 +175,7 @@ export async function PATCH(
     // Check if user has permission to edit this group
     try {
       await permissionService.ensureCan(user.id, 'edit_group', { groupId });
-    } catch (permissionError: any) {
+    } catch (permissionError) {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 
@@ -186,7 +186,7 @@ export async function PATCH(
     }
 
     // Validate input
-    const updates: Partial<{ name: string; description: string | null }> = {};
+    const updates: { name?: string; description?: string | null } = {};
     if (body.name !== undefined) {
       if (!body.name || body.name.trim().length === 0) {
         return NextResponse.json(
@@ -211,7 +211,10 @@ export async function PATCH(
       .from('groups')
       .select('name, description')
       .eq('id', groupId)
-      .single();
+      .single() as { 
+        data: { name: string; description: string | null } | null; 
+        error: unknown 
+      };
 
     if (!currentGroup) {
       return NextResponse.json(
@@ -221,7 +224,7 @@ export async function PATCH(
     }
 
     // Track changes for audit log
-    const changes: Record<string, any> = {};
+    const changes: Record<string, unknown> = {};
     if (updates.name !== undefined && updates.name !== currentGroup.name) {
       changes.name = {
         from: currentGroup.name,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { AuditLogResponse, AuditLogFilters } from '@/types';
+import { AuditLogFilters, AuditAction, AuditTargetType } from '@/types';
 import { permissionService } from '@/lib/auth/permissions';
 import { auditService } from '@/lib/auth/audit';
 
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Check if user has permission to view audit logs (Admin only)
     try {
       await permissionService.ensureCan(user.id, 'view_audit_log');
-    } catch (permissionError: any) {
+    } catch (permissionError) {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     // Extract filters from query parameters
     if (searchParams.get('action')) {
-      filters.action = searchParams.get('action') as any;
+      filters.action = searchParams.get('action') as AuditAction;
     }
     if (searchParams.get('actor_id')) {
       filters.actor_id = searchParams.get('actor_id')!;
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       filters.group_id = searchParams.get('group_id')!;
     }
     if (searchParams.get('target_type')) {
-      filters.target_type = searchParams.get('target_type') as any;
+      filters.target_type = searchParams.get('target_type') as AuditTargetType;
     }
     if (searchParams.get('from_date')) {
       filters.from_date = searchParams.get('from_date')!;
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     // Check if user has permission to view audit logs (Admin only)
     try {
       await permissionService.ensureCan(user.id, 'view_audit_log');
-    } catch (permissionError: any) {
+    } catch (permissionError) {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 

@@ -77,6 +77,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       isLiked = false;
     } else {
       // Like the review
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: insertError } = await (supabase.from('review_likes') as any)
         .insert({
@@ -95,7 +96,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Get updated like count
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: reviewWithCount, error: countError } = await supabase
       .from('reviews')
       .select('like_count')
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const reviewId = resolvedParams.id;
 
     // Get like count and user's like status
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const { data: review, error: reviewError } = await supabase
       .from('reviews')
       .select('like_count')
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Check if user has liked this review
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const { data: userLike, error: likeError } = await supabase
       .from('review_likes')
       .select('review_id')
