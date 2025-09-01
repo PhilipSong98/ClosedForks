@@ -242,3 +242,100 @@ export interface ToEatListResponse {
   restaurants: (Restaurant & { savedAt: string })[];
   count: number;
 }
+
+// ============================================================================
+// GROUP SYSTEM TYPES
+// ============================================================================
+
+export type GroupRole = 'owner' | 'admin' | 'member';
+
+export interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+  // Computed fields from API
+  member_count?: number;
+  user_role?: GroupRole;
+  joined_at?: string;
+}
+
+export interface UserGroup {
+  id: string;
+  user_id: string;
+  group_id: string;
+  role: GroupRole;
+  joined_at: string;
+  // Joined data
+  group?: Group;
+  user?: User;
+}
+
+export interface GroupMember {
+  id: string;
+  user_id: string;
+  group_id: string;
+  role: GroupRole;
+  joined_at: string;
+  // User data
+  user: Pick<User, 'id' | 'name' | 'full_name' | 'email' | 'avatar_url'>;
+}
+
+export interface GroupWithDetails extends Group {
+  member_count: number;
+  user_role: GroupRole;
+  joined_at: string;
+  members?: GroupMember[];
+}
+
+export interface GroupFeedContext {
+  selectedGroup: Group | null;
+  userGroups: Group[];
+  isLoading: boolean;
+}
+
+// Updated types for group-enabled features
+export interface GroupEnabledReview extends Review {
+  group_id?: string;
+  group?: Group;
+}
+
+export interface GroupEnabledInviteCode extends InviteCode {
+  group_id?: string;
+  group?: Group;
+}
+
+// API Response types
+export interface GroupsResponse {
+  groups: Group[];
+  count: number;
+}
+
+export interface GroupMembersResponse {
+  members: GroupMember[];
+  count: number;
+}
+
+// Group creation and management
+export interface CreateGroupRequest {
+  name: string;
+  description?: string;
+}
+
+export interface CreateGroupResponse {
+  success: boolean;
+  group_id: string;
+  message: string;
+}
+
+export interface JoinGroupRequest {
+  inviteCode: string;
+}
+
+export interface JoinGroupResponse {
+  success: boolean;
+  group_id: string;
+  message: string;
+}
