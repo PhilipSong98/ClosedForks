@@ -134,12 +134,6 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
                         To-Eat List
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/invite">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Manage Invites
-                      </Link>
-                    </DropdownMenuItem>
                     {isAdmin && (
                       <DropdownMenuItem asChild>
                         <Link href="/admin/invite-codes">

@@ -133,15 +133,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ onProfileClick }) => {
                 Profile
               </Button>
 
-              {/* Manage Invites */}
-              <Button
-                variant="ghost"
-                className="w-full justify-start h-12 px-4 font-medium"
-                onClick={() => handleNavigation('/invite')}
-              >
-                <Settings className="mr-3 h-5 w-5" />
-                Manage Invites
-              </Button>
 
               {/* Admin Panel */}
               {isAdmin && (
