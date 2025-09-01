@@ -31,25 +31,26 @@ export function NavigationProgressProvider({ children }: { children: React.React
       setIsNavigating(true);
       setProgress(0);
 
-      // Fake progress increments for smooth UX
-      const fakeProgress = [10, 30, 50, 70, 85];
+      // Quick initial jump for immediate feedback
+      setTimeout(() => setProgress(30), 50);
+      
+      // Gradual progress to 80% over ~500ms
+      const progressSteps = [40, 50, 60, 70, 80];
       let currentStep = 0;
 
       progressInterval = setInterval(() => {
-        if (currentStep < fakeProgress.length) {
-          setProgress(fakeProgress[currentStep]);
+        if (currentStep < progressSteps.length) {
+          setProgress(progressSteps[currentStep]);
           currentStep++;
-        } else {
-          clearInterval(progressInterval);
         }
-      }, 200);
+      }, 100);
     };
 
     const handleRouteChangeComplete = () => {
-      // Complete the progress bar
+      // Complete immediately to 100%
       setProgress(100);
       
-      // Hide the progress bar after a short delay
+      // Quick fade-out
       timeoutId = setTimeout(() => {
         setIsNavigating(false);
         setProgress(0);
