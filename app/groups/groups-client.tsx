@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Crown, Shield, User, Calendar, ChevronDown, ChevronUp, Plus } from 'lucide-react';
+import { Users, Crown, Shield, User, Calendar, ChevronDown, ChevronUp, Plus, Edit2 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useUserGroups, useGroup } from '@/lib/queries/groups';
+import { useUpdateGroup } from '@/lib/mutations/groups';
+import { EditGroupModal } from '@/components/groups/EditGroupModal';
 import { Group } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -19,9 +21,10 @@ interface GroupCardProps {
   group: Group;
   onViewDetails: (groupId: string) => void;
   isExpanded: boolean;
+  onEditGroup: (group: Group) => void;
 }
 
-const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded }) => {
+const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded, onEditGroup }) => {
   const { data: groupDetails, isLoading } = useGroup(group.id, isExpanded);
 
   const getRoleIcon = (role: string) => {
@@ -47,7 +50,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded 
   };
 
   return (
-    <Card className="h-full">
+    <Card className="h-full group">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3 flex-1">
@@ -55,9 +58,22 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded 
               <Users className="h-6 w-6 text-blue-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg font-semibold text-gray-900 truncate">
-                {group.name}
-              </CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg font-semibold text-gray-900 truncate">
+                  {group.name}
+                </CardTitle>
+                {(group.user_role === 'owner' || group.user_role === 'admin') && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEditGroup(group)}
+                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100 transition-opacity"
+                    title="Edit group name and description"
+                  >
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
               {group.description && (
                 <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                   {group.description}
@@ -169,10 +185,30 @@ const GroupsClient: React.FC = () => {
   const router = useRouter();
   const { user } = useAuth();
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
+  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const { data: userGroups = [], isLoading: groupsLoading } = useUserGroups();
+  const updateGroupMutation = useUpdateGroup();
 
   const handleViewDetails = (groupId: string) => {
     setExpandedGroupId(expandedGroupId === groupId ? null : groupId);
+  };
+
+  const handleEditGroup = (group: Group) => {
+    setEditingGroup(group);
+  };
+
+  const handleSaveGroup = async (name: string, description?: string) => {
+    if (!editingGroup) return;
+
+    try {
+      await updateGroupMutation.mutateAsync({
+        groupId: editingGroup.id,
+        updates: { name, description }
+      });
+    } catch (error) {
+      console.error('Failed to update group:', error);
+      throw error; // Re-throw to let the modal handle the error
+    }
   };
 
   if (!user) {
@@ -257,6 +293,7 @@ const GroupsClient: React.FC = () => {
                   group={group}
                   onViewDetails={handleViewDetails}
                   isExpanded={expandedGroupId === group.id}
+                  onEditGroup={handleEditGroup}
                 />
               ))}
             </div>
@@ -285,6 +322,17 @@ const GroupsClient: React.FC = () => {
           </section>
         )}
       </main>
+
+      {/* Edit Group Modal */}
+      {editingGroup && (
+        <EditGroupModal
+          group={editingGroup}
+          isOpen={!!editingGroup}
+          onOpenChange={(open) => !open && setEditingGroup(null)}
+          onSave={handleSaveGroup}
+          isLoading={updateGroupMutation.isPending}
+        />
+      )}
     </div>
   );
 };

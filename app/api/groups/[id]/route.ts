@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { GroupWithDetails } from '@/types';
+import { GroupWithDetails, UpdateGroupRequest, GroupRole } from '@/types';
 
 export async function GET(
   request: NextRequest,
@@ -26,7 +26,10 @@ export async function GET(
       .select('role, joined_at')
       .eq('user_id', user.id)
       .eq('group_id', groupId)
-      .single();
+      .single() as { 
+        data: { role: GroupRole; joined_at: string } | null; 
+        error: unknown; 
+      };
 
     if (membershipError || !membership) {
       return NextResponse.json(
@@ -112,14 +115,14 @@ export async function GET(
           id: m.id,
           user_id: m.user_id,
           group_id: m.group_id,
-          role: m.role,
+          role: m.role as GroupRole,
           joined_at: m.joined_at,
           user: {
             id: m.users.id,
             name: m.users.name,
-            full_name: m.users.full_name,
+            full_name: m.users.full_name || undefined,
             email: m.users.email,
-            avatar_url: m.users.avatar_url,
+            avatar_url: m.users.avatar_url || undefined,
           }
         }));
       }
@@ -173,7 +176,10 @@ export async function PATCH(
       .select('role')
       .eq('user_id', user.id)
       .eq('group_id', groupId)
-      .single();
+      .single() as { 
+        data: { role: GroupRole } | null; 
+        error: unknown; 
+      };
 
     if (membershipError || !membership || !['owner', 'admin'].includes(membership.role)) {
       return NextResponse.json(
@@ -183,7 +189,7 @@ export async function PATCH(
     }
 
     // Validate input
-    const updates: Record<string, string | null> = {};
+    const updates: Partial<{ name: string; description: string | null }> = {};
     if (body.name !== undefined) {
       if (!body.name || body.name.trim().length === 0) {
         return NextResponse.json(
@@ -207,7 +213,8 @@ export async function PATCH(
     // Update group
     const { data: updatedGroup, error: updateError } = await supabase
       .from('groups')
-      .update(updates)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update(updates as any)
       .eq('id', groupId)
       .select()
       .single();

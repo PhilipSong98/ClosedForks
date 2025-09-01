@@ -6,7 +6,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 
 **What**: Mobile-first, invite-only restaurant review platform for friends & family
 **Goal**: Private group-based network for trusted restaurant recommendations  
-**Status**: Core MVP with Group System - Instagram-style feed + Group-Scoped Reviews + Profile Page + To-Eat List
+**Status**: Core MVP with Group System - Instagram-style feed + Group-Scoped Reviews + Profile Page + To-Eat List + Group Management
 
 ### Core Business Rules
 - **Invite-Only Group System**: Users join groups via invite codes, reviews are scoped to groups
@@ -44,6 +44,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Instagram-style like system** - Heart button interactions with optimistic updates, like counts, and proper database triggers
 - [x] **Invite-Only Group System** - Users join groups via invite codes, reviews scoped to group membership
 - [x] **Group-Scoped Feed** - Homepage shows reviews from users in the same groups
+- [x] **Group Name Editing** - Group owners and admins can edit group names and descriptions with responsive UI
 - [x] **Database Security Model** - Implemented with security functions instead of complex RLS policies
 
 ### Pending Features
@@ -65,6 +66,7 @@ restaurant/
 │   └── to-eat/            # To-Eat List page
 ├── components/
 │   ├── filters/           # EnhancedFilters system  
+│   ├── groups/            # Group management components (EditGroupModal)
 │   ├── layout/            # Header, AuthWrapper, FABs, MobileMenu
 │   ├── profile/           # Profile components (includes ToEatSection)
 │   ├── restaurant/        # Restaurant components (includes ToEatButton)
@@ -74,7 +76,7 @@ restaurant/
 ├── lib/
 │   ├── supabase/          # Database clients & middleware
 │   ├── hooks/             # useAuth, useMediaQuery, etc.
-│   ├── mutations/         # React Query mutation hooks (includes toEatList.ts)
+│   ├── mutations/         # React Query mutation hooks (includes toEatList.ts, groups.ts)
 │   ├── queries/           # React Query hooks for data fetching (includes toEatList.ts)
 │   └── validations/       # Zod schemas
 ├── supabase/migrations/   # Database migrations
@@ -86,6 +88,8 @@ restaurant/
 - `app/signup/page.tsx`: **NEW** - Complete account creation with validation
 - `app/signin/page.tsx`: **NEW** - Email/password authentication (no magic links)
 - `app/admin/invite-codes/page.tsx`: **NEW** - Admin invite code management
+- `app/groups/page.tsx`: **NEW** - Groups page with membership display and editing functionality
+- `app/groups/groups-client.tsx`: **NEW** - Groups client component with edit functionality
 - `app/profile/page.tsx`: **NEW** - Complete profile page with stats and favorites
 - `app/profile/profile-client.tsx`: **NEW** - Main profile component with tabs
 - `app/to-eat/page.tsx`: **NEW** - Dedicated To-Eat List page for wishlist management
@@ -100,6 +104,7 @@ restaurant/
 - `components/profile/FavoritesSection.tsx`: **NEW** - Favorites management with search
 - `components/profile/ToEatSection.tsx`: **NEW** - To-Eat List management with unlimited capacity
 - `components/restaurant/ToEatButton.tsx`: **NEW** - Bookmark button for adding/removing from to-eat list
+- `components/groups/EditGroupModal.tsx`: **NEW** - Modal component for editing group names and descriptions
 - `components/review/ReviewComposer.tsx`: **UPDATED** - Modal-based review creation with automatic refresh
 - `components/review/ReviewCard.tsx`: **UPDATED** - Instagram-style like button with optimistic updates, displays usernames correctly
 - `components/restaurant/RestaurantSelector.tsx`: **UPDATED** - Fixed overflow issue with simplified restaurant card display
@@ -113,6 +118,7 @@ restaurant/
 - `lib/mutations/likes.ts`: **NEW** - Like/unlike mutations with optimistic updates and proper error handling
 - `lib/mutations/profile.ts`: **NEW** - Profile update mutations with optimistic updates
 - `lib/mutations/toEatList.ts`: **NEW** - To-Eat List mutations with optimistic updates
+- `lib/mutations/groups.ts`: **NEW** - Group update mutations with optimistic updates
 - `lib/queries/restaurants.ts`: **NEW** - React Query hooks for data fetching with automatic refresh
 - `lib/queries/profile.ts`: **NEW** - React Query hooks for profile data and user reviews
 - `lib/queries/toEatList.ts`: **NEW** - React Query hooks for to-eat list data with automatic refresh
@@ -293,6 +299,16 @@ supabase db push                       # Apply to remote
 - **Navigation Integration**: Added to both header navigation and mobile menu
 - **TypeScript Support**: Fully typed interfaces with comprehensive error handling
 
+### Group Management System
+- **Groups Page**: Dedicated `/groups` page displaying all user's group memberships
+- **Role-Based Editing**: Only group owners and admins can edit group names and descriptions
+- **Hover-to-Edit**: Pencil icon appears on hover for authorized users, clean UI otherwise
+- **Responsive Modal**: EditGroupModal uses Sheet (mobile) / Dialog (desktop) pattern
+- **Form Validation**: Name required (1-100 chars), description optional (max 500 chars)
+- **Optimistic Updates**: Real-time UI updates with automatic rollback on errors
+- **Permission Control**: Backend API enforces role-based access via RLS policies
+- **Default Group Names**: Groups created from invite codes get customizable names instead of generic defaults
+
 ### Google Places Integration
 - **Stockholm-focused**: 50km bias, cost-optimized with session tokens
 - **Auto-import**: Restaurant data, photos, hours on selection
@@ -356,6 +372,12 @@ supabase db push                       # Apply to remote
   - **Solution**: Created MobileMenu component with hamburger icon, repositioned SearchFAB
   - **Result**: Clean mobile header layout with proper touch targets and no overlapping elements
   - **Files**: `components/layout/MobileMenu.tsx` (new), `components/layout/Header.tsx`, `components/search/SearchFAB.tsx`
+
+- **Group Name Editing Feature**: Added group customization for owners and admins
+  - **Problem**: Groups had generic default names like "New Group from [invite_code]" with no way to customize
+  - **Solution**: Implemented EditGroupModal with role-based permissions and responsive design
+  - **Result**: Group owners/admins can now customize group names and descriptions for better organization
+  - **Files**: `app/api/groups/[id]/route.ts` (PATCH method), `components/groups/EditGroupModal.tsx` (new), `lib/mutations/groups.ts` (new), `app/groups/groups-client.tsx` (updated)
 
 ## 🔐 Authentication - Modern Invite Code System
 
@@ -430,10 +452,11 @@ NEXT_PUBLIC_APP_URL=
 - `GET /api/reviews/[id]/like` - Get like status and count for a review
 - `GET /api/groups` - Get user's groups (uses `get_user_groups()` function)
 - `GET /api/groups/[id]/members` - Get group members (uses `get_group_members()` function)
+- `PATCH /api/groups/[id]` - Update group name and description (owners/admins only)
 
 ## 🚀 Next Steps
 Ready for photo uploads for reviews, restaurant detail maps, and email notifications!
 
 ---
 **Last Updated**: 2025-09-01  
-**Status**: MVP v1.13 - Invite-Only Group System Complete with Database Security Fixes
+**Status**: MVP v1.14 - Group Name Editing Feature Complete
