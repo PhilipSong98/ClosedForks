@@ -11,12 +11,14 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { usePermissions, PermissionGate } from '@/lib/hooks/usePermissions';
 import { useUserGroups, useGroup } from '@/lib/queries/groups';
-import { useUpdateGroup } from '@/lib/mutations/groups';
+import { useUpdateGroup, useCreateGroup } from '@/lib/mutations/groups';
 import { useGenerateInviteCode } from '@/lib/mutations/inviteCode';
 import { EditGroupModal } from '@/components/groups/EditGroupModal';
 import { InviteCodeModal } from '@/components/groups/InviteCodeModal';
-import { Group } from '@/types';
+import { CreateGroupModal } from '@/components/groups/CreateGroupModal';
+import { Group, CreateGroupRequest } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 
 interface GroupCardProps {
@@ -195,11 +197,14 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
 const GroupsClient: React.FC = () => {
   const router = useRouter();
   const { user } = useAuth();
+  const { canCreateGroup, loading: permissionsLoading } = usePermissions();
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [invitingGroup, setInvitingGroup] = useState<Group | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const { data: userGroups = [], isLoading: groupsLoading } = useUserGroups();
   const updateGroupMutation = useUpdateGroup();
+  const createGroupMutation = useCreateGroup();
   const generateInviteCodeMutation = useGenerateInviteCode();
 
   const handleViewDetails = (groupId: string) => {
@@ -214,6 +219,10 @@ const GroupsClient: React.FC = () => {
     setInvitingGroup(group);
   };
 
+  const handleShowCreateModal = () => {
+    setShowCreateModal(true);
+  };
+
   const handleSaveGroup = async (name: string) => {
     if (!editingGroup) return;
 
@@ -224,6 +233,15 @@ const GroupsClient: React.FC = () => {
       });
     } catch (error) {
       console.error('Failed to update group:', error);
+      throw error; // Re-throw to let the modal handle the error
+    }
+  };
+
+  const handleCreateGroup = async (data: CreateGroupRequest) => {
+    try {
+      await createGroupMutation.mutateAsync(data);
+    } catch (error) {
+      console.error('Failed to create group:', error);
       throw error; // Re-throw to let the modal handle the error
     }
   };
@@ -243,19 +261,31 @@ const GroupsClient: React.FC = () => {
       <main className="container mx-auto px-4 py-8 pb-24">
         {/* Hero Section */}
         <section className="mb-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-3">
-              Your Groups
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Manage your dining circles and see who you&apos;re sharing meals with.
-            </p>
+          <div className="flex items-center justify-between mb-8">
+            <div className="text-center flex-1">
+              <h1 className="text-3xl font-bold text-foreground mb-3">
+                Your Groups
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Manage your dining circles and see who you&apos;re sharing meals with.
+              </p>
+            </div>
+            {/* Create Group Button - Only visible to Admins */}
+            <PermissionGate capability="create_group">
+              <Button 
+                onClick={handleShowCreateModal}
+                className="bg-blue-600 hover:bg-blue-700 text-white ml-8"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Group
+              </Button>
+            </PermissionGate>
           </div>
         </section>
 
         {/* Groups Section */}
         <section>
-          {groupsLoading ? (
+          {(groupsLoading || permissionsLoading) ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[...Array(3)].map((_, i) => (
                 <Card key={i} className="h-full">
@@ -366,6 +396,14 @@ const GroupsClient: React.FC = () => {
           isLoading={generateInviteCodeMutation.isPending}
         />
       )}
+
+      {/* Create Group Modal */}
+      <CreateGroupModal
+        isOpen={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onSave={handleCreateGroup}
+        isLoading={createGroupMutation.isPending}
+      />
     </div>
   );
 };

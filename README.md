@@ -19,6 +19,7 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 - 🔍 **Advanced Filter System** - Instagram-level filtering with rating, price, date, and recommendation filters
 - 📋 **To-Eat List (Wishlist)** - Unlimited restaurant bookmarking with blue-themed UI and dedicated management page
 - ❤️ **Instagram-Style Likes** - Heart button interactions with optimistic updates, like counts, and one like per user per review
+- 🔄 **Global Navigation Progress Indicator** - Safari/YouTube-style horizontal progress bar with smooth animations during page navigation
 
 ## Tech Stack
 
@@ -117,6 +118,29 @@ Significant mobile UX improvements with professional navigation system and elimi
 - ✅ Implemented professional hamburger menu following modern UX patterns
 - ✅ Enhanced touch targets and mobile interaction design
 - ✅ Eliminated all element overlaps in mobile viewport
+
+### 🔄 Global Navigation Progress Indicator (September 1, 2025)
+
+Implemented professional page load progress indicator for enhanced user experience:
+
+#### **✅ Safari/YouTube-Style Progress Bar**
+- **Horizontal Progress Bar** - Thin blue progress bar at the top of the viewport during navigation
+- **Industry-Standard Animation Timing** - Immediate 30% jump, gradual progress to 80%, instant completion to 100%
+- **Smooth Transitions** - Professional fade-in and fade-out animations with proper timing
+- **High Z-Index Positioning** - Always visible above all content with z-index 9999
+
+#### **🔧 Technical Implementation**
+- **NavigationProgress Component** - Thin horizontal bar with blue theme color matching app design
+- **NavigationProgressProvider Context** - Manages progress state and hooks into Next.js router events
+- **Automatic Detection** - Captures router.push/replace, link clicks, and browser back/forward navigation
+- **Global Integration** - Added to app/providers.tsx and app/layout.tsx for site-wide coverage
+- **Performance Optimized** - Minimal overhead with efficient event handling and state management
+
+#### **🎯 User Experience Benefits**
+- **Visual Feedback** - Users get immediate confirmation that navigation is in progress
+- **Professional Feel** - Matches expectations from modern web applications like Safari and YouTube
+- **Reduced Uncertainty** - Eliminates confusion during page transitions, especially on slower connections
+- **Consistent Experience** - Works across all pages and navigation methods throughout the application
 
 ### 🔧 UI/UX Improvements (August 2025)
 
@@ -587,7 +611,7 @@ Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
 ├── components/             # React components
 │   ├── auth/           # Authentication components
 │   ├── filters/        # Enhanced filter system (EnhancedFilters, legacy CuisineFilters)
-│   ├── layout/         # Layout components (Header, AuthWrapper, WriteReviewFAB, MobileMenu)
+│   ├── layout/         # Layout components (Header, AuthWrapper, WriteReviewFAB, MobileMenu, NavigationProgress)
 │   ├── profile/        # Profile components (including ToEatSection)
 │   ├── restaurant/     # Restaurant-related components (RestaurantSelector, ToEatButton)
 │   ├── review/         # Review components (ReviewComposer, RatingInput)

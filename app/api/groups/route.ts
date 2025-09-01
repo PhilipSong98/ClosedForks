@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { CreateGroupRequest, GroupsResponse, GroupRole } from '@/types';
+import { permissionService, getRequestInfo } from '@/lib/auth/permissions';
+import { auditService, createAuditContext } from '@/lib/auth/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -80,6 +82,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user has permission to create groups (Admin only)
+    try {
+      await permissionService.ensureCan(user.id, 'create_group');
+    } catch (permissionError: any) {
+      return NextResponse.json(
+        { 
+          error: 'Insufficient permissions', 
+          message: 'Only administrators can create new groups'
+        },
+        { status: 403 }
+      );
+    }
+
     const body: CreateGroupRequest = await request.json();
     
     // Validate input
@@ -97,16 +112,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use our custom function to create group and make user owner
+    // Get request info for audit logging
+    const { ip, userAgent } = getRequestInfo(request);
+
+    // Use enhanced function to create group with audit logging
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: result, error: creationError } = await (supabase as any)
-      .rpc('create_group_and_add_owner', {
+      .rpc('create_group_with_audit', {
         group_name: body.name.trim(),
         group_description: body.description?.trim() || null,
-        owner_user_id: user.id
+        owner_user_id: user.id,
+        ip_address_param: ip,
+        user_agent_param: userAgent
       }) as { data: {
         success: boolean;
         group_id?: string;
+        audit_id?: string;
         message: string;
       } | null; error: unknown; };
 
@@ -121,6 +142,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       group_id: result.group_id,
+      audit_id: result.audit_id,
       message: result.message
     });
   } catch (error) {

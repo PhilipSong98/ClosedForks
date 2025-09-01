@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { GroupWithDetails, GroupRole } from '@/types';
+import { permissionService, getRequestInfo } from '@/lib/auth/permissions';
+import { auditService, createAuditContext } from '@/lib/auth/audit';
 
 export async function GET(
   request: NextRequest,
@@ -170,20 +172,15 @@ export async function PATCH(
     const { id: groupId } = await params;
     const body = await request.json();
     
-    // Check if user is owner or admin
-    const { data: membership, error: membershipError } = await supabase
-      .from('user_groups')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('group_id', groupId)
-      .single() as { 
-        data: { role: GroupRole } | null; 
-        error: unknown; 
-      };
-
-    if (membershipError || !membership || !['owner', 'admin'].includes(membership.role)) {
+    // Check if user has permission to edit this group
+    try {
+      await permissionService.ensureCan(user.id, 'edit_group', { groupId });
+    } catch (permissionError: any) {
       return NextResponse.json(
-        { error: 'Permission denied. Only owners and admins can update group details.' },
+        { 
+          error: 'Insufficient permissions', 
+          message: 'Group owner or admin role required to edit this group'
+        },
         { status: 403 }
       );
     }
@@ -209,6 +206,43 @@ export async function PATCH(
       updates.description = body.description;
     }
 
+    // Get current group info for audit logging
+    const { data: currentGroup } = await supabase
+      .from('groups')
+      .select('name, description')
+      .eq('id', groupId)
+      .single();
+
+    if (!currentGroup) {
+      return NextResponse.json(
+        { error: 'Group not found' },
+        { status: 404 }
+      );
+    }
+
+    // Track changes for audit log
+    const changes: Record<string, any> = {};
+    if (updates.name !== undefined && updates.name !== currentGroup.name) {
+      changes.name = {
+        from: currentGroup.name,
+        to: updates.name
+      };
+    }
+    if (updates.description !== undefined && updates.description !== currentGroup.description) {
+      changes.description = {
+        from: currentGroup.description,
+        to: updates.description
+      };
+    }
+
+    // Only proceed if there are actual changes
+    if (Object.keys(changes).length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'No changes to apply'
+      });
+    }
+
     // Update group
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: updatedGroup, error: updateError } = await (supabase as any)
@@ -226,9 +260,20 @@ export async function PATCH(
       );
     }
 
+    // Log audit event
+    const { ip, userAgent } = getRequestInfo(request);
+    const auditId = await auditService.logGroupUpdated({
+      actorId: user.id,
+      groupId,
+      changes,
+      ipAddress: ip,
+      userAgent
+    });
+
     return NextResponse.json({
       success: true,
       group: updatedGroup,
+      audit_id: auditId,
       message: 'Group updated successfully'
     });
   } catch (error) {

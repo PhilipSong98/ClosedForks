@@ -343,3 +343,156 @@ export interface JoinGroupResponse {
   group_id: string;
   message: string;
 }
+
+// ============================================================================
+// RBAC SYSTEM TYPES
+// ============================================================================
+
+// Capability-based access control
+export type Capability = 
+  | 'create_group'       // Admin only - can create new groups
+  | 'manage_any_group'   // Admin only - can manage all groups
+  | 'view_audit_log'     // Admin only - can view audit logs
+  | 'manage_invites'     // Admin only - invite code management
+  | 'post_review'        // All users - post reviews
+  | 'manage_roles'       // Owner/Admin - manage roles within group
+  | 'invite_member'      // All members - invite others to group
+  | 'remove_member'      // Owner/Admin - remove members
+  | 'edit_group'         // Owner/Admin - edit group info
+  | 'delete_group'       // Owner only - delete group
+  | 'transfer_ownership'; // Owner only - transfer ownership
+
+// User permissions context
+export interface PermissionContext {
+  userId: string;
+  globalRole: 'admin' | 'user';
+  groupRole?: GroupRole;
+  groupId?: string;
+  capabilities: Capability[];
+}
+
+// Permission check results
+export interface PermissionCheck {
+  allowed: boolean;
+  reason?: string;
+  requiredRole?: string;
+  missingCapability?: Capability;
+}
+
+// ============================================================================
+// AUDIT SYSTEM TYPES
+// ============================================================================
+
+// Audit action types matching database enum
+export type AuditAction = 
+  | 'group_created'
+  | 'group_updated'
+  | 'group_deleted'
+  | 'role_assigned'
+  | 'role_changed'
+  | 'role_revoked'
+  | 'member_added'
+  | 'member_removed'
+  | 'invite_code_generated'
+  | 'ownership_transferred';
+
+// Audit target types matching database enum
+export type AuditTargetType = 'group' | 'user' | 'invite_code';
+
+// Audit log entry
+export interface AuditLogEntry {
+  id: string;
+  actor_id?: string;
+  action: AuditAction;
+  target_type: AuditTargetType;
+  target_id: string;
+  group_id?: string;
+  metadata: Record<string, any>;
+  reason?: string;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: string;
+  // Joined data
+  actor?: Pick<User, 'id' | 'name' | 'full_name' | 'email'>;
+  target_user?: Pick<User, 'id' | 'name' | 'full_name' | 'email'>;
+  group?: Pick<Group, 'id' | 'name'>;
+}
+
+// API response types for audit logs
+export interface AuditLogResponse {
+  entries: AuditLogEntry[];
+  count: number;
+  has_more: boolean;
+}
+
+// Audit log filters
+export interface AuditLogFilters {
+  action?: AuditAction;
+  actor_id?: string;
+  group_id?: string;
+  target_type?: AuditTargetType;
+  from_date?: string;
+  to_date?: string;
+  limit?: number;
+  offset?: number;
+}
+
+// ============================================================================
+// ROLE MANAGEMENT TYPES
+// ============================================================================
+
+// Role update request
+export interface UpdateRoleRequest {
+  user_id: string;
+  group_id: string;
+  new_role: GroupRole;
+  reason?: string;
+}
+
+// Role update response
+export interface UpdateRoleResponse {
+  success: boolean;
+  old_role: GroupRole;
+  new_role: GroupRole;
+  audit_id: string;
+  message: string;
+}
+
+// Member removal request
+export interface RemoveMemberRequest {
+  user_id: string;
+  group_id: string;
+  reason?: string;
+}
+
+// Member removal response
+export interface RemoveMemberResponse {
+  success: boolean;
+  removed_role: GroupRole;
+  audit_id: string;
+  message: string;
+}
+
+// Transfer ownership request
+export interface TransferOwnershipRequest {
+  current_owner_id: string;
+  new_owner_id: string;
+  group_id: string;
+  reason?: string;
+}
+
+// Transfer ownership response
+export interface TransferOwnershipResponse {
+  success: boolean;
+  audit_id: string;
+  message: string;
+}
+
+// Group with RBAC context
+export interface GroupWithRBAC extends Group {
+  user_capabilities: Capability[];
+  can_edit: boolean;
+  can_invite: boolean;
+  can_manage_roles: boolean;
+  can_delete: boolean;
+}

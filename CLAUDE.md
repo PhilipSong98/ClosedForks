@@ -46,6 +46,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Group-Scoped Feed** - Homepage shows reviews from users in the same groups
 - [x] **Group Management System** - Simplified group editing (name-only) and member invite code generation
 - [x] **Database Security Model** - Implemented with security functions instead of complex RLS policies
+- [x] **Global Navigation Progress Indicator** - Sleek horizontal progress bar for page navigation with smooth animations
 
 ### Pending Features
 - [ ] Photo upload for reviews
@@ -67,7 +68,7 @@ restaurant/
 ├── components/
 │   ├── filters/           # EnhancedFilters system  
 │   ├── groups/            # Group management components (EditGroupModal, InviteCodeModal)
-│   ├── layout/            # Header, AuthWrapper, FABs, MobileMenu
+│   ├── layout/            # Header, AuthWrapper, FABs, MobileMenu, NavigationProgress
 │   ├── profile/           # Profile components (includes ToEatSection)
 │   ├── restaurant/        # Restaurant components (includes ToEatButton)
 │   ├── review/            # ReviewComposer, ReviewCard
@@ -115,6 +116,9 @@ restaurant/
 - `components/search/SearchFAB.tsx`: **UPDATED** - Repositioned to avoid header overlap on mobile
 - `components/layout/MobileMenu.tsx`: **NEW** - Professional hamburger menu for mobile navigation
 - `components/layout/Header.tsx`: **UPDATED** - Integrated MobileMenu for mobile devices
+- `components/layout/NavigationProgress.tsx`: **NEW** - Global page load progress indicator with smooth animations
+- `components/layout/NavigationProgressProvider.tsx`: **NEW** - Context provider managing navigation progress state
+- `app/providers.tsx`: **UPDATED** - Integrated NavigationProgressProvider for global progress tracking
 - `lib/hooks/useAuth.ts`: Authentication with fallback handling
 - `lib/mutations/reviews.ts`: **NEW** - React Query mutation for review creation with cache invalidation
 - `lib/mutations/likes.ts`: **NEW** - Like/unlike mutations with optimistic updates and proper error handling
@@ -196,6 +200,12 @@ supabase db push                       # Apply to remote
 - **ReviewCard**: Large 4:3 images, user headers, inline tips, tag badges, interactive heart button
 - **Like System**: Red filled heart when liked, optimistic updates, real-time like counts
 - **Restaurants Page**: Separated discovery with SearchBar and filters
+
+### Navigation & User Experience
+- **Global Progress Indicator**: Safari/YouTube-style horizontal progress bar at top of viewport during navigation
+- **Professional Animations**: Industry-standard progress timing (instant 30%, gradual to 80%, complete to 100%)
+- **Navigation Integration**: Automatic detection of router.push/replace, link clicks, and browser navigation
+- **Visual Feedback**: Blue progress bar with high z-index positioning, smooth fade-out transitions
 
 ### Responsive System
 - **Mobile**: Full-screen sheets, collapsible filters, touch-optimized, hamburger menu navigation
@@ -397,6 +407,14 @@ supabase db push                       # Apply to remote
   - **Features**: 6-digit codes, copy-to-clipboard, usage tracking, mobile-responsive
   - **Files**: `app/api/groups/[id]/invite-code/route.ts` (new), `components/groups/InviteCodeModal.tsx` (new), `lib/mutations/inviteCode.ts` (new), `app/groups/groups-client.tsx` (updated)
 
+- **Global Navigation Progress Indicator**: Professional page load progress bar for enhanced user experience
+  - **Problem**: Users had no visual feedback during navigation between pages, creating uncertainty
+  - **Solution**: Implemented Safari/YouTube-style horizontal progress bar at top of viewport
+  - **Result**: Professional loading experience with smooth animations and automatic fade-out
+  - **Technical**: NavigationProgress component with NavigationProgressProvider context managing router events
+  - **Features**: Industry-standard timing patterns, blue theme color, high z-index positioning, smooth transitions
+  - **Files**: `components/layout/NavigationProgress.tsx` (new), `components/layout/NavigationProgressProvider.tsx` (new), `app/providers.tsx` (updated), `app/layout.tsx` (updated)
+
 ## 🔐 Authentication - Modern Invite Code System
 
 ### New Authentication Flow
@@ -478,4 +496,4 @@ Ready for photo uploads for reviews, restaurant detail maps, and email notificat
 
 ---
 **Last Updated**: 2025-09-01  
-**Status**: MVP v1.15 - Simplified Group Management + Member Invite Generation Complete
+**Status**: MVP v1.16 - Global Navigation Progress Indicator Complete
