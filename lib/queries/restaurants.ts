@@ -18,7 +18,12 @@ export function useRestaurants(options?: {
       if (options?.limit) params.append('limit', options.limit.toString());
       if (options?.sortBy) params.append('sort', options.sortBy);
 
-      const response = await fetch(`/api/restaurants?${params}`);
+      const response = await fetch(`/api/restaurants?${params}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch restaurants');
       }
@@ -33,7 +38,12 @@ export function useTopRestaurants(limit: number = 10) {
   return useQuery({
     queryKey: ['restaurants', 'top', limit],
     queryFn: async (): Promise<Restaurant[]> => {
-      const response = await fetch(`/api/restaurants?sort=rating&limit=${limit}&has_reviews=true`);
+      const response = await fetch(`/api/restaurants?sort=rating&limit=${limit}&has_reviews=true`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch top restaurants');
       }
@@ -48,7 +58,12 @@ export function useRestaurant(restaurantId: string) {
   return useQuery({
     queryKey: ['restaurant', restaurantId],
     queryFn: async (): Promise<Restaurant> => {
-      const response = await fetch(`/api/restaurants/${restaurantId}`);
+      const response = await fetch(`/api/restaurants/${restaurantId}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch restaurant');
       }
@@ -59,18 +74,24 @@ export function useRestaurant(restaurantId: string) {
   });
 }
 
-export function useRestaurantsWithReviews() {
+export function useRestaurantsWithReviews(options?: { enabled?: boolean }) {
   const restaurantsQuery = useRestaurants();
   const reviewsQuery = useQuery({
     queryKey: ['reviews'],
     queryFn: async (): Promise<Review[]> => {
-      const response = await fetch('/api/reviews');
+      const response = await fetch('/api/reviews', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch reviews');
       }
       const data = await response.json();
       return data.reviews || [];
     },
+    enabled: options?.enabled !== false, // Default to enabled unless explicitly disabled
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

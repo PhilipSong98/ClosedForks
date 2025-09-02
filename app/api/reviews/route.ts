@@ -142,7 +142,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ reviews: processedReviews });
+    // Calculate hasMore based on whether we got exactly the requested limit
+    const hasMore = processedReviews.length === limit;
+    
+    return NextResponse.json({ 
+      reviews: processedReviews,
+      hasMore 
+    });
   } catch (error) {
     console.error('Unexpected error:', error);
     return NextResponse.json(

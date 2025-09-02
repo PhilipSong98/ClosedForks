@@ -1,23 +1,25 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Loader2, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import Header from '@/components/layout/Header';
 import EnhancedFilters, { FilterState } from '@/components/filters/EnhancedFilters';
 import ReviewCard from '@/components/review/ReviewCard';
+import { ReviewFeedSkeleton } from '@/components/ui/skeleton-loader';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { useReviews } from '@/lib/queries/reviews';
+import { useInfiniteReviews } from '@/lib/queries/reviews';
+import { useIntersectionObserver } from '@/lib/hooks/useIntersectionObserver';
 import { Review } from '@/types';
 
 interface HomeClientProps {
   initialReviews?: Review[];
 }
 
-const HomeClient: React.FC<HomeClientProps> = ({ 
-  initialReviews = []
-}) => {
+const HomeClient: React.FC<HomeClientProps> = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [filters, setFilters] = useState<FilterState>({
     tags: [],
     minRating: 0,
@@ -27,15 +29,46 @@ const HomeClient: React.FC<HomeClientProps> = ({
     sortBy: 'recent'
   });
 
-  // Fetch all user's reviews (already group-scoped by the API)
-  const { data: reviews = initialReviews, isLoading: reviewsLoading } = useReviews();
+  // Use infinite query for progressive loading
+  // Only enable the query when user is authenticated
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useInfiniteReviews({ 
+    pageSize: 15,
+    enabled: !!user && !authLoading
+  });
+
+  // Intersection observer for infinite scroll
+  const { ref: loadMoreRef, isIntersecting } = useIntersectionObserver({
+    threshold: 0.1,
+    rootMargin: '200px',
+  });
+
+  // Fetch next page when intersection observer triggers
+  useEffect(() => {
+    if (isIntersecting && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Flatten all reviews from all pages
+  const allReviews = useMemo(() => {
+    return data?.pages.flatMap(page => page.reviews) || [];
+  }, [data]);
 
   const handleUserClick = (userId: string) => {
     router.push(`/profile/${userId}`);
   };
 
   // Filter and sort reviews
-  const filteredReviews = reviews
+  const filteredReviews = allReviews
     .filter(review => {
       // Tag filter
       if (filters.tags.length > 0) {
@@ -106,22 +139,8 @@ const HomeClient: React.FC<HomeClientProps> = ({
     return null; // AuthWrapper will handle this
   }
 
-  // Show loading state while fetching reviews
-  if (reviewsLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading reviews...</p>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
+  // Show loading skeleton when auth is loading or data is initially loading
+  const showInitialLoading = authLoading || (isLoading && !data);
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,7 +161,36 @@ const HomeClient: React.FC<HomeClientProps> = ({
 
         {/* Reviews Section */}
         <section>
-          {reviews.length === 0 ? (
+          {/* Show loading skeleton on initial load or auth loading */}
+          {showInitialLoading ? (
+            <>
+              <div className="max-w-lg mx-auto mb-8">
+                <div className="h-16 bg-gray-100 rounded-lg animate-pulse" /> {/* Filters placeholder */}
+              </div>
+              <ReviewFeedSkeleton count={3} />
+            </>
+          ) : isError ? (
+            <div className="max-w-lg mx-auto">
+              <div className="text-center py-12">
+                <div className="max-w-md mx-auto">
+                  <h3 className="text-lg font-medium text-foreground mb-2">
+                    Failed to load reviews
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    {error?.message || 'Something went wrong while loading reviews.'}
+                  </p>
+                  <Button
+                    onClick={() => refetch()}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Try Again
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : allReviews.length === 0 ? (
             <div className="max-w-lg mx-auto">
               <div className="text-center py-12">
                 <div className="max-w-md mx-auto">
@@ -152,12 +200,11 @@ const HomeClient: React.FC<HomeClientProps> = ({
                   <p className="text-muted-foreground mb-6">
                     Be the first to share a dining experience with your circle.
                   </p>
-                  <button
+                  <Button
                     onClick={() => router.push('/restaurants')}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                   >
                     Write a Review
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -166,7 +213,7 @@ const HomeClient: React.FC<HomeClientProps> = ({
               <EnhancedFilters 
                 filters={filters}
                 onFiltersChange={setFilters}
-                reviewCount={reviews.length}
+                reviewCount={allReviews.length}
                 filteredCount={filteredReviews.length}
                 showAllFilters={false}
                 defaultExpanded={false}
@@ -183,6 +230,28 @@ const HomeClient: React.FC<HomeClientProps> = ({
                       />
                     </div>
                   ))}
+                  
+                  {/* Load more trigger and loading indicators */}
+                  <div ref={loadMoreRef} className="flex justify-center py-8">
+                    {isFetchingNextPage ? (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Loading more reviews...</span>
+                      </div>
+                    ) : hasNextPage ? (
+                      <Button
+                        variant="ghost"
+                        onClick={() => fetchNextPage()}
+                        className="text-muted-foreground"
+                      >
+                        Load more reviews
+                      </Button>
+                    ) : allReviews.length > 0 ? (
+                      <p className="text-muted-foreground text-center">
+                        You&apos;ve reached the end of your feed
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
               ) : (
                 <div className="max-w-lg mx-auto">
