@@ -29,7 +29,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] Dedicated restaurants page for discovery
 - [x] Google Places API integration with cost optimization
 - [x] Complete review system with tagging (35 food-focused tags)
-- [x] **Enhanced filtering system** - Collapsed by default, rating/price/date controls
+- [x] **Enhanced filtering system** - Collapsed by default, tap‑to‑expand, rating/price‑level/date controls
 - [x] **Private network search** - Database-only search with proper error handling
 - [x] **Restaurant detail pages** - Dual ratings, sidebar layout, grid reviews
 - [x] Modal-based responsive UI (Sheet mobile, Dialog desktop)
@@ -250,10 +250,28 @@ supabase db push                       # Apply to remote
 
 ### Enhanced Filtering System
 - **Tag-based**: 35 food-focused tags in 4 color-coded categories
-- **Advanced Controls**: Rating slider, price range, date filters
+- **Advanced Controls**: Rating slider, price level ($..$$$$) multi-select, date filters, recommendation toggle
 - **Collapsed by Default**: Clean interface on both homepage and restaurants page
-- **Mobile UX**: Expandable interface with live results counter
+- **Tap-to-Expand**: Entire filter header toggles expansion on compact views
 - **Real-time**: Client-side filtering for instant results
+- **Sort Defaults**: Home → Recent, Restaurants → Best Rated; `Clear all` resets to the page default via `defaultSortBy`
+
+### Component Reuse Guidelines (Important)
+- Always reuse `components/review/ReviewCard.tsx` for review listings (home feed, profile, public profile)
+- Always reuse `components/restaurant/RestaurantCard.tsx` for restaurant listings (restaurants page, favorites)
+- If a list needs additional data (e.g., avg rating, review count), extend the API to provide it rather than forking the UI
+- Current APIs enrich restaurants with `avg_rating` and `review_count` for consistent cards across pages
+
+### Profiles
+- Own Profile (`/profile`): Tabs → Favorites (default), Recent Reviews, Liked Posts, To‑Eat List
+- Public Profile (`/profile/[id]`): Tabs → Favorites (default), Recent Reviews
+- Privacy: Email is hidden on public profiles; public reviews are scoped to shared groups only
+
+### API Notes
+- `GET /api/users/[id]/public-profile`: Public profile with favorites enriched with avg rating and review count
+- `GET /api/users/[id]/reviews`: Returns all reviews for own profile; returns only shared-group reviews for others
+- `GET /api/users/profile`: Favorites enriched with avg rating and review count
+- `GET /api/reviews`: Joins restaurants (includes `price_level`) and attaches computed stats for consistent `RestaurantCard`
 
 ### Group-Based Search System
 - **Group-Scoped Search**: Restaurant page search limited to user's groups

@@ -29,28 +29,24 @@ export async function GET(request: NextRequest) {
 
     if (groupId) {
       // Use the security function for group-specific reviews
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error: groupReviewsError } = await (supabase as any)
+      const { data, error: groupReviewsError } = await (supabase as unknown as { rpc: (name: string, params: Record<string, unknown>) => Promise<{ data: Record<string, unknown>[] | null; error: unknown }> })
         .rpc('get_group_reviews', {
           group_id_param: groupId,
           user_id_param: user.id,
           limit_param: limit,
           offset_param: offset
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        }) as { data: any[] | null; error: unknown; };
+        });
       
       reviews = data;
       error = groupReviewsError;
     } else {
       // Use the security function for all user-visible reviews
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error: visibleReviewsError } = await (supabase as any)
+      const { data, error: visibleReviewsError } = await (supabase as unknown as { rpc: (name: string, params: Record<string, unknown>) => Promise<{ data: Record<string, unknown>[] | null; error: unknown }> })
         .rpc('get_user_visible_reviews', {
           user_id_param: user.id,
           limit_param: limit,
           offset_param: offset
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        }) as { data: any[] | null; error: unknown; };
+        });
       
       reviews = data;
       error = visibleReviewsError;
@@ -58,8 +54,7 @@ export async function GET(request: NextRequest) {
 
     // Filter by restaurant if specified
     if (restaurantId && reviews) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      reviews = (reviews as any[]).filter((review: { restaurant_id: string }) => review.restaurant_id === restaurantId);
+      reviews = (reviews as Record<string, unknown>[]).filter((review: Record<string, unknown>) => (review.restaurant_id as string) === restaurantId);
     }
 
     if (error) {
@@ -75,21 +70,21 @@ export async function GET(request: NextRequest) {
     
     if (processedReviews.length > 0) {
       // Fetch user data for authors
-      const authorIds = processedReviews.map((review: { author_id: string }) => review.author_id);
+      const authorIds = processedReviews.map((review: Record<string, unknown>) => review.author_id as string);
       const { data: users, error: usersError } = await supabase
         .from('users')
         .select('id, name, full_name, email, avatar_url')
         .in('id', authorIds);
 
       // Fetch restaurant data
-      const restaurantIds = processedReviews.map((review: { restaurant_id: string }) => review.restaurant_id);
+      const restaurantIds = processedReviews.map((review: Record<string, unknown>) => review.restaurant_id as string);
       const { data: restaurants, error: restaurantsError } = await supabase
         .from('restaurants')
         .select('id, name, address, city, cuisine, price_level, google_data, google_place_id, google_maps_url, lat, lng')
         .in('id', restaurantIds);
 
       // Get user's like status for each review
-      const reviewIds = processedReviews.map((review: { review_id: string }) => review.review_id);
+      const reviewIds = processedReviews.map((review: Record<string, unknown>) => review.review_id as string);
       const { data: userLikes } = await supabase
         .from('review_likes')
         .select('review_id')
@@ -121,24 +116,7 @@ export async function GET(request: NextRequest) {
         const likedReviewIds = new Set((userLikes || []).map((like: { review_id: string }) => like.review_id));
         
         // Transform the data to match expected format
-        processedReviews = processedReviews.map((review: { 
-          review_id: string; 
-          restaurant_id: string; 
-          author_id: string; 
-          rating_overall: number; 
-          dish: string; 
-          review_text: string; 
-          recommend: boolean; 
-          tips: string; 
-          tags: string[]; 
-          visit_date: string; 
-          price_per_person: number; 
-          visibility: string; 
-          created_at: string; 
-          updated_at: string; 
-          like_count: number; 
-          group_id: string;
-        }) => ({
+        processedReviews = processedReviews.map((review: Record<string, unknown>) => ({
           id: review.review_id,
           restaurant_id: review.restaurant_id,
           author_id: review.author_id,
@@ -155,14 +133,14 @@ export async function GET(request: NextRequest) {
           updated_at: review.updated_at,
           like_count: review.like_count || 0,
           group_id: review.group_id,
-          isLikedByUser: likedReviewIds.has(review.review_id),
+          isLikedByUser: likedReviewIds.has(review.review_id as string),
           // Add joined data
-          author: users.find((u: { id: string }) => u.id === review.author_id),
+          author: users.find((u: { id: string }) => u.id === (review.author_id as string)),
           restaurant: (() => {
-            const base = restaurants.find((r: { id: string }) => r.id === review.restaurant_id) as any;
-            if (!base) return undefined as any;
-            const stats = statsMap.get(review.restaurant_id);
-            return stats ? { ...(base as any), avg_rating: stats.avg_rating, review_count: stats.review_count } : base;
+            const base = restaurants.find((r: { id: string }) => r.id === (review.restaurant_id as string));
+            if (!base) return undefined;
+            const stats = statsMap.get(review.restaurant_id as string);
+            return stats ? { ...(base as Record<string, unknown>), avg_rating: stats.avg_rating, review_count: stats.review_count } : base;
           })()
         }));
       }
@@ -245,13 +223,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const reviewData = {
+      ...validatedData,
+      author_id: user.id,
+      group_id: userGroup.group_id,
+    };
+    
+    // Insert review - bypassing TypeScript strict checking due to RLS policy type inference issues
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: review, error } = await (supabase.from('reviews') as any)
-      .insert({
-        ...validatedData,
-        author_id: user.id,
-        group_id: userGroup.group_id,
-      })
+      .insert(reviewData)
       .select('*')
       .single();
 

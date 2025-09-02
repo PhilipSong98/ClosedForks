@@ -8,6 +8,7 @@ import FavoritesSection from '@/components/profile/FavoritesSection';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PublicProfile } from '@/types';
 
 interface PublicProfileClientProps {
   userId: string;
@@ -17,7 +18,7 @@ export default function PublicProfileClient({ userId }: PublicProfileClientProps
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [profile, setProfile] = React.useState<any | null>(null);
+  const [profile, setProfile] = React.useState<PublicProfile | null>(null);
 
   React.useEffect(() => {
     const fetchProfile = async () => {

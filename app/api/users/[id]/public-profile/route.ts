@@ -81,10 +81,11 @@ export async function GET(
       if (favorites) {
         favoriteRestaurants = favoriteIds
           .map((rid: string) => {
-            const base = favorites.find((r: Restaurant) => r.id === rid) as any;
+            const base = favorites.find((r: Restaurant) => r.id === rid);
             if (!base) return null;
             const stats = statsMap.get(rid);
-            return stats ? { ...(base as any), avg_rating: stats.avg_rating, review_count: stats.review_count } : base;
+            const restaurant = base as Restaurant;
+            return stats ? { ...restaurant, avg_rating: stats.avg_rating, review_count: stats.review_count } : restaurant;
           })
           .filter(Boolean) as Restaurant[];
       }

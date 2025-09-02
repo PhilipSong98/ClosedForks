@@ -6,16 +6,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import EditProfileModal from './EditProfileModal';
-import { User } from '@/types';
+import { User, PublicProfile } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ProfileHeaderProps {
-  user: User & {
+  user: (User & {
     stats: {
       reviewCount: number;
       favoritesCount: number;
     };
-  };
+  }) | PublicProfile;
   isOwnProfile?: boolean;
 }
 
@@ -109,7 +109,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true
         </CardContent>
       </Card>
 
-      {isOwnProfile && (
+      {isOwnProfile && 'role' in user && (
         <EditProfileModal 
           open={editModalOpen}
           onOpenChange={setEditModalOpen}

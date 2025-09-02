@@ -35,6 +35,34 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 
 ## Recent Updates
 
+### 🔄 Public Profiles, Component Reuse, and Filters (September 2025)
+
+#### ✅ Public Profiles
+- New route: `/profile/[id]` shows another user's profile
+- Tabs: `Favorites` (default) | `Recent Reviews`
+- Privacy: Email hidden on public profiles; only group‑visible reviews are shown to viewers
+- Own profile: Tabs reordered to `Favorites` (default) | `Recent Reviews` | `Liked Posts` | `To‑Eat List`
+
+#### ✅ Component Reuse Standard
+- Reuse `components/review/ReviewCard.tsx` for all review lists (home feed, own profile, public profile)
+- Reuse `components/restaurant/RestaurantCard.tsx` for all restaurant lists (restaurants page, favorites in both profiles)
+- Backends now attach `avg_rating` and `review_count` to restaurants returned by profile APIs so the same card renders consistently
+- Rule of thumb: Do not fork card UIs; if a page needs more data, extend the API to provide it to the same component
+
+#### ✅ Filters & Sorting
+- Filters module is now clickable: tapping the whole header area toggles expand/collapse on compact views (mobile)
+- Clear button and inner controls stop propagation to prevent accidental collapse
+- Price filter switched to dollar levels: multi‑select `$` | `$$` | `$$$` | `$$$$`
+- Default sort differs per page and resets accordingly when clearing filters:
+  - Home: `Recent`
+  - Restaurants: `Best Rated`
+
+#### ✅ API updates
+- `GET /api/users/[id]/public-profile` (new): lightweight public profile with favorites (including `avg_rating` and `review_count`) and group‑scoped review count
+- `GET /api/users/[id]/reviews`: own profile returns all of your reviews; public view returns only reviews from groups shared with the viewer
+- `GET /api/reviews`: joined restaurants now include `price_level` and computed stats for consistent cards
+- `GET /api/users/profile`: favorites are enriched with `avg_rating` and `review_count`
+
 ### 👥 Invite-Only Group System (September 1, 2025)
 
 Complete implementation of group-based access control with database security fixes:
@@ -262,13 +290,14 @@ Complete professional upgrade of home page filters from basic cuisine buttons to
 
 #### **🔧 Advanced Filter Controls**
 - **Rating Slider** - Minimum rating filter (0-5 stars) with smooth slider interface
-- **Price Range Filter** - Dual-handle slider for $0-$1000+ per person price filtering
+- **Price Level Filter** - Multi-select `$` | `$$` | `$$$` | `$$$$` (uses restaurant `price_level`; falls back to mapping `price_per_person` on the home feed)
 - **Date Range Options** - All time, Past week, Past month, Past year quick selections
 - **Recommendation Toggle** - Filter to show only recommended places with heart icon
 - **Enhanced Sort Options** - Recent, Best Rated, Price Low→High, Price High→Low
 
 #### **📱 Mobile-First Responsive Design**
 - **Collapsed by Default** - Filters start collapsed on both homepage and restaurants page to reduce clutter
+- **Tap to Expand/Collapse** - The entire filter header area toggles expansion on compact views
 - **Touch-Optimized** - Large tap targets, proper spacing, mobile-friendly interactions
 - **Progressive Enhancement** - Full desktop experience, streamlined mobile experience
 - **Live Results Counter** - Shows "8 of 23 reviews" with real-time filter feedback
@@ -573,6 +602,11 @@ npm run lint       # Check linting issues
 - `DELETE /api/reviews/[id]` - Delete own review
 - `POST /api/reviews/[id]/like` - Toggle like/unlike status for a review
 - `GET /api/reviews/[id]/like` - Get like status and count for a review
+
+### Profiles
+- `GET /api/users/profile` - Current user profile with stats and enriched favorites (avg rating + count)
+- `GET /api/users/[id]/public-profile` - Public user profile (no email), favorites enriched with stats
+- `GET /api/users/[id]/reviews` - User reviews; returns all reviews for own profile, otherwise only shared-group reviews
 
 ### Search
 - `GET /api/search` - Search group-accessible restaurants and reviews using security functions

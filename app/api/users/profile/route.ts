@@ -23,6 +23,11 @@ interface Restaurant {
   google_data: Record<string, unknown> | null;
 }
 
+interface RestaurantWithStats extends Restaurant {
+  avg_rating?: number;
+  review_count?: number;
+}
+
 // GET /api/users/profile - Get current user's profile with stats
 export async function GET() {
   try {
@@ -63,7 +68,7 @@ export async function GET() {
     }
 
     // Get favorite restaurants data if user has favorites
-    let favoriteRestaurants: Restaurant[] = [];
+    let favoriteRestaurants: RestaurantWithStats[] = [];
     const favoriteIds = profile?.favorite_restaurants;
     
     if (favoriteIds && Array.isArray(favoriteIds) && favoriteIds.length > 0) {
@@ -103,7 +108,8 @@ export async function GET() {
           const restaurant = favorites.find((fav: Restaurant) => fav.id === id);
           if (restaurant) {
             const stats = statsMap.get(id);
-            favoriteRestaurants.push(stats ? { ...(restaurant as any), avg_rating: stats.avg_rating, review_count: stats.review_count } : restaurant);
+            const typedRestaurant = restaurant as Restaurant;
+            favoriteRestaurants.push(stats ? { ...typedRestaurant, avg_rating: stats.avg_rating, review_count: stats.review_count } : typedRestaurant);
           }
         }
 
@@ -161,7 +167,7 @@ export async function PATCH(request: NextRequest) {
     if (name !== undefined) updateData.name = name;
     if (favorite_restaurants !== undefined) updateData.favorite_restaurants = favorite_restaurants;
 
-    // Update user profile
+    // Update user profile - using type assertion due to Supabase RLS type inference issues
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: updatedProfile, error: updateError } = await (supabase.from('users') as any)
       .update(updateData)
