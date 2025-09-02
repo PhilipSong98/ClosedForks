@@ -80,22 +80,14 @@ export default function ProfileClient() {
           <ProfileHeader user={profile} />
           
           {/* Profile Content */}
-          <Tabs defaultValue="reviews" className="w-full">
+          <Tabs defaultValue="favorites" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="favorites">Favorites</TabsTrigger>
               <TabsTrigger value="reviews">Recent Reviews</TabsTrigger>
               <TabsTrigger value="liked">Liked Posts</TabsTrigger>
-              <TabsTrigger value="favorites">Favorites</TabsTrigger>
               <TabsTrigger value="to-eat">To-Eat List</TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="reviews" className="mt-6">
-              <RecentReviews userId={user.id} />
-            </TabsContent>
-            
-            <TabsContent value="liked" className="mt-6">
-              <LikedReviews />
-            </TabsContent>
-            
+
             <TabsContent value="favorites" className="mt-6">
               <FavoritesSection 
                 favorites={profile.favoriteRestaurants || []}
@@ -104,7 +96,15 @@ export default function ProfileClient() {
                 }}
               />
             </TabsContent>
-            
+
+            <TabsContent value="reviews" className="mt-6">
+              <RecentReviews userId={user.id} />
+            </TabsContent>
+
+            <TabsContent value="liked" className="mt-6">
+              <LikedReviews />
+            </TabsContent>
+
             <TabsContent value="to-eat" className="mt-6">
               <ToEatSection showHeader={true} />
             </TabsContent>

@@ -78,16 +78,12 @@ export default function PublicProfileClient({ userId }: PublicProfileClientProps
         <div className="max-w-4xl mx-auto space-y-8">
           <ProfileHeader user={profile} isOwnProfile={false} />
 
-          {/* Content: Tabs for Recent and Favorites (read-only) */}
-          <Tabs defaultValue="reviews" className="w-full">
+          {/* Content: Tabs for Favorites (default) and Recent Reviews (read-only) */}
+          <Tabs defaultValue="favorites" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="reviews">Recent Reviews</TabsTrigger>
               <TabsTrigger value="favorites">Favorites</TabsTrigger>
+              <TabsTrigger value="reviews">Recent Reviews</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="reviews" className="mt-6">
-              <RecentReviews userId={userId} title="Recent Reviews" />
-            </TabsContent>
 
             <TabsContent value="favorites" className="mt-6">
               <FavoritesSection 
@@ -97,6 +93,10 @@ export default function PublicProfileClient({ userId }: PublicProfileClientProps
                 readOnly={true}
                 title="Favorites"
               />
+            </TabsContent>
+
+            <TabsContent value="reviews" className="mt-6">
+              <RecentReviews userId={userId} title="Recent Reviews" />
             </TabsContent>
           </Tabs>
         </div>
