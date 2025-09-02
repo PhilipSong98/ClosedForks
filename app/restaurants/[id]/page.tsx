@@ -42,7 +42,6 @@ async function getRestaurantReviews(restaurantId: string): Promise<any[]> {
       return [];
     }
 
-    console.log(`Found ${reviews?.length || 0} reviews for restaurant ${restaurantId}`);
 
     // If we have reviews, fetch the user data for each one
     let reviewsWithUsers = reviews || [];
@@ -75,10 +74,8 @@ interface RestaurantDetailPageProps {
 
 export default async function RestaurantDetailPage({ params }: RestaurantDetailPageProps) {
   const resolvedParams = await params;
-  console.log('Restaurant ID:', resolvedParams.id);
   
   const restaurant = await getRestaurant(resolvedParams.id);
-  console.log('Fetched restaurant:', restaurant);
 
   // Temporarily remove notFound() to debug
   // if (!restaurant) {
@@ -86,7 +83,6 @@ export default async function RestaurantDetailPage({ params }: RestaurantDetailP
   // }
 
   const reviews = await getRestaurantReviews(resolvedParams.id);
-  console.log('Fetched reviews:', reviews.length);
 
   return (
     <RestaurantDetailClient 
