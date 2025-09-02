@@ -47,9 +47,34 @@ export async function GET(
         .select('id, name, address, city, cuisine, price_level, google_data')
         .in('id', favoriteIds);
 
+      // Attach stats to favorites
+      const { data: favReviews } = await supabase
+        .from('reviews')
+        .select('restaurant_id, rating_overall')
+        .in('restaurant_id', favoriteIds);
+
+      const statsMap = new Map<string, { avg_rating: number; review_count: number }>();
+      if (favReviews) {
+        const bucket: Record<string, number[]> = {};
+        for (const r of favReviews as { restaurant_id: string; rating_overall: number }[]) {
+          if (!bucket[r.restaurant_id]) bucket[r.restaurant_id] = [];
+          if (typeof r.rating_overall === 'number') bucket[r.restaurant_id].push(r.rating_overall);
+        }
+        Object.entries(bucket).forEach(([rid, ratings]) => {
+          const count = ratings.length;
+          const avg = count > 0 ? Math.round((ratings.reduce((a, b) => a + b, 0) / count) * 10) / 10 : 0;
+          statsMap.set(rid, { avg_rating: avg, review_count: count });
+        });
+      }
+
       if (favorites) {
         favoriteRestaurants = favoriteIds
-          .map((rid: string) => favorites.find((r: Restaurant) => r.id === rid))
+          .map((rid: string) => {
+            const base = favorites.find((r: Restaurant) => r.id === rid);
+            if (!base) return null;
+            const stats = statsMap.get(rid);
+            return stats ? { ...base, avg_rating: stats.avg_rating, review_count: stats.review_count } : base;
+          })
           .filter(Boolean) as Restaurant[];
       }
     }

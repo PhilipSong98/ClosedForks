@@ -73,7 +73,33 @@ export async function GET(
 
     let reviews = null;
     let reviewsError = null;
-    if (viewerGroupIds.length > 0) {
+    if (userId === user.id) {
+      // Own profile: show all of the user's reviews regardless of group membership
+      const { data, error } = await supabase
+        .from('reviews')
+        .select(`
+          *,
+          restaurants(
+            id,
+            name,
+            address,
+            city,
+            cuisine,
+            google_data,
+            google_place_id,
+            google_maps_url,
+            lat,
+            lng,
+            price_level
+          )
+        `)
+        .eq('author_id', userId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+      reviews = data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      reviewsError = error as any;
+    } else if (viewerGroupIds.length > 0) {
       const { data, error } = await supabase
         .from('reviews')
         .select(`
@@ -138,11 +164,16 @@ export async function GET(
     }));
 
     // Get total count for pagination
-    const { count: totalCount, error: countError } = await supabase
-      .from('reviews')
-      .select('*', { count: 'exact', head: true })
-      .eq('author_id', userId)
-      .in('group_id', viewerGroupIds.length > 0 ? viewerGroupIds : ['00000000-0000-0000-0000-000000000000']);
+    const { count: totalCount, error: countError } = userId === user.id
+      ? await supabase
+          .from('reviews')
+          .select('*', { count: 'exact', head: true })
+          .eq('author_id', userId)
+      : await supabase
+          .from('reviews')
+          .select('*', { count: 'exact', head: true })
+          .eq('author_id', userId)
+          .in('group_id', viewerGroupIds.length > 0 ? viewerGroupIds : ['00000000-0000-0000-0000-000000000000']);
 
     if (countError) {
       console.error('Error fetching review count:', countError);

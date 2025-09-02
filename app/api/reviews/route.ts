@@ -97,6 +97,27 @@ export async function GET(request: NextRequest) {
         .in('review_id', reviewIds);
 
       if (!usersError && !restaurantsError && users && restaurants) {
+        // Build review stats for these restaurants so RestaurantCard can show avg + count
+        const statsMap = new Map<string, { avg_rating: number; review_count: number }>();
+        if (restaurantIds.length > 0) {
+          const { data: restReviews } = await supabase
+            .from('reviews')
+            .select('restaurant_id, rating_overall')
+            .in('restaurant_id', restaurantIds);
+          if (restReviews) {
+            const bucket: Record<string, number[]> = {};
+            for (const row of restReviews as { restaurant_id: string; rating_overall: number }[]) {
+              if (!bucket[row.restaurant_id]) bucket[row.restaurant_id] = [];
+              if (typeof row.rating_overall === 'number') bucket[row.restaurant_id].push(row.rating_overall);
+            }
+            Object.entries(bucket).forEach(([rid, ratings]) => {
+              const count = ratings.length;
+              const avg = count > 0 ? Math.round((ratings.reduce((a, b) => a + b, 0) / count) * 10) / 10 : 0;
+              statsMap.set(rid, { avg_rating: avg, review_count: count });
+            });
+          }
+        }
+
         const likedReviewIds = new Set((userLikes || []).map((like: { review_id: string }) => like.review_id));
         
         // Transform the data to match expected format
@@ -137,7 +158,12 @@ export async function GET(request: NextRequest) {
           isLikedByUser: likedReviewIds.has(review.review_id),
           // Add joined data
           author: users.find((u: { id: string }) => u.id === review.author_id),
-          restaurant: restaurants.find((r: { id: string }) => r.id === review.restaurant_id)
+          restaurant: (() => {
+            const base = restaurants.find((r: { id: string }) => r.id === review.restaurant_id);
+            if (!base) return base as unknown as undefined;
+            const stats = statsMap.get(review.restaurant_id);
+            return stats ? { ...base, avg_rating: stats.avg_rating, review_count: stats.review_count } : base;
+          })()
         }));
       }
     }
