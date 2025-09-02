@@ -64,37 +64,44 @@ export async function GET(
 
     const { id: userId } = await params;
 
-    // For now, only allow users to fetch their own reviews
-    // Later this could be extended for public profiles
-    if (userId !== user.id) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
-    }
+    // Determine viewer's groups for visibility
+    const { data: viewerGroups } = await supabase
+      .from('user_groups')
+      .select('group_id')
+      .eq('user_id', user.id);
+    const viewerGroupIds = (viewerGroups || []).map((g: { group_id: string }) => g.group_id);
 
-    // Get user's reviews with restaurant data
-    const { data: reviews, error: reviewsError } = await supabase
-      .from('reviews')
-      .select(`
-        *,
-        restaurants(
-          id,
-          name,
-          address,
-          city,
-          cuisine,
-          google_data,
-          google_place_id,
-          google_maps_url,
-          lat,
-          lng,
-          price_level
-        )
-      `)
-      .eq('author_id', userId)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    let reviews = null;
+    let reviewsError = null;
+    if (viewerGroupIds.length > 0) {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select(`
+          *,
+          restaurants(
+            id,
+            name,
+            address,
+            city,
+            cuisine,
+            google_data,
+            google_place_id,
+            google_maps_url,
+            lat,
+            lng,
+            price_level
+          )
+        `)
+        .eq('author_id', userId)
+        .in('group_id', viewerGroupIds)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+      reviews = data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      reviewsError = error as any;
+    } else {
+      reviews = [];
+    }
 
     if (reviewsError) {
       console.error('Error fetching user reviews:', reviewsError);
@@ -132,7 +139,8 @@ export async function GET(
     const { count: totalCount, error: countError } = await supabase
       .from('reviews')
       .select('*', { count: 'exact', head: true })
-      .eq('author_id', userId);
+      .eq('author_id', userId)
+      .in('group_id', viewerGroupIds.length > 0 ? viewerGroupIds : ['00000000-0000-0000-0000-000000000000']);
 
     if (countError) {
       console.error('Error fetching review count:', countError);
