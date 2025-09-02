@@ -55,7 +55,8 @@ const HomeClient: React.FC = () => {
 
   // Flatten all reviews from all pages
   const allReviews = useMemo(() => {
-    return data?.pages.flatMap(page => page.reviews) || [];
+    if (!data?.pages) return [];
+    return data.pages.flatMap(page => page.reviews) || [];
   }, [data]);
 
   const handleUserClick = (userId: string) => {
@@ -135,7 +136,8 @@ const HomeClient: React.FC = () => {
   }
 
   // Show loading skeleton when auth is loading or data is initially loading
-  const showInitialLoading = authLoading || (isLoading && !data?.pages?.length);
+  const hasPages = data?.pages ? data.pages.length > 0 : false;
+  const showInitialLoading = authLoading || (isLoading && !hasPages);
 
   return (
     <div className="min-h-screen bg-background">
