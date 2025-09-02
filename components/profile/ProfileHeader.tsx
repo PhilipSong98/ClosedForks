@@ -6,23 +6,34 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import EditProfileModal from './EditProfileModal';
-import { User } from '@/types';
+import { User, PublicProfile } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ProfileHeaderProps {
-  user: User & {
+  user: (User & {
     stats: {
       reviewCount: number;
       favoritesCount: number;
     };
-  };
+  }) | PublicProfile;
+  isOwnProfile?: boolean;
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true }) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const displayName = (
+    isOwnProfile
+      ? (user.full_name || user.name || user.email || 'User')
+      : (user.full_name || user.name || 'User')
+  ).trim();
+
+  const getInitials = (value: string) => {
+    const safe = (value || '').trim();
+    if (!safe) return 'U';
+    // If looks like an email, use first letter before @
+    const source = safe.includes('@') ? safe.split('@')[0] : safe;
+    return source.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
   };
 
   const memberSince = formatDistanceToNow(new Date(user.created_at), { addSuffix: true });
@@ -37,11 +48,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
               <Avatar className="w-32 h-32 mx-auto">
                 <AvatarImage 
                   src={user.avatar_url} 
-                  alt={`${user.name} profile picture`}
+                  alt={`${displayName} profile picture`}
                   className="object-cover"
                 />
                 <AvatarFallback className="text-2xl">
-                  {getInitials(user.name)}
+                  {getInitials(displayName)}
                 </AvatarFallback>
               </Avatar>
             </div>
@@ -49,11 +60,13 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
             {/* User Info */}
             <div className="space-y-2">
               <h1 className="text-3xl font-bold text-foreground">
-                {user.name}
+                {displayName}
               </h1>
-              <p className="text-muted-foreground">
-                {user.email}
-              </p>
+              {isOwnProfile && (
+                <p className="text-muted-foreground">
+                  {user.email}
+                </p>
+              )}
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
                 <span>Member {memberSince}</span>
@@ -81,24 +94,28 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
             </div>
 
             {/* Edit Profile Button */}
-            <Button 
-              onClick={() => setEditModalOpen(true)}
-              variant="outline"
-              size="sm"
-              className="mt-4"
-            >
-              <Edit2 className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
+            {isOwnProfile && (
+              <Button 
+                onClick={() => setEditModalOpen(true)}
+                variant="outline"
+                size="sm"
+                className="mt-4"
+              >
+                <Edit2 className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      <EditProfileModal 
-        open={editModalOpen}
-        onOpenChange={setEditModalOpen}
-        user={user}
-      />
+      {isOwnProfile && 'role' in user && (
+        <EditProfileModal 
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          user={user}
+        />
+      )}
     </>
   );
 };

@@ -34,6 +34,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: Database["public"]["Enums"]["audit_action"]
+          actor_id: string | null
+          created_at: string | null
+          group_id: string | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          reason: string | null
+          target_id: string
+          target_type: Database["public"]["Enums"]["audit_target_type"]
+          user_agent: string | null
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["audit_action"]
+          actor_id?: string | null
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          reason?: string | null
+          target_id: string
+          target_type: Database["public"]["Enums"]["audit_target_type"]
+          user_agent?: string | null
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["audit_action"]
+          actor_id?: string | null
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          reason?: string | null
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["audit_target_type"]
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_log_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "groups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invite_code_usage: {
         Row: {
           id: string
@@ -84,6 +176,7 @@ export type Database = {
           current_uses: number | null
           description: string | null
           expires_at: string | null
+          group_id: string | null
           id: string
           is_active: boolean | null
           max_uses: number | null
@@ -96,6 +189,7 @@ export type Database = {
           current_uses?: number | null
           description?: string | null
           expires_at?: string | null
+          group_id?: string | null
           id?: string
           is_active?: boolean | null
           max_uses?: number | null
@@ -108,6 +202,7 @@ export type Database = {
           current_uses?: number | null
           description?: string | null
           expires_at?: string | null
+          group_id?: string | null
           id?: string
           is_active?: boolean | null
           max_uses?: number | null
@@ -119,6 +214,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_codes_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
             referencedColumns: ["id"]
           },
         ]
@@ -351,6 +453,7 @@ export type Database = {
           created_at: string | null
           dish: string | null
           food: number | null
+          group_id: string | null
           id: string
           like_count: number
           price_per_person: number | null
@@ -373,6 +476,7 @@ export type Database = {
           created_at?: string | null
           dish?: string | null
           food?: number | null
+          group_id?: string | null
           id?: string
           like_count?: number
           price_per_person?: number | null
@@ -395,6 +499,7 @@ export type Database = {
           created_at?: string | null
           dish?: string | null
           food?: number | null
+          group_id?: string | null
           id?: string
           like_count?: number
           price_per_person?: number | null
@@ -418,6 +523,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
             referencedColumns: ["id"]
           },
           {
@@ -475,6 +587,45 @@ export type Database = {
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_groups: {
+        Row: {
+          group_id: string | null
+          id: string
+          joined_at: string | null
+          role: Database["public"]["Enums"]["group_role"] | null
+          user_id: string | null
+        }
+        Insert: {
+          group_id?: string | null
+          id?: string
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["group_role"] | null
+          user_id?: string | null
+        }
+        Update: {
+          group_id?: string | null
+          id?: string
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["group_role"] | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_groups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -763,8 +914,34 @@ export type Database = {
         Args: { "": unknown } | { "": unknown }
         Returns: string
       }
+      can_user_perform: {
+        Args: {
+          capability_param: string
+          group_id_param?: string
+          user_id_param: string
+        }
+        Returns: boolean
+      }
       confirm_signup_with_invite: {
         Args: { invite_code_param: string; user_id_param: string }
+        Returns: Json
+      }
+      create_group_and_add_owner: {
+        Args: {
+          group_description?: string
+          group_name: string
+          owner_user_id?: string
+        }
+        Returns: Json
+      }
+      create_group_with_audit: {
+        Args: {
+          group_description?: string
+          group_name: string
+          ip_address_param?: unknown
+          owner_user_id?: string
+          user_agent_param?: string
+        }
         Returns: Json
       }
       create_user_with_invite: {
@@ -805,6 +982,14 @@ export type Database = {
       enablelongtransactions: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      ensure_user_can_perform: {
+        Args: {
+          capability_param: string
+          group_id_param?: string
+          user_id_param: string
+        }
+        Returns: undefined
       }
       equals: {
         Args: { geom1: unknown; geom2: unknown }
@@ -1034,6 +1219,43 @@ export type Database = {
         Args: { "": string }
         Returns: unknown
       }
+      get_group_members: {
+        Args: { group_id_param: string; user_id_param?: string }
+        Returns: {
+          joined_at: string
+          member_id: string
+          role: Database["public"]["Enums"]["group_role"]
+          user_email: string
+          user_id: string
+          user_name: string
+        }[]
+      }
+      get_group_reviews: {
+        Args: {
+          group_id_param: string
+          limit_param?: number
+          offset_param?: number
+          user_id_param?: string
+        }
+        Returns: {
+          author_id: string
+          created_at: string
+          dish: string
+          group_id: string
+          like_count: number
+          price_per_person: number
+          rating_overall: number
+          recommend: boolean
+          restaurant_id: string
+          review_id: string
+          review_text: string
+          tags: string[]
+          tips: string
+          updated_at: string
+          visibility: string
+          visit_date: string
+        }[]
+      }
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
@@ -1059,6 +1281,79 @@ export type Database = {
           website_url: string
         }[]
       }
+      get_user_capabilities: {
+        Args: { group_id_param?: string; user_id_param?: string }
+        Returns: string[]
+      }
+      get_user_global_role: {
+        Args: { user_id_param?: string }
+        Returns: string
+      }
+      get_user_group_role: {
+        Args: { group_id_param?: string; user_id_param?: string }
+        Returns: string
+      }
+      get_user_groups: {
+        Args: { user_id_param?: string }
+        Returns: {
+          created_at: string
+          group_description: string
+          group_id: string
+          group_name: string
+          joined_at: string
+          member_count: number
+          user_role: Database["public"]["Enums"]["group_role"]
+        }[]
+      }
+      get_user_restaurants_with_reviews: {
+        Args: {
+          limit_param?: number
+          offset_param?: number
+          user_id_param?: string
+        }
+        Returns: {
+          aggregated_tags: string[]
+          avg_rating: number
+          restaurant_address: string
+          restaurant_city: string
+          restaurant_created_at: string
+          restaurant_cuisine: string[]
+          restaurant_google_data: Json
+          restaurant_google_maps_url: string
+          restaurant_google_place_id: string
+          restaurant_id: string
+          restaurant_lat: number
+          restaurant_lng: number
+          restaurant_name: string
+          restaurant_price_level: number
+          review_count: number
+        }[]
+      }
+      get_user_visible_reviews: {
+        Args: {
+          limit_param?: number
+          offset_param?: number
+          user_id_param?: string
+        }
+        Returns: {
+          author_id: string
+          created_at: string
+          dish: string
+          group_id: string
+          like_count: number
+          price_per_person: number
+          rating_overall: number
+          recommend: boolean
+          restaurant_id: string
+          review_id: string
+          review_text: string
+          tags: string[]
+          tips: string
+          updated_at: string
+          visibility: string
+          visit_date: string
+        }[]
+      }
       gettransactionid: {
         Args: Record<PropertyKey, never>
         Returns: unknown
@@ -1075,6 +1370,10 @@ export type Database = {
         Args: { restaurant_uuid: string; user_uuid: string }
         Returns: boolean
       }
+      is_user_group_admin: {
+        Args: { group_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
       json: {
         Args: { "": unknown }
         Returns: Json
@@ -1082,6 +1381,20 @@ export type Database = {
       jsonb: {
         Args: { "": unknown }
         Returns: Json
+      }
+      log_audit_event: {
+        Args: {
+          action_param: Database["public"]["Enums"]["audit_action"]
+          actor_id_param: string
+          group_id_param?: string
+          ip_address_param?: unknown
+          metadata_param?: Json
+          reason_param?: string
+          target_id_param: string
+          target_type_param: Database["public"]["Enums"]["audit_target_type"]
+          user_agent_param?: string
+        }
+        Returns: string
       }
       longtransactionsenabled: {
         Args: Record<PropertyKey, never>
@@ -1276,6 +1589,17 @@ export type Database = {
       postgis_wagyu_version: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      remove_group_member: {
+        Args: {
+          actor_id_param?: string
+          group_id_param: string
+          ip_address_param?: unknown
+          reason_param?: string
+          target_user_id: string
+          user_agent_param?: string
+        }
+        Returns: Json
       }
       spheroid_in: {
         Args: { "": unknown }
@@ -2354,6 +2678,18 @@ export type Database = {
         Args: { "": string }
         Returns: number
       }
+      update_group_role: {
+        Args: {
+          actor_id_param?: string
+          group_id_param: string
+          ip_address_param?: unknown
+          new_role_param: Database["public"]["Enums"]["group_role"]
+          reason_param?: string
+          target_user_id: string
+          user_agent_param?: string
+        }
+        Returns: Json
+      }
       updategeometrysrid: {
         Args: {
           catalogn_name: string
@@ -2373,8 +2709,26 @@ export type Database = {
         }
         Returns: Json
       }
+      use_invite_code_with_group: {
+        Args: {
+          code_to_use: string
+          group_name?: string
+          ip_address_param?: unknown
+          user_agent_param?: string
+          user_id_param: string
+        }
+        Returns: Json
+      }
+      user_can_access_group: {
+        Args: { group_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
       user_has_liked_review: {
         Args: { review_uuid: string; user_uuid: string }
+        Returns: boolean
+      }
+      users_share_group: {
+        Args: { user1_id: string; user2_id: string }
         Returns: boolean
       }
       validate_invite_code: {
@@ -2383,6 +2737,19 @@ export type Database = {
       }
     }
     Enums: {
+      audit_action:
+        | "group_created"
+        | "group_updated"
+        | "group_deleted"
+        | "role_assigned"
+        | "role_changed"
+        | "role_revoked"
+        | "member_added"
+        | "member_removed"
+        | "invite_code_generated"
+        | "ownership_transferred"
+      audit_target_type: "group" | "user" | "invite_code"
+      group_role: "owner" | "admin" | "member"
       invite_status: "pending" | "accepted" | "expired"
       report_status: "pending" | "resolved" | "dismissed"
       restaurant_source: "manual" | "maps"
@@ -2526,6 +2893,20 @@ export const Constants = {
   },
   public: {
     Enums: {
+      audit_action: [
+        "group_created",
+        "group_updated",
+        "group_deleted",
+        "role_assigned",
+        "role_changed",
+        "role_revoked",
+        "member_added",
+        "member_removed",
+        "invite_code_generated",
+        "ownership_transferred",
+      ],
+      audit_target_type: ["group", "user", "invite_code"],
+      group_role: ["owner", "admin", "member"],
       invite_status: ["pending", "accepted", "expired"],
       report_status: ["pending", "resolved", "dismissed"],
       restaurant_source: ["manual", "maps"],

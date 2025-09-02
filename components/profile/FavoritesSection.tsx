@@ -21,6 +21,8 @@ interface FavoritesSectionProps {
   isLoading?: boolean;
   error?: string | null;
   onUpdateFavorites?: () => void;
+  readOnly?: boolean;
+  title?: string;
 }
 
 const FavoritesSection: React.FC<FavoritesSectionProps> = ({ 
@@ -28,6 +30,8 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
   isLoading = false,
   error = null,
   onUpdateFavorites,
+  readOnly = false,
+  title = 'Your Favorites',
 }) => {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { toast } = useToast();
@@ -260,15 +264,17 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
                   )}
                 </div>
                 
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                  disabled={updateFavoritesMutation.isPending}
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add
-                </Button>
+                {!readOnly && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                    disabled={updateFavoritesMutation.isPending}
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add
+                  </Button>
+                )}
               </div>
             </div>
           ))}
@@ -371,18 +377,20 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
           <div className="flex items-center gap-2">
             <Heart className="h-5 w-5 text-red-500" />
             <h2 className="text-xl font-semibold text-foreground">
-              Your Favorites
+              {title}
             </h2>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setAddModalOpen(true)}
-            disabled={favorites.length >= 10 || updateFavoritesMutation.isPending}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Favorite
-          </Button>
+          {!readOnly && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setAddModalOpen(true)}
+              disabled={favorites.length >= 10 || updateFavoritesMutation.isPending}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Favorite
+            </Button>
+          )}
         </div>
 
         {!error && favorites.length === 0 ? (
@@ -399,14 +407,16 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               Add restaurants you love to quickly find them later. Build your personal collection of go-to spots.
             </p>
-            <Button 
-              onClick={() => setAddModalOpen(true)}
-              size="lg"
-              className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Your First Favorite
-            </Button>
+            {!readOnly && (
+              <Button 
+                onClick={() => setAddModalOpen(true)}
+                size="lg"
+                className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Your First Favorite
+              </Button>
+            )}
           </div>
         ) : (
           <>
@@ -428,23 +438,25 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
                   <div key={restaurant.id} className="relative min-w-[280px] snap-start">
                     <div className="group">
                       <RestaurantCard restaurant={restaurant} />
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="absolute top-3 right-3 h-7 w-7 p-0 opacity-90 hover:opacity-100 shadow-lg transition-opacity"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleRemoveFavorite(restaurant.id);
-                        }}
-                        disabled={updateFavoritesMutation.isPending}
-                      >
-                        {updateFavoritesMutation.isPending ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <X className="h-3 w-3" />
-                        )}
-                      </Button>
+                      {!readOnly && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="absolute top-3 right-3 h-7 w-7 p-0 opacity-90 hover:opacity-100 shadow-lg transition-opacity"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleRemoveFavorite(restaurant.id);
+                          }}
+                          disabled={updateFavoritesMutation.isPending}
+                        >
+                          {updateFavoritesMutation.isPending ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <X className="h-3 w-3" />
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -458,23 +470,25 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
                   <div className="transition-transform group-hover:scale-[1.02]">
                     <RestaurantCard restaurant={restaurant} />
                   </div>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="absolute top-3 right-3 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 shadow-lg transition-opacity"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleRemoveFavorite(restaurant.id);
-                    }}
-                    disabled={updateFavoritesMutation.isPending}
-                  >
-                    {updateFavoritesMutation.isPending ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <X className="h-3 w-3" />
-                    )}
-                  </Button>
+                  {!readOnly && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="absolute top-3 right-3 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 shadow-lg transition-opacity"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRemoveFavorite(restaurant.id);
+                      }}
+                      disabled={updateFavoritesMutation.isPending}
+                    >
+                      {updateFavoritesMutation.isPending ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <X className="h-3 w-3" />
+                      )}
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
@@ -483,7 +497,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
       </div>
 
       {/* Add Favorite Modal */}
-      {isMobile ? (
+      {!readOnly && (isMobile ? (
         <Sheet open={addModalOpen} onOpenChange={setAddModalOpen}>
           <SheetContent side="bottom" className="h-[85vh]">
             <SheetHeader className="mb-6">
@@ -511,7 +525,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
             </div>
           </DialogContent>
         </Dialog>
-      )}
+      ))}
     </>
   );
 };

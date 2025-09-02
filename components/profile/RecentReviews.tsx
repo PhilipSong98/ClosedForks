@@ -10,9 +10,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface RecentReviewsProps {
   userId: string;
+  title?: string;
 }
 
-const RecentReviews: React.FC<RecentReviewsProps> = ({ userId }) => {
+const RecentReviews: React.FC<RecentReviewsProps> = ({ userId, title = 'Your Reviews' }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 5;
   
@@ -80,7 +81,7 @@ const RecentReviews: React.FC<RecentReviewsProps> = ({ userId }) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-foreground">
-          Your Reviews
+          {title}
         </h2>
         <span className="text-sm text-muted-foreground">
           {pagination.total} review{pagination.total !== 1 ? 's' : ''}

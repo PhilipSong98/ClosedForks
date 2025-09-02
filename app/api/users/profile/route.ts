@@ -23,6 +23,11 @@ interface Restaurant {
   google_data: Record<string, unknown> | null;
 }
 
+interface RestaurantWithStats extends Restaurant {
+  avg_rating?: number;
+  review_count?: number;
+}
+
 // GET /api/users/profile - Get current user's profile with stats
 export async function GET() {
   try {
@@ -63,7 +68,7 @@ export async function GET() {
     }
 
     // Get favorite restaurants data if user has favorites
-    let favoriteRestaurants: Restaurant[] = [];
+    let favoriteRestaurants: RestaurantWithStats[] = [];
     const favoriteIds = profile?.favorite_restaurants;
     
     if (favoriteIds && Array.isArray(favoriteIds) && favoriteIds.length > 0) {
@@ -77,15 +82,37 @@ export async function GET() {
       if (favoritesError) {
         console.error('Error fetching favorite restaurants:', favoritesError);
       } else if (favorites) {
-        // Maintain the order of favorites as stored in the user's profile
+        // Compute review stats for these restaurants
+        const { data: favReviews } = await supabase
+          .from('reviews')
+          .select('restaurant_id, rating_overall')
+          .in('restaurant_id', favoriteIds);
+
+        const statsMap = new Map<string, { avg_rating: number; review_count: number }>();
+        if (favReviews) {
+          const bucket: Record<string, number[]> = {};
+          for (const r of favReviews as { restaurant_id: string; rating_overall: number }[]) {
+            if (!bucket[r.restaurant_id]) bucket[r.restaurant_id] = [];
+            if (typeof r.rating_overall === 'number') bucket[r.restaurant_id].push(r.rating_overall);
+          }
+          Object.entries(bucket).forEach(([rid, ratings]) => {
+            const count = ratings.length;
+            const avg = count > 0 ? Math.round((ratings.reduce((a, b) => a + b, 0) / count) * 10) / 10 : 0;
+            statsMap.set(rid, { avg_rating: avg, review_count: count });
+          });
+        }
+
+        // Maintain the order of favorites as stored in the user's profile and attach stats
         favoriteRestaurants = [];
         for (const id of favoriteIds) {
           const restaurant = favorites.find((fav: Restaurant) => fav.id === id);
           if (restaurant) {
-            favoriteRestaurants.push(restaurant);
+            const stats = statsMap.get(id);
+            const typedRestaurant = restaurant as Restaurant;
+            favoriteRestaurants.push(stats ? { ...typedRestaurant, avg_rating: stats.avg_rating, review_count: stats.review_count } : typedRestaurant);
           }
         }
-        
+
         console.log('Successfully fetched favorite restaurants:', favoriteRestaurants.length);
       }
     } else {
@@ -140,7 +167,7 @@ export async function PATCH(request: NextRequest) {
     if (name !== undefined) updateData.name = name;
     if (favorite_restaurants !== undefined) updateData.favorite_restaurants = favorite_restaurants;
 
-    // Update user profile
+    // Update user profile - using type assertion due to Supabase RLS type inference issues
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: updatedProfile, error: updateError } = await (supabase.from('users') as any)
       .update(updateData)

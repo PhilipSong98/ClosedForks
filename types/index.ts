@@ -14,6 +14,21 @@ export interface User {
   session_expires_at?: string;
 }
 
+// Public profile interface that excludes sensitive fields like role
+export interface PublicProfile {
+  id: string;
+  name: string;
+  full_name?: string;
+  email: string;
+  avatar_url?: string;
+  created_at: string;
+  favoriteRestaurants?: Restaurant[];
+  stats: {
+    reviewCount: number;
+    favoritesCount: number;
+  };
+}
+
 export interface Restaurant {
   id: string;
   name: string;
