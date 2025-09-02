@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { Restaurant, Review } from '@/types';
 
 export function useRestaurants(options?: {
@@ -147,4 +147,47 @@ export function useRestaurantsWithReviews(options?: { enabled?: boolean }) {
   }
 
   return combinedData;
+}
+
+interface RestaurantsResponse {
+  restaurants: Restaurant[];
+  hasMore: boolean;
+  nextCursor?: number;
+}
+
+export function useInfiniteRestaurants(options?: {
+  pageSize?: number;
+  enabled?: boolean;
+}) {
+  const pageSize = options?.pageSize || 15;
+  
+  return useInfiniteQuery({
+    queryKey: ['restaurants', 'infinite', options],
+    queryFn: async ({ pageParam = 1 }): Promise<RestaurantsResponse> => {
+      const params = new URLSearchParams();
+      params.append('page', pageParam.toString());
+      params.append('limit', pageSize.toString());
+
+      const response = await fetch(`/api/restaurants/feed?${params}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch restaurants');
+      }
+      const data = await response.json();
+      
+      return {
+        restaurants: data.restaurants || [],
+        hasMore: data.hasMore || false,
+        nextCursor: data.hasMore ? pageParam + 1 : undefined,
+      };
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    enabled: options?.enabled !== false, // Default to enabled unless explicitly disabled
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 }
