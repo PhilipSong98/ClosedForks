@@ -7,6 +7,7 @@ import RecentReviews from '@/components/profile/RecentReviews';
 import FavoritesSection from '@/components/profile/FavoritesSection';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface PublicProfileClientProps {
   userId: string;
@@ -77,13 +78,18 @@ export default function PublicProfileClient({ userId }: PublicProfileClientProps
         <div className="max-w-4xl mx-auto space-y-8">
           <ProfileHeader user={profile} isOwnProfile={false} />
 
-          {/* Content: Only Recent Reviews and Favorites (read-only) */}
-          <div className="space-y-10">
-            <section>
-              <RecentReviews userId={userId} title="Recent Reviews" />
-            </section>
+          {/* Content: Tabs for Recent and Favorites (read-only) */}
+          <Tabs defaultValue="reviews" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="reviews">Recent Reviews</TabsTrigger>
+              <TabsTrigger value="favorites">Favorites</TabsTrigger>
+            </TabsList>
 
-            <section>
+            <TabsContent value="reviews" className="mt-6">
+              <RecentReviews userId={userId} title="Recent Reviews" />
+            </TabsContent>
+
+            <TabsContent value="favorites" className="mt-6">
               <FavoritesSection 
                 favorites={profile.favoriteRestaurants || []}
                 isLoading={false}
@@ -91,11 +97,10 @@ export default function PublicProfileClient({ userId }: PublicProfileClientProps
                 readOnly={true}
                 title="Favorites"
               />
-            </section>
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>
   );
 }
-

@@ -22,7 +22,11 @@ interface ProfileHeaderProps {
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true }) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  const displayName = (user.full_name || user.name || user.email || 'User').trim();
+  const displayName = (
+    isOwnProfile
+      ? (user.full_name || user.name || user.email || 'User')
+      : (user.full_name || user.name || 'User')
+  ).trim();
 
   const getInitials = (value: string) => {
     const safe = (value || '').trim();
@@ -58,9 +62,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true
               <h1 className="text-3xl font-bold text-foreground">
                 {displayName}
               </h1>
-              <p className="text-muted-foreground">
-                {user.email}
-              </p>
+              {isOwnProfile && (
+                <p className="text-muted-foreground">
+                  {user.email}
+                </p>
+              )}
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
                 <span>Member {memberSince}</span>

@@ -128,8 +128,10 @@ export async function GET(
       restaurant: review.restaurants,
       author: userData ? {
         id: userData.id,
-        name: userData.name || userData.full_name || userData.email || 'Unknown User',
+        // Do not expose email as display name
+        name: userData.full_name || userData.name || 'User',
         full_name: userData.full_name,
+        // Keep raw email on the object but UI should not display it by default
         email: userData.email,
         avatar_url: userData.avatar_url,
       } : null,
