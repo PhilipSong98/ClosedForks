@@ -47,6 +47,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Complete Group Management System** - Full create/edit functionality with browser extension protection
 - [x] **Database Security Model** - Implemented with security functions instead of complex RLS policies
 - [x] **Global Navigation Progress Indicator** - Sleek horizontal progress bar for page navigation with smooth animations
+- [x] **Liked Posts Feature** - Private liked posts tab in profile with direct unlike functionality and group-scoped security
 
 ### Pending Features
 - [ ] Photo upload for reviews
@@ -69,7 +70,7 @@ restaurant/
 │   ├── filters/           # EnhancedFilters system  
 │   ├── groups/            # Group management components (CreateGroupModal, EditGroupModal, InviteCodeModal)
 │   ├── layout/            # Header, AuthWrapper, FABs, MobileMenu, NavigationProgress
-│   ├── profile/           # Profile components (includes ToEatSection)
+│   ├── profile/           # Profile components (includes ToEatSection, LikedReviews)
 │   ├── restaurant/        # Restaurant components (includes ToEatButton)
 │   ├── review/            # ReviewComposer, ReviewCard
 │   ├── search/            # SearchBar, GlobalSearchModal, SearchFAB
@@ -104,6 +105,7 @@ restaurant/
 - `components/profile/RecentReviews.tsx`: **NEW** - User reviews with pagination
 - `components/profile/FavoritesSection.tsx`: **NEW** - Favorites management with search
 - `components/profile/ToEatSection.tsx`: **NEW** - To-Eat List management with unlimited capacity
+- `components/profile/LikedReviews.tsx`: **NEW** - Liked posts tab with direct unlike functionality and pagination
 - `components/restaurant/ToEatButton.tsx`: **NEW** - Bookmark button for adding/removing from to-eat list
 - `components/groups/CreateGroupModal.tsx`: **NEW** - Modal component for creating new groups with browser extension protection
 - `components/groups/EditGroupModal.tsx`: **NEW** - Modal component for editing group names with extension-resistant inputs
@@ -130,6 +132,7 @@ restaurant/
 - `lib/queries/restaurants.ts`: **NEW** - React Query hooks for data fetching with automatic refresh
 - `lib/queries/profile.ts`: **NEW** - React Query hooks for profile data and user reviews
 - `lib/queries/toEatList.ts`: **NEW** - React Query hooks for to-eat list data with automatic refresh
+- `lib/queries/likes.ts`: **NEW** - React Query hooks for user liked reviews with pagination and group filtering
 - `lib/utils.ts`: `getRestaurantPhotoUrl()` for Google Places image optimization
 - `app/restaurants/restaurants-client.tsx`: **UPDATED** - Uses React Query hooks for automatic data refresh
 - `supabase/migrations/`: Database schema (use migrations, not schema.sql)
@@ -284,14 +287,18 @@ supabase db push                       # Apply to remote
 - **Database Triggers**: Automatic like_count updates in reviews table
 - **React Query Integration**: Proper cache invalidation and optimistic mutations
 - **TypeScript Support**: Fully typed interfaces with comprehensive error handling
+- **Liked Posts Collection**: Private profile tab showing user's liked reviews with direct unlike functionality
+- **Group-Scoped Security**: Liked posts only shows reviews from groups user has access to
+- **Smart Cache Management**: Enhanced like mutations with cache invalidation for liked posts removal
 
 ### User Profile System
 - **Complete Profile Pages**: Accessible at `/profile` with comprehensive user information
 - **Profile Statistics**: Display review count and favorites count with real-time updates
-- **Three-Tab Interface**: Recent Reviews, Favorites (10 max), and To-Eat List (unlimited)
+- **Four-Tab Interface**: Recent Reviews, Favorites (10 max), To-Eat List (unlimited), and Liked Posts (private)
 - **Recent Reviews Tab**: Paginated user reviews using existing ReviewCard component with like functionality
 - **Favorites Management**: Up to 10 favorite restaurants with horizontal scroll display
 - **To-Eat List Management**: Unlimited restaurant wishlist with search and add functionality
+- **Liked Posts Tab**: Private collection of user's liked reviews with direct unlike functionality
 - **Restaurant Search**: Integrated search modal for adding to both favorites and to-eat list
 - **Edit Profile**: Simple modal for updating user display name (no image uploads)
 - **Mobile-Responsive**: Sheet/Dialog components with `useMediaQuery` hook
@@ -511,6 +518,7 @@ NEXT_PUBLIC_APP_URL=
 - `GET /api/users/profile` - Get current user profile
 - `PATCH /api/users/profile` - Update user profile
 - `GET /api/users/[id]/reviews` - Get user's reviews with pagination (group-visible only)
+- `GET /api/users/liked-reviews` - Get user's liked reviews with pagination (private, group-scoped)
 - `GET /api/users/to-eat-list` - Get user's to-eat list restaurants
 - `POST /api/users/to-eat-list` - Add restaurant to to-eat list
 - `DELETE /api/users/to-eat-list` - Remove restaurant from to-eat list
@@ -522,9 +530,37 @@ NEXT_PUBLIC_APP_URL=
 - `POST /api/groups` - Create new group (admin only)
 - `POST /api/groups/[id]/invite-code` - Generate invite code for group (any member)
 
+### Liked Posts Feature Implementation (September 2, 2025)
+
+**Major Feature**: Private liked posts collection with Instagram-style UX
+
+- **Liked Posts Tab**: Fourth tab in profile page for private liked review collection
+  - **Problem**: Users had no way to revisit reviews they liked for future reference
+  - **Solution**: Added dedicated "Liked Posts" tab showing user's liked reviews with pagination
+  - **Result**: Private collection accessible only to the user, enhancing social engagement
+  - **Technical**: New API endpoint and React Query hooks with group-based security
+
+- **Direct Unlike Functionality**: Unlike reviews directly from liked posts tab
+  - **Problem**: Users had to navigate back to original review to unlike
+  - **Solution**: Integrated heart button with unlike capability directly in liked posts
+  - **Result**: Seamless management of liked content with optimistic updates
+  - **UX**: Consistent heart button behavior matching feed interactions
+
+- **Group-Scoped Security**: Liked posts respects group membership boundaries
+  - **Problem**: Liked posts could reveal reviews from groups user no longer has access to
+  - **Solution**: Applied group security functions to liked posts API endpoint
+  - **Result**: Liked posts automatically filters based on current group memberships
+  - **Performance**: Efficient queries using existing security functions
+
+- **Enhanced Cache Management**: Smart cache invalidation for liked posts removal
+  - **Problem**: Removing likes didn't update liked posts collection in real-time
+  - **Solution**: Enhanced like mutations with cache invalidation for 'user-liked-reviews' query
+  - **Result**: Instant removal from liked posts tab when unliking reviews
+  - **Technical**: React Query cache management with optimistic updates and rollback
+
 ## 🚀 Next Steps
 Ready for photo uploads for reviews, restaurant detail maps, and email notifications!
 
 ---
-**Last Updated**: 2025-09-01  
-**Status**: MVP v1.17 - Complete Group Management with Browser Extension Protection
+**Last Updated**: 2025-09-02  
+**Status**: MVP v1.18 - Liked Posts Feature with Instagram-Style UX

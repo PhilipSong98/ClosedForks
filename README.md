@@ -20,6 +20,7 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 - 📋 **To-Eat List (Wishlist)** - Unlimited restaurant bookmarking with blue-themed UI and dedicated management page
 - ❤️ **Instagram-Style Likes** - Heart button interactions with optimistic updates, like counts, and one like per user per review
 - 🔄 **Global Navigation Progress Indicator** - Safari/YouTube-style horizontal progress bar with smooth animations during page navigation
+- ❤️ **Liked Posts Collection** - Private profile tab for managing liked reviews with direct unlike functionality and group-scoped access
 
 ## Tech Stack
 
@@ -141,6 +142,37 @@ Implemented professional page load progress indicator for enhanced user experien
 - **Professional Feel** - Matches expectations from modern web applications like Safari and YouTube
 - **Reduced Uncertainty** - Eliminates confusion during page transitions, especially on slower connections
 - **Consistent Experience** - Works across all pages and navigation methods throughout the application
+
+### ❤️ Liked Posts Feature (September 2, 2025)
+
+Complete implementation of private liked posts collection with Instagram-style user experience:
+
+#### **✅ Private Liked Posts Tab**
+- **Fourth Profile Tab** - Added "Liked Posts" as the fourth tab in user profile page
+- **Private Collection** - Users can only see their own liked reviews, completely private
+- **Instagram-Style UX** - Heart icon branding and familiar interface patterns
+- **Pagination Support** - Efficient loading of liked reviews with pagination
+- **Empty State Design** - Engaging empty state encouraging users to like reviews
+
+#### **🔧 Technical Implementation**
+- **New API Endpoint** - `GET /api/users/liked-reviews` with pagination and group-based filtering
+- **LikedReviews Component** - Dedicated component following existing profile tab patterns
+- **React Query Integration** - `useUserLikedReviews()` hook with automatic cache management
+- **Group-Scoped Security** - Only shows liked posts from groups user currently has access to
+- **TypeScript Support** - Fully typed interfaces with comprehensive error handling
+
+#### **🎯 Enhanced User Experience**
+- **Direct Unlike Functionality** - Unlike reviews directly from liked posts tab without navigation
+- **Optimistic Updates** - Instant UI feedback with automatic rollback on errors
+- **Smart Cache Management** - Enhanced like mutations with cache invalidation for liked posts removal
+- **Consistent Design** - Matches existing profile tab layout and review card styling
+- **Performance Optimized** - Efficient database queries using existing security functions
+
+#### **🔒 Privacy & Security**
+- **User-Only Access** - Liked posts are completely private to the individual user
+- **Group Boundary Respect** - Automatically filters out reviews from groups user no longer belongs to
+- **Security Function Integration** - Uses existing `get_user_visible_reviews()` for proper access control
+- **Cache Consistency** - Proper cache invalidation ensures data accuracy across all profile tabs
 
 ### 🔧 UI/UX Improvements (August 2025)
 
@@ -568,6 +600,9 @@ npm run lint       # Check linting issues
 - `POST /api/users/to-eat-list` - Add restaurant to to-eat list
 - `DELETE /api/users/to-eat-list` - Remove restaurant from to-eat list
 
+### Liked Posts
+- `GET /api/users/liked-reviews` - Get user's liked reviews with pagination (private, group-scoped)
+
 ## Feature Flags
 
 ### Maps Integration
@@ -612,14 +647,14 @@ Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
 │   ├── auth/           # Authentication components
 │   ├── filters/        # Enhanced filter system (EnhancedFilters, legacy CuisineFilters)
 │   ├── layout/         # Layout components (Header, AuthWrapper, WriteReviewFAB, MobileMenu, NavigationProgress)
-│   ├── profile/        # Profile components (including ToEatSection)
+│   ├── profile/        # Profile components (including ToEatSection, LikedReviews)
 │   ├── restaurant/     # Restaurant-related components (RestaurantSelector, ToEatButton)
 │   ├── review/         # Review components (ReviewComposer, RatingInput)
 │   ├── search/         # Search components (SearchBar, SearchFAB, GlobalSearchModal)
 │   └── ui/             # shadcn/ui components
 ├── lib/                # Utilities and configurations
 │   ├── mutations/      # React Query mutations (including toEatList.ts, likes.ts)
-│   ├── queries/        # React Query data fetching (including toEatList.ts)
+│   ├── queries/        # React Query data fetching (including toEatList.ts, likes.ts)
 │   ├── supabase/       # Supabase client configuration
 │   ├── hooks/          # Custom React hooks (useAuth, useMediaQuery)
 │   └── validations/    # Zod schemas
