@@ -172,47 +172,88 @@
     }
   }
 
-  /* Instagram-style heart animations */
-  .heart-bounce {
-    animation: heart-bounce 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-
-  @keyframes heart-bounce {
-    0% { transform: scale(1); }
-    25% { transform: scale(1.3); }
-    50% { transform: scale(1.15); }
-    75% { transform: scale(1.25); }
-    100% { transform: scale(1); }
-  }
-
-  /* Like count number animation */
-  .like-count-bounce {
-    animation: like-count-bounce 0.2s ease-out;
-  }
-
-  @keyframes like-count-bounce {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-    100% { transform: scale(1); }
-  }
-
-  /* Heart fill animation for when liked */
-  .heart-fill {
-    animation: heart-fill 0.3s ease-out;
-  }
-
-  @keyframes heart-fill {
+  /* Professional like button animation - Instagram style */
+  @keyframes heart-pulse {
     0% { 
       transform: scale(1);
-      color: rgba(239, 68, 68, 0.5);
     }
     50% { 
       transform: scale(1.2);
-      color: rgb(239, 68, 68);
     }
     100% { 
       transform: scale(1);
-      color: rgb(239, 68, 68);
+    }
+  }
+
+  @keyframes heart-error {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+  }
+
+  @keyframes count-pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.95; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-1px); }
+    20%, 40%, 60%, 80% { transform: translateX(1px); }
+  }
+
+  /* Animation classes */
+  .animate-heart-pulse {
+    animation: heart-pulse 0.2s ease-out;
+  }
+
+  .animate-heart-error {
+    animation: heart-error 0.5s ease-in-out;
+  }
+
+  .animate-count-pulse {
+    animation: count-pulse 0.2s ease-out;
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  /* Professional like button styles */
+  .like-button {
+    transform-origin: center;
+    contain: layout style;
+    will-change: transform;
+  }
+
+  .like-button .heart {
+    transform-origin: center;
+    transition: color 0.15s ease-out, fill 0.15s ease-out;
+    will-change: transform;
+  }
+
+  .like-button .heart.liked {
+    color: rgb(239 68 68);
+    fill: rgb(239 68 68);
+  }
+
+  .like-button .heart:not(.liked) {
+    color: rgb(107 114 128);
+    fill: none;
+  }
+
+  /* Respect reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-heart-pulse,
+    .animate-heart-error,
+    .animate-count-pulse,
+    .animate-shake {
+      animation: none;
+    }
+    
+    .like-button .heart {
+      transition: color 0.1s linear, fill 0.1s linear;
     }
   }
 }

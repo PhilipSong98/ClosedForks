@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { StarRating } from '@/components/ui/StarRating';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Review } from '@/types';
 import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
 import { ToEatButton } from '@/components/restaurant/ToEatButton';
-import { useLikeReview } from '@/lib/mutations/reviewLikes';
+import LikeButton from '@/components/ui/LikeButton';
 
 interface ReviewCardProps {
   review: Review;
@@ -24,10 +24,6 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
   onUserClick,
   showRestaurant = true 
 }) => {
-  const likeReview = useLikeReview();
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [lastClickTime, setLastClickTime] = useState(0);
-
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -39,24 +35,6 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
       return new Date(timestamp).toLocaleDateString();
     }
   };
-
-  const handleLikeClick = useCallback(() => {
-    const now = Date.now();
-    
-    // Debounce: Prevent clicks within 300ms of each other
-    if (now - lastClickTime < 300) {
-      return;
-    }
-    
-    setLastClickTime(now);
-    
-    // Trigger heart animation
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 300);
-    
-    // Execute the mutation (optimistic update will happen instantly)
-    likeReview.mutate(review.id);
-  }, [review.id, likeReview, lastClickTime]);
 
   // Helper function to get tag category for styling
   const getTagCategory = (tag: string) => {
@@ -237,43 +215,15 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
 
       {/* Actions */}
       <div className="px-4 pb-2 flex items-center justify-between border-t border-border pt-3">
-        <button 
-          onClick={handleLikeClick}
-          disabled={likeReview.isPending}
-          className="flex items-center space-x-2 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50 group focus:outline-none focus:ring-2 focus:ring-red-500/20 rounded-full p-1 -m-1"
-        >
-          <Heart 
-            className={`w-4 h-4 transition-all duration-200 transform ${
-              review.isLikedByUser 
-                ? 'fill-red-500 text-red-500' 
-                : 'group-hover:text-red-500'
-            } ${
-              isAnimating ? 'scale-125' : 'scale-100'
-            } group-active:scale-110`} 
-          />
-          <span className={`text-sm font-medium transition-all duration-200 ${
-            isAnimating ? 'scale-110' : 'scale-100'
-          }`}>
-            {review.like_count || 0}
-          </span>
-        </button>
+        <LikeButton
+          reviewId={review.id}
+          isLiked={review.isLikedByUser || false}
+          likeCount={review.like_count || 0}
+          size="md"
+        />
       </div>
     </div>
   );
 };
 
 export default ReviewCard;
-
-// Add CSS for additional animations (will be included in globals.css)
-/* 
-@keyframes heartBounce {
-  0% { transform: scale(1); }
-  25% { transform: scale(1.2); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-}
-
-.heart-liked {
-  animation: heartBounce 0.3s ease-out;
-}
-*/

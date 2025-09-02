@@ -68,22 +68,40 @@ export function useLikeReview() {
 
   return useMutation({
     mutationFn: async (reviewId: string): Promise<LikeResponse> => {
-      const response = await fetch(`/api/reviews/${reviewId}/like`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      // Add timeout to detect slow network conditions
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to toggle like');
+      try {
+        const response = await fetch(`/api/reviews/${reviewId}/like`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+          throw new Error(errorData.error || `HTTP ${response.status}: Failed to toggle like`);
+        }
+
+        return response.json();
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            throw new Error('Request timeout - please check your connection');
+          }
+          throw error;
+        }
+        throw new Error('Unknown network error occurred');
       }
-
-      return response.json();
     },
     onMutate: async (reviewId: string) => {
-      // Cancel all outgoing refetches for review-related queries
+      // Cancel outgoing refetches to prevent race conditions
       await queryClient.cancelQueries({ 
         predicate: (query) => {
           const key = query.queryKey[0] as string;
@@ -91,46 +109,38 @@ export function useLikeReview() {
         }
       });
 
-      // Get current like state from any available query
-      let currentReview: ReviewData | null = null;
-      let currentlyLiked = false;
-      let currentLikeCount = 0;
-
-      // Try to find the review in various query caches
-      const allQueries = queryClient.getQueriesData({ 
+      // Store the review ID for error handling
+      return { reviewId };
+    },
+    onError: (err, reviewId, context) => {
+      console.error('Like mutation failed:', err);
+      
+      // Invalidate queries to ensure fresh data on next fetch
+      queryClient.invalidateQueries({ 
         predicate: (query) => {
           const key = query.queryKey[0] as string;
           return key === 'reviews' || key === 'user' || key === 'restaurants';
         }
       });
-
-      for (const [, data] of allQueries) {
-        if (Array.isArray(data)) {
-          currentReview = data.find((review: ReviewData) => review.id === reviewId) || null;
-        } else if (data && typeof data === 'object' && 'reviews' in data) {
-          const reviewsData = data as ReviewsResponse;
-          currentReview = reviewsData.reviews.find((review: ReviewData) => review.id === reviewId) || null;
-        }
-        
-        if (currentReview) {
-          currentlyLiked = currentReview.isLikedByUser || false;
-          currentLikeCount = currentReview.like_count || 0;
-          break;
-        }
+      
+      // Show contextual error message based on error type
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update like';
+      
+      if (errorMessage.includes('timeout')) {
+        toast.error('Connection timeout. Your like will sync when connection improves.');
+      } else if (errorMessage.includes('Network error')) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        toast.error('Failed to update like. Please try again.');
       }
-
-      // Calculate optimistic updates
-      const optimisticUpdates = {
-        isLikedByUser: !currentlyLiked,
-        like_count: currentlyLiked 
-          ? Math.max(0, currentLikeCount - 1)
-          : currentLikeCount + 1
+    },
+    onSuccess: (data, reviewId) => {
+      // Apply server response to all queries to sync with actual server state
+      const serverUpdates = {
+        isLikedByUser: data.isLiked,
+        like_count: data.likeCount
       };
 
-      // Store previous state for all affected queries
-      const previousStates = new Map<string, unknown>();
-
-      // Apply optimistic updates to ALL queries that might contain this review
       queryClient.setQueriesData(
         { 
           predicate: (query) => {
@@ -138,17 +148,11 @@ export function useLikeReview() {
             return key === 'reviews' || key === 'user' || key === 'restaurants';
           }
         },
-        (oldData: unknown) => {
-          if (oldData) {
-            previousStates.set(JSON.stringify(oldData), oldData);
-            return updateReviewInData(oldData, reviewId, optimisticUpdates);
-          }
-          return oldData;
-        }
+        (oldData: unknown) => updateReviewInData(oldData, reviewId, serverUpdates)
       );
 
-      // For liked reviews, if user is unliking, remove the review from the list
-      if (!optimisticUpdates.isLikedByUser) {
+      // Handle liked reviews list - remove from liked reviews if unliked
+      if (!data.isLiked) {
         queryClient.setQueriesData(
           { 
             predicate: (query) => {
@@ -176,43 +180,7 @@ export function useLikeReview() {
         );
       }
 
-      return { previousStates, reviewId };
-    },
-    onError: (err, reviewId, context) => {
-      console.error('Like mutation failed:', err);
-      
-      // Roll back optimistic updates
-      if (context?.previousStates) {
-        // Restore all queries to their previous state
-        queryClient.invalidateQueries({ 
-          predicate: (query) => {
-            const key = query.queryKey[0] as string;
-            return key === 'reviews' || key === 'user' || key === 'restaurants';
-          }
-        });
-      }
-      
-      // Show error toast
-      toast.error('Failed to update like. Please try again.');
-    },
-    onSuccess: (data, reviewId) => {
-      // Apply server response to all queries (in case of any discrepancies)
-      const serverUpdates = {
-        isLikedByUser: data.isLiked,
-        like_count: data.likeCount
-      };
-
-      queryClient.setQueriesData(
-        { 
-          predicate: (query) => {
-            const key = query.queryKey[0] as string;
-            return key === 'reviews' || key === 'user' || key === 'restaurants';
-          }
-        },
-        (oldData: unknown) => updateReviewInData(oldData, reviewId, serverUpdates)
-      );
-
-      // Invalidate all review-related queries to ensure fresh data on next fetch
+      // Background invalidation to ensure fresh data on next fetch
       queryClient.invalidateQueries({ 
         predicate: (query) => {
           const key = query.queryKey[0] as string;
