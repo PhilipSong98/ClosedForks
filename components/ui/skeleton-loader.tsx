@@ -66,3 +66,61 @@ export const ReviewFeedSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) 
     </div>
   );
 };
+
+export const RestaurantCardSkeleton: React.FC = () => {
+  return (
+    <div className="bg-card border border-border rounded-lg shadow-sm">
+      <div className="p-6">
+        {/* Restaurant Image */}
+        <Skeleton className="w-full h-48 rounded-lg mb-4" />
+        
+        {/* Restaurant Name */}
+        <Skeleton className="h-6 w-3/4 mb-2" />
+        
+        {/* Restaurant Address */}
+        <Skeleton className="h-4 w-5/6 mb-3" />
+        
+        {/* Rating and Stats */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-1">
+            <Skeleton className="h-4 w-20" />
+          </div>
+          <Skeleton className="h-4 w-16" />
+        </div>
+        
+        {/* Tags */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Skeleton className="h-6 w-16 rounded-full" />
+          <Skeleton className="h-6 w-20 rounded-full" />
+          <Skeleton className="h-6 w-18 rounded-full" />
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex justify-between items-center pt-4 border-t">
+          <Skeleton className="h-9 w-24" />
+          <Skeleton className="h-9 w-9 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const RestaurantFeedSkeleton: React.FC<{ count?: number }> = ({ count = 6 }) => {
+  return (
+    <>
+      {/* Mobile: Single column */}
+      <div className="md:hidden max-w-lg mx-auto space-y-6">
+        {Array.from({ length: count }).map((_, index) => (
+          <RestaurantCardSkeleton key={index} />
+        ))}
+      </div>
+      
+      {/* Desktop: Grid layout */}
+      <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {Array.from({ length: count }).map((_, index) => (
+          <RestaurantCardSkeleton key={index} />
+        ))}
+      </div>
+    </>
+  );
+};
