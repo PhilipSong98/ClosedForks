@@ -128,7 +128,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
             href={`/restaurants/${restaurant.id}`}
             className="block group"
           >
-            <div className="relative w-full aspect-[4/3] overflow-hidden">
+            <div className="relative w-full aspect-video overflow-hidden">
               {restaurantImage ? (
                 <>
                   <Image 
