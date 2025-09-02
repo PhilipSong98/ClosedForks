@@ -159,10 +159,10 @@ export async function GET(request: NextRequest) {
           // Add joined data
           author: users.find((u: { id: string }) => u.id === review.author_id),
           restaurant: (() => {
-            const base = restaurants.find((r: { id: string }) => r.id === review.restaurant_id);
-            if (!base) return base as unknown as undefined;
+            const base = restaurants.find((r: { id: string }) => r.id === review.restaurant_id) as any;
+            if (!base) return undefined as any;
             const stats = statsMap.get(review.restaurant_id);
-            return stats ? { ...base, avg_rating: stats.avg_rating, review_count: stats.review_count } : base;
+            return stats ? { ...(base as any), avg_rating: stats.avg_rating, review_count: stats.review_count } : base;
           })()
         }));
       }

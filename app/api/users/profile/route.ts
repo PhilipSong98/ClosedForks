@@ -103,7 +103,7 @@ export async function GET() {
           const restaurant = favorites.find((fav: Restaurant) => fav.id === id);
           if (restaurant) {
             const stats = statsMap.get(id);
-            favoriteRestaurants.push(stats ? { ...restaurant, avg_rating: stats.avg_rating, review_count: stats.review_count } : restaurant);
+            favoriteRestaurants.push(stats ? { ...(restaurant as any), avg_rating: stats.avg_rating, review_count: stats.review_count } : restaurant);
           }
         }
 

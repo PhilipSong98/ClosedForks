@@ -31,7 +31,18 @@ export async function GET(
       .from('users')
       .select('id, name, full_name, email, avatar_url, favorite_restaurants, created_at')
       .eq('id', id)
-      .single();
+      .single() as {
+        data: {
+          id: string;
+          name: string | null;
+          full_name: string | null;
+          email: string;
+          avatar_url: string | null;
+          favorite_restaurants: string[] | null;
+          created_at: string;
+        } | null;
+        error: unknown;
+      };
 
     if (!profile) {
       console.error('Public profile not found for id:', id, 'error:', profileError);
@@ -70,10 +81,10 @@ export async function GET(
       if (favorites) {
         favoriteRestaurants = favoriteIds
           .map((rid: string) => {
-            const base = favorites.find((r: Restaurant) => r.id === rid);
+            const base = favorites.find((r: Restaurant) => r.id === rid) as any;
             if (!base) return null;
             const stats = statsMap.get(rid);
-            return stats ? { ...base, avg_rating: stats.avg_rating, review_count: stats.review_count } : base;
+            return stats ? { ...(base as any), avg_rating: stats.avg_rating, review_count: stats.review_count } : base;
           })
           .filter(Boolean) as Restaurant[];
       }
