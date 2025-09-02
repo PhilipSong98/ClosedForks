@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
       const restaurantIds = processedReviews.map((review: { restaurant_id: string }) => review.restaurant_id);
       const { data: restaurants, error: restaurantsError } = await supabase
         .from('restaurants')
-        .select('id, name, address, city, cuisine, google_data, google_place_id, google_maps_url, lat, lng')
+        .select('id, name, address, city, cuisine, price_level, google_data, google_place_id, google_maps_url, lat, lng')
         .in('id', restaurantIds);
 
       // Get user's like status for each review

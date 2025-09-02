@@ -18,7 +18,7 @@ const HomeClient: React.FC = () => {
   const [filters, setFilters] = useState<FilterState>({
     tags: [],
     minRating: 0,
-    priceRange: [0, 1000],
+    priceLevels: [],
     dateRange: 'all',
     recommendedOnly: false,
     sortBy: 'recent'
@@ -64,6 +64,14 @@ const HomeClient: React.FC = () => {
   };
 
   // Filter and sort reviews
+  const mapPriceToLevel = (price?: number | null) => {
+    if (price == null) return undefined;
+    if (price <= 25) return 1;
+    if (price <= 50) return 2;
+    if (price <= 100) return 3;
+    return 4;
+  };
+
   const filteredReviews = allReviews
     .filter(review => {
       // Tag filter
@@ -78,10 +86,12 @@ const HomeClient: React.FC = () => {
         return false;
       }
 
-      // Price range filter (if review has price data)
-      if (review.price_per_person) {
-        if (review.price_per_person < filters.priceRange[0] || 
-            (filters.priceRange[1] < 1000 && review.price_per_person > filters.priceRange[1])) {
+      // Price level filter ($ - $$$$)
+      if (filters.priceLevels.length > 0) {
+        const levelFromRestaurant = review.restaurant?.price_level as number | undefined;
+        const levelFromPrice = mapPriceToLevel(review.price_per_person);
+        const priceLevel = levelFromRestaurant || levelFromPrice;
+        if (!priceLevel || !filters.priceLevels.includes(priceLevel)) {
           return false;
         }
       }
@@ -123,9 +133,17 @@ const HomeClient: React.FC = () => {
         case 'rating':
           return b.rating_overall - a.rating_overall;
         case 'price_low':
-          return (a.price_per_person || 0) - (b.price_per_person || 0);
+          {
+            const aLevel = (a.restaurant?.price_level as number | undefined) ?? mapPriceToLevel(a.price_per_person) ?? 0;
+            const bLevel = (b.restaurant?.price_level as number | undefined) ?? mapPriceToLevel(b.price_per_person) ?? 0;
+            return aLevel - bLevel;
+          }
         case 'price_high':
-          return (b.price_per_person || 0) - (a.price_per_person || 0);
+          {
+            const aLevel = (a.restaurant?.price_level as number | undefined) ?? mapPriceToLevel(a.price_per_person) ?? 0;
+            const bLevel = (b.restaurant?.price_level as number | undefined) ?? mapPriceToLevel(b.price_per_person) ?? 0;
+            return bLevel - aLevel;
+          }
         default:
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }

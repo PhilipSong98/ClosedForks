@@ -10,12 +10,13 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
-import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
+import { REVIEW_TAGS, TAG_CATEGORY_CONFIG, PRICE_LEVELS } from '@/constants';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 export interface FilterState {
   tags: string[];
   minRating: number;
-  priceRange: [number, number];
+  priceLevels: number[]; // 1-4 corresponding to $, $$, $$$, $$$$
   dateRange: 'all' | 'week' | 'month' | 'year';
   recommendedOnly: boolean;
   sortBy: 'recent' | 'rating' | 'price_low' | 'price_high';
@@ -57,7 +58,7 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
     onFiltersChange({
       tags: [],
       minRating: 0,
-      priceRange: [0, 1000],
+      priceLevels: [],
       dateRange: 'all',
       recommendedOnly: false,
       sortBy: defaultSortBy
@@ -67,7 +68,7 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
   const activeFilterCount = 
     filters.tags.length + 
     (filters.minRating > 0 ? 1 : 0) + 
-    (filters.priceRange[0] > 0 || filters.priceRange[1] < 1000 ? 1 : 0) +
+    (filters.priceLevels.length > 0 ? 1 : 0) +
     (filters.dateRange !== 'all' ? 1 : 0) + 
     (filters.recommendedOnly ? 1 : 0);
 
@@ -263,10 +264,10 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
             >
               <Filter className="w-3 h-3 mr-2" />
               Advanced Filters
-              {(filters.minRating > 0 || filters.priceRange[0] > 0 || filters.priceRange[1] < 1000 || filters.dateRange !== 'all' || filters.recommendedOnly) && (
+              {(filters.minRating > 0 || filters.priceLevels.length > 0 || filters.dateRange !== 'all' || filters.recommendedOnly) && (
                 <Badge variant="secondary" className="ml-2 text-xs">
                   {(filters.minRating > 0 ? 1 : 0) + 
-                   (filters.priceRange[0] > 0 || filters.priceRange[1] < 1000 ? 1 : 0) +
+                   (filters.priceLevels.length > 0 ? 1 : 0) +
                    (filters.dateRange !== 'all' ? 1 : 0) + 
                    (filters.recommendedOnly ? 1 : 0)}
                 </Badge>
@@ -299,24 +300,27 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
 
               <Separator />
 
-              {/* Price Range Filter */}
+              {/* Price Level Filter ($ - $$$$) */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-green-500" />
-                  <label className="text-sm font-medium">Price Range (per person)</label>
+                  <label className="text-sm font-medium">Price Level</label>
                 </div>
-                <div className="px-2">
-                  <Slider
-                    value={filters.priceRange}
-                    onValueChange={(value) => onFiltersChange({ ...filters, priceRange: value as [number, number] })}
-                    min={0}
-                    max={1000}
-                    step={50}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                    <span>${filters.priceRange[0]}</span>
-                    <span>${filters.priceRange[1]}+</span>
+                <div className="px-1">
+                  <ToggleGroup 
+                    type="multiple" 
+                    value={(filters.priceLevels || []).map(String)}
+                    onValueChange={(values) => onFiltersChange({ ...filters, priceLevels: values.map(v => parseInt(v)) })}
+                    className="flex flex-wrap gap-1"
+                  >
+                    {[1,2,3,4].map((level) => (
+                      <ToggleGroupItem key={level} value={String(level)} className="px-3 py-1 text-xs" aria-label={`Price level ${PRICE_LEVELS[level as 1|2|3|4]}`}>
+                        {PRICE_LEVELS[level as 1|2|3|4]}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {filters.priceLevels.length > 0 ? `${filters.priceLevels.length} selected` : 'Any price'}
                   </div>
                 </div>
               </div>

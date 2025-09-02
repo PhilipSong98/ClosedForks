@@ -24,7 +24,7 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
   const [filters, setFilters] = useState<FilterState>({
     tags: [],
     minRating: 0,
-    priceRange: [0, 1000],
+    priceLevels: [],
     dateRange: 'all',
     recommendedOnly: false,
     sortBy: 'rating'
@@ -80,19 +80,27 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
         return false;
       }
 
-      // Price range filter (using price_level)
-      const priceValue = restaurant.price_level * 250; // Convert 1-4 scale to price range
-      if (priceValue < filters.priceRange[0] || priceValue > filters.priceRange[1]) {
-        return false;
+      // Price level filter ($ - $$$$)
+      if (filters.priceLevels.length > 0) {
+        if (!restaurant.price_level || !filters.priceLevels.includes(restaurant.price_level as number)) {
+          return false;
+        }
       }
 
       return true;
     })
     .sort((a, b) => {
-      if (filters.sortBy === 'recent') {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      } else {
-        return (b.avg_rating || 0) - (a.avg_rating || 0);
+      switch (filters.sortBy) {
+        case 'recent':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'rating':
+          return (b.avg_rating || 0) - (a.avg_rating || 0);
+        case 'price_low':
+          return (a.price_level || 0) - (b.price_level || 0);
+        case 'price_high':
+          return (b.price_level || 0) - (a.price_level || 0);
+        default:
+          return (b.avg_rating || 0) - (a.avg_rating || 0);
       }
     });
 
