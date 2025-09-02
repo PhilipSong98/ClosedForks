@@ -70,7 +70,21 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
     (filters.recommendedOnly ? 1 : 0);
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 mb-6 shadow-sm">
+    <div
+      className={`bg-card border border-border rounded-xl p-4 mb-6 shadow-sm ${
+        // Show pointer when collapsed in compact mode to suggest expand
+        ((!isMobile && showAllFilters) || isExpanded) ? '' : 'cursor-pointer'
+      }`}
+      // In compact mode, clicking the card toggles open/close.
+      // When full filters are always shown (desktop + showAllFilters), ignore clicks.
+      onClick={() => {
+        if (!isMobile && showAllFilters) return;
+        setIsExpanded((prev) => !prev);
+      }}
+      role="region"
+      aria-expanded={isExpanded}
+      aria-label="Filters"
+    >
       {/* Header with Results Count and Mobile Toggle */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -84,7 +98,7 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleClearAll}
+              onClick={(e) => { e.stopPropagation(); handleClearAll(); }}
               className="text-xs text-muted-foreground hover:text-foreground"
             >
               {isMobile ? `Clear (${activeFilterCount})` : `Clear all (${activeFilterCount})`}
@@ -116,7 +130,7 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
               className="text-xs"
             >
               Filters {isExpanded ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
@@ -132,7 +146,7 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
 
       {/* Sort Controls When Expanded */}
       {isExpanded && (
-        <div className="flex items-center gap-2 mb-4 pb-3 border-b">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b" onClick={(e) => e.stopPropagation()}>
           <span className="text-sm font-medium text-foreground">Sort:</span>
           <Select 
             value={filters.sortBy} 
@@ -153,7 +167,7 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
 
       {/* Quick Tag Filters */}
       {((!isMobile && showAllFilters) || isExpanded) && (
-      <div className="space-y-3">
+      <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
         {Object.entries(REVIEW_TAGS).map(([categoryKey, tags]) => {
           const category = categoryKey as keyof typeof REVIEW_TAGS;
           const config = TAG_CATEGORY_CONFIG[category];
@@ -236,13 +250,14 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
 
       {/* Advanced Filters */}
       {((!isMobile && showAllFilters) || isExpanded) && (
-      <div className="mt-4">
+      <div className="mt-4" onClick={(e) => e.stopPropagation()}>
         <Popover open={isOpen} onOpenChange={setIsOpen}>
           <PopoverTrigger asChild>
             <Button 
               variant="outline" 
               size="sm" 
               className="text-xs"
+              onClick={(e) => e.stopPropagation()}
             >
               <Filter className="w-3 h-3 mr-2" />
               Advanced Filters
