@@ -28,6 +28,7 @@ interface EnhancedFiltersProps {
   filteredCount?: number;
   showAllFilters?: boolean;
   defaultExpanded?: boolean;
+  defaultSortBy?: FilterState['sortBy'];
 }
 
 const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({ 
@@ -36,7 +37,8 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
   reviewCount = 0,
   filteredCount = 0,
   showAllFilters = false,
-  defaultExpanded = false
+  defaultExpanded = false,
+  defaultSortBy = 'recent'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -58,7 +60,7 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
       priceRange: [0, 1000],
       dateRange: 'all',
       recommendedOnly: false,
-      sortBy: 'recent'
+      sortBy: defaultSortBy
     });
   };
 

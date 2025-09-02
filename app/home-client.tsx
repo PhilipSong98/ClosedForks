@@ -214,6 +214,7 @@ const HomeClient: React.FC = () => {
                 filteredCount={filteredReviews.length}
                 showAllFilters={false}
                 defaultExpanded={false}
+                defaultSortBy="recent"
               />
 
               {filteredReviews.length > 0 ? (

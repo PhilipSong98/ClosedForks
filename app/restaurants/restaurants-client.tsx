@@ -27,7 +27,7 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
     priceRange: [0, 1000],
     dateRange: 'all',
     recommendedOnly: false,
-    sortBy: 'recent'
+    sortBy: 'rating'
   });
 
   // Use infinite query for progressive loading
@@ -181,6 +181,7 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
                 filteredCount={filteredRestaurants.length}
                 showAllFilters={false}
                 defaultExpanded={false}
+                defaultSortBy="rating"
               />
 
               {filteredRestaurants.length > 0 ? (
