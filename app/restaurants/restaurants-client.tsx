@@ -16,8 +16,10 @@ interface RestaurantsClientProps {
 const RestaurantsClient: React.FC<RestaurantsClientProps> = ({ 
   initialRestaurants = []
 }) => {
-  const { user } = useAuth();
-  const { data: restaurants = initialRestaurants, isLoading, error } = useRestaurantsWithReviews();
+  const { user, loading: authLoading } = useAuth();
+  const { data: restaurants = initialRestaurants, isLoading, error } = useRestaurantsWithReviews({
+    enabled: !!user && !authLoading
+  });
   const [filters, setFilters] = useState<FilterState>({
     tags: [],
     minRating: 0,
@@ -27,8 +29,10 @@ const RestaurantsClient: React.FC<RestaurantsClientProps> = ({
     sortBy: 'recent'
   });
 
-  // Show loading state
-  if (isLoading) {
+  // Show loading state when auth is loading or data is initially loading
+  const showLoading = authLoading || (isLoading && !restaurants);
+  
+  if (showLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />

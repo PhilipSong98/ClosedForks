@@ -13,6 +13,7 @@ export function useToEatList() {
     queryFn: async (): Promise<ToEatListResponse> => {
       const response = await fetch('/api/users/to-eat-list', {
         method: 'GET',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },

@@ -24,7 +24,12 @@ export function useUserProfile() {
   return useQuery({
     queryKey: ['user', 'profile'],
     queryFn: async (): Promise<UserProfile> => {
-      const response = await fetch('/api/users/profile');
+      const response = await fetch('/api/users/profile', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch user profile');
       }
@@ -40,7 +45,12 @@ export function useUserReviews(userId: string, page: number = 1, limit: number =
   return useQuery({
     queryKey: ['user', userId, 'reviews', page, limit],
     queryFn: async (): Promise<UserReviewsResponse> => {
-      const response = await fetch(`/api/users/${userId}/reviews?page=${page}&limit=${limit}`);
+      const response = await fetch(`/api/users/${userId}/reviews?page=${page}&limit=${limit}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch user reviews');
       }
@@ -56,7 +66,12 @@ export function useUserLikedReviews(page: number = 1, limit: number = 10) {
   return useQuery({
     queryKey: ['user', 'liked-reviews', page, limit],
     queryFn: async (): Promise<UserReviewsResponse> => {
-      const response = await fetch(`/api/users/liked-reviews?page=${page}&limit=${limit}`);
+      const response = await fetch(`/api/users/liked-reviews?page=${page}&limit=${limit}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch liked reviews');
       }
