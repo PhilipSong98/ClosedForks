@@ -11,13 +11,8 @@ import { ReviewFeedSkeleton } from '@/components/ui/skeleton-loader';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useInfiniteReviews } from '@/lib/queries/reviews';
 import { useIntersectionObserver } from '@/lib/hooks/useIntersectionObserver';
-import { Review } from '@/types';
 
-interface HomeClientProps {
-  initialReviews?: Review[];
-}
-
-const HomeClient: React.FC<HomeClientProps> = () => {
+const HomeClient: React.FC = () => {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [filters, setFilters] = useState<FilterState>({
@@ -140,7 +135,7 @@ const HomeClient: React.FC<HomeClientProps> = () => {
   }
 
   // Show loading skeleton when auth is loading or data is initially loading
-  const showInitialLoading = authLoading || (isLoading && !data);
+  const showInitialLoading = authLoading || (isLoading && !data?.pages?.length);
 
   return (
     <div className="min-h-screen bg-background">
