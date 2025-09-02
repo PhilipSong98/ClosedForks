@@ -6,6 +6,7 @@ import { useUserProfile } from '@/lib/queries/profile';
 import Header from '@/components/layout/Header';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import RecentReviews from '@/components/profile/RecentReviews';
+import LikedReviews from '@/components/profile/LikedReviews';
 import FavoritesSection from '@/components/profile/FavoritesSection';
 import ToEatSection from '@/components/profile/ToEatSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -80,14 +81,19 @@ export default function ProfileClient() {
           
           {/* Profile Content */}
           <Tabs defaultValue="reviews" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="reviews">Recent Reviews</TabsTrigger>
+              <TabsTrigger value="liked">Liked Posts</TabsTrigger>
               <TabsTrigger value="favorites">Favorites</TabsTrigger>
               <TabsTrigger value="to-eat">To-Eat List</TabsTrigger>
             </TabsList>
             
             <TabsContent value="reviews" className="mt-6">
               <RecentReviews userId={user.id} />
+            </TabsContent>
+            
+            <TabsContent value="liked" className="mt-6">
+              <LikedReviews />
             </TabsContent>
             
             <TabsContent value="favorites" className="mt-6">

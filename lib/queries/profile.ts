@@ -50,3 +50,18 @@ export function useUserReviews(userId: string, page: number = 1, limit: number =
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
+
+// Hook to fetch user's liked reviews with pagination
+export function useUserLikedReviews(page: number = 1, limit: number = 10) {
+  return useQuery({
+    queryKey: ['user', 'liked-reviews', page, limit],
+    queryFn: async (): Promise<UserReviewsResponse> => {
+      const response = await fetch(`/api/users/liked-reviews?page=${page}&limit=${limit}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch liked reviews');
+      }
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}

@@ -17,6 +17,12 @@ interface ReviewData {
 
 interface ReviewsResponse {
   reviews: ReviewData[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
   [key: string]: unknown;
 }
 
@@ -140,6 +146,35 @@ export function useLikeReview() {
           return oldData;
         }
       );
+
+      // For liked reviews, if user is unliking, remove the review from the list
+      if (!optimisticUpdates.isLikedByUser) {
+        queryClient.setQueriesData(
+          { 
+            predicate: (query) => {
+              const key = query.queryKey.join('-');
+              return key.startsWith('user-liked-reviews');
+            }
+          },
+          (oldData: unknown) => {
+            if (oldData && typeof oldData === 'object' && 'reviews' in oldData) {
+              const reviewsData = oldData as ReviewsResponse;
+              if (Array.isArray(reviewsData.reviews)) {
+                const updatedReviews = reviewsData.reviews.filter((review: ReviewData) => review.id !== reviewId);
+                return {
+                  ...reviewsData,
+                  reviews: updatedReviews,
+                  pagination: {
+                    ...reviewsData.pagination,
+                    total: Math.max(0, (reviewsData.pagination?.total || 0) - 1)
+                  }
+                };
+              }
+            }
+            return oldData;
+          }
+        );
+      }
 
       return { previousStates, reviewId };
     },
