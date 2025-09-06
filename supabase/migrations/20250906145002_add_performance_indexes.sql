@@ -53,10 +53,11 @@ INCLUDE (
 CREATE INDEX IF NOT EXISTS idx_user_groups_user_group_composite 
 ON user_groups(user_id, group_id);
 
--- 9. Restaurant search optimization 
-CREATE INDEX IF NOT EXISTS idx_restaurants_city_name_search 
-ON restaurants(city, name) 
-INCLUDE (id, address, cuisine, price_level, google_place_id, google_data);
+-- 9. Restaurant search optimization (basic version - fixed version in later migration)
+-- Note: Large google_data column causes index size issues in production
+-- The corrected version is in migration 20250906150001_fix_restaurant_index.sql
+CREATE INDEX IF NOT EXISTS idx_restaurants_basic_search 
+ON restaurants(city, name);
 
 -- 10. Optimize to-eat list queries
 CREATE INDEX IF NOT EXISTS idx_to_eat_list_user_created 
