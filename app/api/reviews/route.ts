@@ -87,22 +87,22 @@ export async function GET(request: NextRequest) {
         });
       
       // Transform the old format to match our expected structure
-      reviews = (data || []).map((review: any) => ({
-        review_id: review.review_id,
-        restaurant_id: review.restaurant_id,
-        author_id: review.author_id,
-        rating_overall: review.rating_overall,
-        dish: review.dish,
-        review_text: review.review_text,
-        recommend: review.recommend,
-        tips: review.tips,
-        tags: review.tags || [],
-        visit_date: review.visit_date,
-        price_per_person: review.price_per_person,
-        created_at: review.created_at,
-        updated_at: review.updated_at,
-        like_count: review.like_count || 0,
-        group_id: review.group_id,
+      reviews = (data || []).map((review: Record<string, unknown>) => ({
+        review_id: review.review_id as string,
+        restaurant_id: review.restaurant_id as string,
+        author_id: review.author_id as string,
+        rating_overall: review.rating_overall as number,
+        dish: review.dish as string,
+        review_text: review.review_text as string,
+        recommend: review.recommend as boolean,
+        tips: review.tips as string | null,
+        tags: (review.tags as string[]) || [],
+        visit_date: review.visit_date as string,
+        price_per_person: review.price_per_person as number | null,
+        created_at: review.created_at as string,
+        updated_at: review.updated_at as string,
+        like_count: (review.like_count as number) || 0,
+        group_id: review.group_id as string,
         // These will be filled by the legacy processing below
         author_name: '',
         author_full_name: null,
@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Process the reviews - optimized function returns complete data, no additional queries needed!
-    let processedReviews: any[] = [];
+    let processedReviews: Record<string, unknown>[] = [];
     
     if (groupId && reviews.length > 0) {
       // LEGACY PATH: Group reviews still need additional processing (N+1 queries)
@@ -204,7 +204,7 @@ export async function GET(request: NextRequest) {
         const likedReviewIds = new Set((userLikes || []).map((like: { review_id: string }) => like.review_id));
         
         // Transform legacy format to expected format
-        processedReviews = reviews.map((review: any) => ({
+        processedReviews = reviews.map((review) => ({
           id: review.review_id,
           restaurant_id: review.restaurant_id,
           author_id: review.author_id,

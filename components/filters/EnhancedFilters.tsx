@@ -85,7 +85,6 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
         setIsExpanded((prev) => !prev);
       }}
       role="region"
-      aria-expanded={isExpanded}
       aria-label="Filters"
     >
       {/* Header with Results Count and Mobile Toggle */}

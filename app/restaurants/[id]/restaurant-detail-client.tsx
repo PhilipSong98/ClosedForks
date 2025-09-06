@@ -25,7 +25,7 @@ export default function RestaurantDetailClient({
 }: RestaurantDetailClientProps) {
   const router = useRouter();
   const { user } = useAuth();
-  const [reviews, _setReviews] = useState<Review[]>(initialReviews);
+  const [reviews] = useState<Review[]>(initialReviews);
 
   const handleUserClick = (userId: string) => {
     router.push(`/profile/${userId}`);

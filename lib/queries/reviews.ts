@@ -1,13 +1,19 @@
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, InfiniteData } from '@tanstack/react-query';
 import { Review } from '@/types';
+
+// Define the cursor type for keyset pagination
+interface KeysetCursor {
+  created_at: string;
+  id: string;
+}
+
+// Union type for page parameters to support both pagination strategies
+type PageParam = number | KeysetCursor | null;
 
 interface ReviewsResponse {
   reviews: Review[];
   hasMore: boolean;
-  nextCursor?: {
-    created_at: string;
-    id: string;
-  } | number; // Support both keyset and offset pagination
+  nextCursor?: PageParam; // Support both keyset and offset pagination
   _meta?: {
     optimized: boolean;
     queriesUsed: string;
@@ -73,18 +79,19 @@ export function useInfiniteReviews(options?: {
   const pageSize = options?.pageSize || 15;
   const useKeyset = options?.useKeysetPagination ?? true; // Default to keyset for better performance
   
-  return useInfiniteQuery({
+  return useInfiniteQuery<ReviewsResponse, Error, InfiniteData<ReviewsResponse, PageParam>, (string | { useKeysetPagination: boolean; restaurantId?: string; authorId?: string; pageSize?: number; enabled?: boolean; })[], PageParam>({
     queryKey: ['reviews', 'infinite', { ...options, useKeysetPagination: useKeyset }],
-    queryFn: async ({ pageParam }): Promise<ReviewsResponse> => {
+    queryFn: async ({ pageParam }: { pageParam: PageParam }): Promise<ReviewsResponse> => {
       const params = new URLSearchParams();
       if (options?.restaurantId) params.append('restaurant_id', options.restaurantId);
       if (options?.authorId) params.append('author_id', options.authorId);
       params.append('limit', pageSize.toString());
       
-      if (useKeyset && pageParam && typeof pageParam === 'object') {
+      if (useKeyset && pageParam && typeof pageParam === 'object' && 'created_at' in pageParam) {
         // Keyset pagination - much faster for deep pages
-        params.append('cursor_created_at', pageParam.created_at);
-        params.append('cursor_id', pageParam.id);
+        const cursor = pageParam as KeysetCursor;
+        params.append('cursor_created_at', cursor.created_at);
+        params.append('cursor_id', cursor.id);
       } else if (!useKeyset || typeof pageParam === 'number') {
         // Fallback to offset pagination
         const page = typeof pageParam === 'number' ? pageParam : 1;
@@ -114,8 +121,8 @@ export function useInfiniteReviews(options?: {
         _meta: data._meta
       };
     },
-    initialPageParam: useKeyset ? null : 1,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    initialPageParam: (useKeyset ? null : 1) as PageParam,
+    getNextPageParam: (lastPage): PageParam => lastPage.nextCursor ?? null,
     enabled: options?.enabled !== false,
     staleTime: 15 * 60 * 1000, // 15 minutes for optimized queries
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes

@@ -17,9 +17,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         refetchOnWindowFocus: false, // Reduce unnecessary network requests
         refetchOnReconnect: true, // Refetch on network reconnect
         retryOnMount: true, // Retry failed queries on component mount
-        retry: (failureCount, error: any) => {
+        retry: (failureCount, error) => {
           // Don't retry authentication errors
-          if (error?.status === 401 || error?.status === 403) {
+          if ((error as unknown as { status?: number })?.status === 401 || (error as unknown as { status?: number })?.status === 403) {
             return false;
           }
           // Retry up to 2 times for other errors
@@ -29,9 +29,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       },
       mutations: {
         // Optimistic updates and better error handling
-        retry: (failureCount, error: any) => {
+        retry: (failureCount, error) => {
           // Don't retry client errors (4xx)
-          if (error?.status >= 400 && error?.status < 500) {
+          const errorWithStatus = error as unknown as { status?: number };
+          if (errorWithStatus?.status && errorWithStatus.status >= 400 && errorWithStatus.status < 500) {
             return false;
           }
           // Retry server errors up to 1 time
