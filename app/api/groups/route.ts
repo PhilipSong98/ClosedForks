@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     // Check if user has permission to create groups (Admin only)
     try {
       await permissionService.ensureCan(user.id, 'create_group');
-    } catch (permissionError) {
+    } catch {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 

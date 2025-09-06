@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SignupFormData, AuthError } from '@/types';
+import { SignupFormData } from '@/types';
 import { signupSchema } from '@/lib/validations';
 
 interface SignupResult {

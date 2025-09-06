@@ -40,8 +40,8 @@ export async function GET(request: NextRequest) {
     const uniqueRestaurants = restaurants?.reduce((acc, restaurant) => {
       if (!acc.find(r => r.id === restaurant.id)) {
         // Remove the reviews array since we only used it for filtering
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { reviews, ...restaurantData } = restaurant as any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+        const { reviews: _reviews, ...restaurantData } = restaurant as any;
         acc.push(restaurantData);
       }
       return acc;

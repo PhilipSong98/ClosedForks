@@ -17,9 +17,7 @@ interface RestaurantsClientProps {
   initialRestaurants?: Restaurant[];
 }
 
-const RestaurantsClient: React.FC<RestaurantsClientProps> = ({ 
-  initialRestaurants = []
-}) => {
+const RestaurantsClient: React.FC<RestaurantsClientProps> = () => {
   const { user, loading: authLoading } = useAuth();
   const [filters, setFilters] = useState<FilterState>({
     tags: [],

@@ -37,7 +37,7 @@ export async function PATCH(
     // Check if user has permission to manage roles in this group
     try {
       await permissionService.ensureCan(user.id, 'manage_roles', { groupId });
-    } catch (permissionError) {
+    } catch {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 
@@ -156,7 +156,7 @@ export async function DELETE(
     // Check if user has permission to remove members from this group
     try {
       await permissionService.ensureCan(user.id, 'remove_member', { groupId });
-    } catch (permissionError) {
+    } catch {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 

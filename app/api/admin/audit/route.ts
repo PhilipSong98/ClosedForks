@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Check if user has permission to view audit logs (Admin only)
     try {
       await permissionService.ensureCan(user.id, 'view_audit_log');
-    } catch (permissionError) {
+    } catch {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     // Check if user has permission to view audit logs (Admin only)
     try {
       await permissionService.ensureCan(user.id, 'view_audit_log');
-    } catch (permissionError) {
+    } catch {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 

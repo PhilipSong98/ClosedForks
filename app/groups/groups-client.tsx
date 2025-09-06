@@ -197,7 +197,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
 const GroupsClient: React.FC = () => {
   const router = useRouter();
   const { user } = useAuth();
-  const { canCreateGroup, loading: permissionsLoading } = usePermissions();
+  const { loading: permissionsLoading } = usePermissions();
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [invitingGroup, setInvitingGroup] = useState<Group | null>(null);

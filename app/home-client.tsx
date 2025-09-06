@@ -11,6 +11,7 @@ import { ReviewFeedSkeleton } from '@/components/ui/skeleton-loader';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useInfiniteReviews } from '@/lib/queries/reviews';
 import { useIntersectionObserver } from '@/lib/hooks/useIntersectionObserver';
+import { Review } from '@/types';
 
 const HomeClient: React.FC = () => {
   const router = useRouter();
@@ -56,7 +57,7 @@ const HomeClient: React.FC = () => {
   // Flatten all reviews from all pages
   const allReviews = useMemo(() => {
     if (!data?.pages) return [];
-    return data.pages.flatMap(page => page.reviews) || [];
+    return (data.pages as { reviews: Review[] }[]).flatMap(page => page.reviews) || [];
   }, [data]);
 
   const handleUserClick = (userId: string) => {

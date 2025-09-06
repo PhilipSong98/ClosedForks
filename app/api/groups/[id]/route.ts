@@ -175,7 +175,7 @@ export async function PATCH(
     // Check if user has permission to edit this group
     try {
       await permissionService.ensureCan(user.id, 'edit_group', { groupId });
-    } catch (permissionError) {
+    } catch {
       return NextResponse.json(
         { 
           error: 'Insufficient permissions', 
