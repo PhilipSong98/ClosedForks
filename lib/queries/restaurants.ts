@@ -5,10 +5,13 @@ export function useRestaurants(options?: {
   city?: string;
   cuisine?: string[];
   limit?: number;
-  sortBy?: 'rating' | 'created_at';
+  sortBy?: 'rating' | 'created_at' | 'review_count';
+  useOptimizedEndpoint?: boolean;
 }) {
+  const useOptimized = options?.useOptimizedEndpoint ?? true;
+  
   return useQuery({
-    queryKey: ['restaurants', options],
+    queryKey: ['restaurants', { ...options, useOptimizedEndpoint: useOptimized }],
     queryFn: async (): Promise<Restaurant[]> => {
       const params = new URLSearchParams();
       if (options?.city) params.append('city', options.city);
@@ -17,8 +20,11 @@ export function useRestaurants(options?: {
       }
       if (options?.limit) params.append('limit', options.limit.toString());
       if (options?.sortBy) params.append('sort', options.sortBy);
+      
+      // Use optimized endpoint that leverages cached aggregates
+      const endpoint = useOptimized ? '/api/restaurants/optimized' : '/api/restaurants';
 
-      const response = await fetch(`/api/restaurants?${params}`, {
+      const response = await fetch(`${endpoint}?${params}`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -28,9 +34,17 @@ export function useRestaurants(options?: {
         throw new Error('Failed to fetch restaurants');
       }
       const data = await response.json();
+      
+      // Log performance info in development
+      if (data._meta && process.env.NODE_ENV === 'development') {
+        console.log(`[Restaurants Query] Optimized: ${useOptimized}, Sort: ${options?.sortBy || 'default'}, Count: ${data.restaurants?.length || 0}`);
+      }
+      
       return data.restaurants || [];
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 15 * 60 * 1000, // 15 minutes - longer for cached data
+    gcTime: 45 * 60 * 1000, // 45 minutes in cache
+    refetchOnWindowFocus: false,
   });
 }
 
