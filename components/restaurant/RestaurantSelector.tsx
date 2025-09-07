@@ -18,7 +18,7 @@ export function RestaurantSelector({ onSelect, selectedRestaurant, className = "
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handlePlaceSelect = async (placeId: string, description: string) => {
+  const handlePlaceSelect = async (placeId: string, _description: string) => {
     setIsLoading(true);
     setError(null);
 

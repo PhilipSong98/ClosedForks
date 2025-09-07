@@ -42,7 +42,7 @@ interface ReviewComposerProps {
 }
 
 const ReviewComposer: React.FC<ReviewComposerProps> = ({ 
-  onClose, 
+  onClose: _onClose, 
   onSubmit, 
   prefilledRestaurant,
   preselectedRestaurant 
@@ -170,7 +170,7 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
           <FormField
             control={form.control}
             name="restaurant"
-            render={({ field }) => (
+            render={({ field: _field }) => (
               <FormItem>
                 <FormLabel className="flex items-center gap-2 text-base font-medium">
                   <MapPin className="w-4 h-4" />
@@ -290,7 +290,7 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
           <FormField
             control={form.control}
             name="tags"
-            render={({ field }) => (
+            render={({ field: _field }) => (
               <FormItem>
                 <FormLabel className="flex items-center gap-2 text-base font-medium">
                   <Tag className="w-4 h-4" />

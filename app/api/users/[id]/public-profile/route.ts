@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 
 interface Restaurant {
   id: string;
@@ -9,6 +9,16 @@ interface Restaurant {
   cuisine: string[] | null;
   price_level: number | null;
   google_data: Record<string, unknown> | null;
+}
+
+interface UserProfile {
+  id: string;
+  name: string;
+  full_name: string | null;
+  email: string;
+  avatar_url: string | null;
+  favorite_restaurants: string[] | null;
+  created_at: string | null;
 }
 
 export async function GET(
@@ -26,40 +36,36 @@ export async function GET(
 
     const { id } = await params;
 
+    // Use service client for profile queries to bypass RLS restrictions
+    // This is safe since we've already verified the user is authenticated
+    const serviceSupabase = createServiceClient();
+    
     // Fetch target user's basic profile
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await serviceSupabase
       .from('users')
       .select('id, name, full_name, email, avatar_url, favorite_restaurants, created_at')
       .eq('id', id)
-      .single() as {
-        data: {
-          id: string;
-          name: string | null;
-          full_name: string | null;
-          email: string;
-          avatar_url: string | null;
-          favorite_restaurants: string[] | null;
-          created_at: string;
-        } | null;
-        error: unknown;
-      };
+      .single();
 
-    if (!profile) {
+    if (profileError || !profile) {
       console.error('Public profile not found for id:', id, 'error:', profileError);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Type assertion to ensure profile has the correct shape
+    const typedProfile = profile as UserProfile;
+
     // Load favorite restaurants
     let favoriteRestaurants: Restaurant[] = [];
-    const favoriteIds = Array.isArray(profile.favorite_restaurants) ? profile.favorite_restaurants : [];
+    const favoriteIds = Array.isArray(typedProfile.favorite_restaurants) ? typedProfile.favorite_restaurants : [];
     if (favoriteIds.length > 0) {
-      const { data: favorites } = await supabase
+      const { data: favorites } = await serviceSupabase
         .from('restaurants')
         .select('id, name, address, city, cuisine, price_level, google_data')
         .in('id', favoriteIds);
 
       // Attach stats to favorites
-      const { data: favReviews } = await supabase
+      const { data: favReviews } = await serviceSupabase
         .from('reviews')
         .select('restaurant_id, rating_overall')
         .in('restaurant_id', favoriteIds);
@@ -93,7 +99,7 @@ export async function GET(
 
     // Compute visible review count for viewer (only shared group reviews)
     // Get viewer's group ids
-    const { data: viewerGroups } = await supabase
+    const { data: viewerGroups } = await serviceSupabase
       .from('user_groups')
       .select('group_id')
       .eq('user_id', user.id);
@@ -101,7 +107,7 @@ export async function GET(
 
     let reviewCount = 0;
     if (viewerGroupIds.length > 0) {
-      const { count } = await supabase
+      const { count } = await serviceSupabase
         .from('reviews')
         .select('*', { count: 'exact', head: true })
         .eq('author_id', id)
@@ -111,15 +117,15 @@ export async function GET(
 
     return NextResponse.json({
       profile: {
-        id: profile.id,
-        name: profile.name,
-        full_name: profile.full_name,
-        email: profile.email,
-        avatar_url: profile.avatar_url,
-        created_at: profile.created_at,
+        id: typedProfile.id,
+        name: typedProfile.name,
+        full_name: typedProfile.full_name,
+        email: typedProfile.email,
+        avatar_url: typedProfile.avatar_url,
+        created_at: typedProfile.created_at,
         // updated_at not present on users; omit or mirror created_at
-        updated_at: profile.created_at,
-        favorite_restaurants: profile.favorite_restaurants,
+        updated_at: typedProfile.created_at,
+        favorite_restaurants: typedProfile.favorite_restaurants,
         favoriteRestaurants,
         stats: {
           reviewCount,

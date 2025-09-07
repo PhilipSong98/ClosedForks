@@ -36,12 +36,6 @@ const TopRestaurantsCarousel: React.FC<TopRestaurantsCarouselProps> = ({
     return null;
   };
 
-      const _handleClick = (restaurant: Restaurant) => {
-    if (onRestaurantClick) {
-      onRestaurantClick(restaurant);
-    }
-    // Default navigation is handled by Link wrapper
-  };
 
   if (!restaurants || restaurants.length === 0) {
     return null;
