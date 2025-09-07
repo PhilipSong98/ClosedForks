@@ -54,6 +54,7 @@ export function InviteCodeModal({
   const { toast } = useToast();
   const [inviteCode, setInviteCode] = useState<InviteCode | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const { data: existingCodes = [], isLoading: codesLoading } = useGroupInviteCodes(group.id, isOpen);
   
   const activeExistingCodes = existingCodes.filter(code => 
@@ -97,9 +98,31 @@ export function InviteCodeModal({
     }
   };
 
+  const handleCopyExistingCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedCode(code);
+      toast({
+        title: 'Copied!',
+        description: 'Invite code copied to clipboard',
+      });
+      
+      // Reset copied state after 2 seconds
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy code:', error);
+      toast({
+        title: 'Copy failed',
+        description: 'Failed to copy code to clipboard',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleClose = () => {
     setInviteCode(null);
     setCopied(false);
+    setCopiedCode(null);
     onOpenChange(false);
   };
 
@@ -149,7 +172,7 @@ export function InviteCodeModal({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleCopyCode(code.code)}
+                  onClick={() => handleCopyExistingCode(code.code)}
                   disabled={copiedCode === code.code}
                   className="shrink-0"
                 >

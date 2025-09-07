@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { Database } from '@/types/supabase';
 
 export async function DELETE(
   request: NextRequest,
@@ -24,7 +25,10 @@ export async function DELETE(
       .from('invite_codes')
       .select('*, group_id')
       .eq('id', inviteId)
-      .single();
+      .single() as {
+        data: Database['public']['Tables']['invite_codes']['Row'] | null;
+        error: Error | null;
+      };
 
     if (fetchError || !inviteCode) {
       return NextResponse.json(
@@ -34,6 +38,13 @@ export async function DELETE(
     }
 
     // Check if user is a member of the group this invite belongs to
+    if (!inviteCode.group_id) {
+      return NextResponse.json(
+        { error: 'Invalid invite code: no group associated' },
+        { status: 400 }
+      );
+    }
+
     const { data: membership, error: membershipError } = await serviceSupabase
       .from('user_groups')
       .select('role')
@@ -49,7 +60,8 @@ export async function DELETE(
     }
 
     // Revoke the invite code by setting is_active to false
-    const { error: updateError } = await serviceSupabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: updateError } = await (serviceSupabase as any)
       .from('invite_codes')
       .update({ 
         is_active: false,

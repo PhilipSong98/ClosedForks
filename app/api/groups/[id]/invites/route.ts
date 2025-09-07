@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { Database } from '@/types/supabase';
 
 export async function GET(
   request: NextRequest,
@@ -39,7 +40,10 @@ export async function GET(
       .from('invite_codes')
       .select('*')
       .eq('group_id', groupId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as {
+        data: Database['public']['Tables']['invite_codes']['Row'][] | null;
+        error: Error | null;
+      };
 
     if (inviteError) {
       console.error('Error fetching invite codes:', inviteError);
@@ -58,7 +62,7 @@ export async function GET(
       usesRemaining: (code.max_uses || 10) - (code.current_uses || 0),
       expiresAt: code.expires_at,
       createdAt: code.created_at,
-      isActive: code.is_active && new Date(code.expires_at) > new Date()
+      isActive: code.is_active && code.expires_at ? new Date(code.expires_at) > new Date() : false
     }));
 
     return NextResponse.json(formattedCodes);
