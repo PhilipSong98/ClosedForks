@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 
 // Define types for the database responses
 interface Restaurant {
@@ -137,8 +137,9 @@ export async function GET(
       );
     }
 
-    // Get user data for the reviews
-    const { data: userData, error: userError } = await supabase
+    // Get user data for the reviews - use service client to bypass RLS
+    const serviceSupabase = createServiceClient();
+    const { data: userData, error: userError } = await serviceSupabase
       .from('users')
       .select('id, name, full_name, email, avatar_url')
       .eq('id', userId)

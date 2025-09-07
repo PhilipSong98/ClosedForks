@@ -5,6 +5,16 @@ import { restaurantSchema } from '@/lib/validations';
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
+    
+    // SECURITY: Require authentication to access restaurant data
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     
     const city = searchParams.get('city');
