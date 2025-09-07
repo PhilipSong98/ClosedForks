@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { MapPin, Tag, X } from 'lucide-react';
+import { MapPin, Tag, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,8 +25,8 @@ const reviewSchema = z.object({
     (val) => val * 10 === Math.floor(val * 10), 
     { message: 'Rating must be in tenth-decimal increments' }
   ),
-  dish: z.string().min(1, 'What did you eat?'),
-  review: z.string().min(10, 'Tell us more about your experience (minimum 10 characters)'),
+  dish: z.string().optional(), // Made optional for lazy users
+  review: z.string().optional(), // Made optional for lazy users
   recommend: z.boolean(),
   tips: z.string().optional(),
   tags: z.array(z.string()).max(5, 'Maximum 5 tags allowed').optional(),
@@ -49,6 +49,7 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
 }) => {
   const [selectedRestaurant, setSelectedRestaurant] = useState(prefilledRestaurant || preselectedRestaurant);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const createReviewMutation = useCreateReview();
@@ -124,8 +125,8 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
     const reviewData = {
       restaurant_id: selectedRestaurant.id,
       rating_overall: data.rating,
-      dish: data.dish,
-      review: data.review,
+      dish: data.dish || '', // Handle optional fields
+      review: data.review || '', // Handle optional fields
       recommend: data.recommend,
       tips: data.tips || '',
       tags: data.tags || [],
@@ -207,168 +208,201 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
             )}
           />
 
-          {/* Dish */}
-          <FormField
-            control={form.control}
-            name="dish"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base font-medium">What did you eat?</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="e.g., Margherita Pizza, Beef Tacos..." 
-                    className="border-0 bg-gray-50 rounded-xl px-4 py-3"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Toggle for Advanced Fields */}
+          <div className="flex items-center justify-center pt-4">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-4 py-2 rounded-lg hover:bg-gray-50"
+            >
+              {showAdvanced ? (
+                <>
+                  <ChevronUp className="w-4 h-4" />
+                  Quick Review (restaurant + rating only)
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4" />
+                  Add more details (optional)
+                </>
+              )}
+            </button>
+          </div>
 
-          {/* Review */}
-          <FormField
-            control={form.control}
-            name="review"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base font-medium">Your Review</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Tell us about your experience..."
-                    className="min-h-[120px] border-0 bg-gray-50 rounded-xl px-4 py-3 resize-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Advanced/Optional Fields */}
+          {showAdvanced && (
+            <div className="space-y-8 border-t pt-8">
+              {/* Dish */}
+              <FormField
+                control={form.control}
+                name="dish"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-medium text-muted-foreground">
+                      What did you eat? <span className="text-xs">(optional)</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., Margherita Pizza, Beef Tacos..." 
+                        className="border-0 bg-gray-50 rounded-xl px-4 py-3"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Recommend */}
-          <FormField
-            control={form.control}
-            name="recommend"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-xl border-0 bg-gray-50 p-6">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base font-medium">Recommend to friends?</FormLabel>
-                  <p className="text-sm text-muted-foreground">
-                    Would you recommend this place to your circle?
-                  </p>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+              {/* Review */}
+              <FormField
+                control={form.control}
+                name="review"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-medium text-muted-foreground">
+                      Your Review <span className="text-xs">(optional)</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Tell us about your experience..."
+                        className="min-h-[120px] border-0 bg-gray-50 rounded-xl px-4 py-3 resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Tips */}
-          <FormField
-            control={form.control}
-            name="tips"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base font-medium">Pro Tips (Optional)</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Any tips for future visitors? Best time to go, what to order, etc."
-                    className="min-h-[100px] border-0 bg-gray-50 rounded-xl px-4 py-3 resize-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Tags Selection */}
-          <FormField
-            control={form.control}
-            name="tags"
-            render={({ field: _field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2 text-base font-medium">
-                  <Tag className="w-4 h-4" />
-                  Tags (Optional - {selectedTags.length}/5)
-                </FormLabel>
-                <FormControl>
-                  <div className="space-y-4">
-                    {/* Selected Tags Display */}
-                    {selectedTags.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {selectedTags.map((tag) => {
-                          const category = getTagCategory(tag);
-                          const config = TAG_CATEGORY_CONFIG[category];
-                          return (
-                            <Badge
-                              key={tag}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border ${config.color} transition-colors`}
-                            >
-                              <span className="text-xs">{config.icon}</span>
-                              {tag}
-                              <button
-                                type="button"
-                                onClick={() => removeTag(tag)}
-                                className="ml-1 hover:bg-black/10 rounded-full p-0.5 transition-colors"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </Badge>
-                          );
-                        })}
-                      </div>
-                    )}
-                    
-                    {/* Tag Categories with Chips */}
-                    {selectedTags.length < 5 && (
-                      <div className="space-y-4">
-                        {Object.entries(REVIEW_TAGS).map(([categoryKey, tags]) => {
-                          const category = categoryKey as keyof typeof REVIEW_TAGS;
-                          const config = TAG_CATEGORY_CONFIG[category];
-                          const availableTags = tags.filter(tag => !selectedTags.includes(tag));
-                          
-                          if (availableTags.length === 0) return null;
-                          
-                          return (
-                            <div key={categoryKey} className="space-y-2">
-                              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                <span className="text-base">{config.icon}</span>
-                                {config.label}
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {availableTags.map((tag) => (
-                                  <button
-                                    key={tag}
-                                    type="button"
-                                    onClick={() => addTag(tag)}
-                                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${config.color} hover:scale-105`}
-                                  >
-                                    {tag}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {selectedTags.length >= 5 && (
-                      <p className="text-sm text-muted-foreground text-center py-2">
-                        Maximum 5 tags selected. Remove a tag to add more.
+              {/* Recommend */}
+              <FormField
+                control={form.control}
+                name="recommend"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-xl border-0 bg-gray-50 p-6">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base font-medium">Recommend to friends?</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Would you recommend this place to your circle?
                       </p>
-                    )}
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {/* Tips */}
+              <FormField
+                control={form.control}
+                name="tips"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-medium text-muted-foreground">
+                      Pro Tips <span className="text-xs">(optional)</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Any tips for future visitors? Best time to go, what to order, etc."
+                        className="min-h-[100px] border-0 bg-gray-50 rounded-xl px-4 py-3 resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Tags Selection */}
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field: _field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2 text-base font-medium text-muted-foreground">
+                      <Tag className="w-4 h-4" />
+                      Tags <span className="text-xs">({selectedTags.length}/5 optional)</span>
+                    </FormLabel>
+                    <FormControl>
+                      <div className="space-y-4">
+                        {/* Selected Tags Display */}
+                        {selectedTags.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {selectedTags.map((tag) => {
+                              const category = getTagCategory(tag);
+                              const config = TAG_CATEGORY_CONFIG[category];
+                              return (
+                                <Badge
+                                  key={tag}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border ${config.color} transition-colors`}
+                                >
+                                  <span className="text-xs">{config.icon}</span>
+                                  {tag}
+                                  <button
+                                    type="button"
+                                    onClick={() => removeTag(tag)}
+                                    className="ml-1 hover:bg-black/10 rounded-full p-0.5 transition-colors"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </Badge>
+                              );
+                            })}
+                          </div>
+                        )}
+                        
+                        {/* Tag Categories with Chips */}
+                        {selectedTags.length < 5 && (
+                          <div className="space-y-4">
+                            {Object.entries(REVIEW_TAGS).map(([categoryKey, tags]) => {
+                              const category = categoryKey as keyof typeof REVIEW_TAGS;
+                              const config = TAG_CATEGORY_CONFIG[category];
+                              const availableTags = tags.filter(tag => !selectedTags.includes(tag));
+                              
+                              if (availableTags.length === 0) return null;
+                              
+                              return (
+                                <div key={categoryKey} className="space-y-2">
+                                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                    <span className="text-base">{config.icon}</span>
+                                    {config.label}
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {availableTags.map((tag) => (
+                                      <button
+                                        key={tag}
+                                        type="button"
+                                        onClick={() => addTag(tag)}
+                                        className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${config.color} hover:scale-105`}
+                                      >
+                                        {tag}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {selectedTags.length >= 5 && (
+                          <p className="text-sm text-muted-foreground text-center py-2">
+                            Maximum 5 tags selected. Remove a tag to add more.
+                          </p>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
 
           {/* Submit Button */}
           <Button 
@@ -377,7 +411,7 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
             size="lg"
             disabled={createReviewMutation.isPending}
           >
-            {createReviewMutation.isPending ? 'Posting...' : 'Share Review'}
+            {createReviewMutation.isPending ? 'Posting...' : (showAdvanced ? 'Share Detailed Review' : 'Share Quick Review')}
           </Button>
         </form>
       </Form>

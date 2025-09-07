@@ -49,6 +49,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Global Navigation Progress Indicator** - Sleek horizontal progress bar for page navigation with smooth animations
 - [x] **Liked Posts Feature** - Private liked posts tab in profile with direct unlike functionality and group-scoped security
 - [x] **Database Performance Optimizations** - Comprehensive performance improvements eliminating N+1 queries with 75% query reduction and O(1) pagination
+- [x] **Lazy User Review System** - Quick Review mode allows restaurant + rating only, with optional detailed fields for comprehensive reviews
 
 ### Pending Features
 - [ ] Photo upload for reviews
@@ -113,7 +114,7 @@ restaurant/
 - `components/groups/InviteCodeModal.tsx`: **NEW** - Modal component for generating group invite codes
 - `components/ui/extension-resistant-input.tsx`: **NEW** - Anti-browser extension input component
 - `lib/mutations/inviteCode.ts`: **NEW** - React Query mutation for invite code generation
-- `components/review/ReviewComposer.tsx`: **UPDATED** - Modal-based review creation with automatic refresh
+- `components/review/ReviewComposer.tsx`: **UPDATED** - Modal-based review creation with Quick/Detailed modes and automatic refresh
 - `components/review/ReviewCard.tsx`: **UPDATED** - Instagram-style like button with optimistic updates, displays usernames correctly
 - `components/restaurant/RestaurantSelector.tsx`: **UPDATED** - Fixed overflow issue with simplified restaurant card display
 - `components/search/SearchBar.tsx`: **UPDATED** - Clickable search with navigation
@@ -155,8 +156,9 @@ restaurant/
   - **Denormalized aggregates**: `cached_avg_rating`, `cached_review_count`, `cached_tags`, `last_review_at`
   - **Performance indexes**: Composite BTREE and GIN indexes for keyset pagination and query optimization
   - **Trigger-based maintenance**: Automatic updates of cached data on review changes
-- `reviews`: Simplified rating system + tagging + like system + **group scoping**
-  - `rating_overall`, `dish`, `review`, `recommend`, `tips`, `tags[]`, `like_count`, **`group_id`**
+- `reviews`: Simplified rating system + tagging + like system + **group scoping** + **lazy review support**
+  - `rating_overall`, `dish` (optional), `review` (optional), `recommend`, `tips`, `tags[]`, `like_count`, **`group_id`**
+  - **Flexible Schema**: dish and review fields are optional, supporting both quick and detailed reviews
   - Reviews are scoped to groups for visibility control
   - GIN index on tags for efficient filtering
 - `review_likes`: Instagram-style like system
@@ -229,15 +231,15 @@ supabase db push                       # Apply to remote
 - **No Overlaps**: Fixed SearchFAB overlapping with header elements
 - **Navigation Items**: Restaurants, To-Eat List, Profile, Manage Invites, Admin Panel, Sign out
 
-### Review Schema (Simplified)
+### Review Schema (Flexible)
 ```typescript
 {
-  rating_overall: number,  // Single 1-5 star rating
-  dish: string,           // What did you eat?  
-  review: string,         // Main review text
-  recommend: boolean,     // Would recommend?
-  tips?: string,          // Pro tips
-  tags?: string[]         // Up to 5 tags from 35 options
+  rating_overall: number,  // Single 1-5 star rating (required)
+  dish?: string,          // What did you eat? (optional)
+  review?: string,        // Main review text (optional)
+  recommend: boolean,     // Would recommend? (required)
+  tips?: string,          // Pro tips (optional)
+  tags?: string[]         // Up to 5 tags from 35 options (optional)
 }
 ```
 
@@ -372,6 +374,18 @@ supabase db push                       # Apply to remote
   - **Component Architecture**: FormContent extracted outside component functions
   - **Input Protection**: Custom ExtensionResistantInput component with fallback handling
 
+### Lazy User Review System (Quick Reviews)
+- **Dual Review Modes**: Quick Review (restaurant + rating only) vs Detailed Review (full form)
+- **Progressive Enhancement**: Users can start with quick reviews and expand to detailed if desired
+- **Collapsible Interface**: Detailed fields collapse by default, expandable with "Add more details" button
+- **Flexible Validation**: Only restaurant selection and rating are required, all other fields optional
+- **Smart UI**: ReviewComposer adapts interface based on user choice - minimal or comprehensive
+- **Database Support**: Optional dish/review fields in schema with proper null handling
+- **Backward Compatible**: Existing detailed reviews continue working unchanged
+- **UX Optimization**: Reduces friction for casual users while maintaining depth for detailed reviewers
+- **ReviewCard Enhancement**: Gracefully handles and displays minimal review data with fallback content
+- **Migration Applied**: Database constraints updated to allow optional fields with temporary API fallbacks
+
 ### Google Places Integration
 - **Stockholm-focused**: 50km bias, cost-optimized with session tokens
 - **Auto-import**: Restaurant data, photos, hours on selection
@@ -468,6 +482,9 @@ supabase db push                       # Apply to remote
 - `20250906150001_fix_restaurant_index.sql` - Fixed production database index issues
 - `20250906151000_fix_trigger_recursion.sql` - Fixed trigger recursion problems
 
+#### **User Experience Enhancement Migrations**
+- `20250907_make_review_fields_optional.sql` - Made dish and review fields optional for lazy review system
+
 ## 📋 Quick Reference
 
 ### Environment Variables
@@ -512,4 +529,4 @@ Ready for photo uploads for reviews, restaurant detail maps, and email notificat
 
 ---
 **Last Updated**: 2025-09-07  
-**Status**: MVP v1.20 - Service Role Client Pattern & RLS Fixes
+**Status**: MVP v1.21 - Lazy User Review System & Service Role Client Pattern

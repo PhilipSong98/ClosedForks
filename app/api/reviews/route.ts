@@ -377,6 +377,9 @@ export async function POST(request: NextRequest) {
 
     const reviewData = {
       ...validatedData,
+      // Temporary fallback values for database constraints until migration is applied
+      dish: validatedData.dish || 'Quick review',
+      review: validatedData.review || 'Quick review - minimal input',
       author_id: user.id,
       group_id: userGroup.group_id,
     };

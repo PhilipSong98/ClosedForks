@@ -64,8 +64,9 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
 
   // Use new fields if available, fall back to legacy fields
   const rating = review.rating_overall || 5;
-  const reviewText = review.review || review.text || '';
-  const dish = review.dish || 'Not specified';
+  // Handle both empty values and temporary fallback values from API
+  const reviewText = review.review && review.review !== 'Quick review - minimal input' ? (review.review || review.text || '') : '';
+  const dish = review.dish && review.dish !== 'Quick review' ? review.dish : '';
   const tips = review.tips || '';
 
   return (
