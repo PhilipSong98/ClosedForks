@@ -68,15 +68,15 @@ export const placeDetailsSchema = z.object({
   placeId: z.string().min(1),
 });
 
-// New simplified review schema for Lovable UI
+// New simplified review schema for Lovable UI - optimized for lazy users
 export const reviewSchema = z.object({
   restaurant_id: z.string().uuid(),
   rating_overall: z.number().min(1).max(5).refine(
     (val) => val * 10 === Math.floor(val * 10), 
     { message: 'Rating must be in tenth-decimal increments (1.0, 1.1, 1.2, 1.3, ..., 4.8, 4.9, 5.0)' }
   ), // Main rating with tenth-decimal precision
-  dish: z.string().min(1, 'Please specify what dish you had').max(200),
-  review: z.string().min(10, 'Review must be at least 10 characters').max(1000),
+  dish: z.string().max(200).optional().default(''), // OPTIONAL for lazy users
+  review: z.string().max(1000).optional().default(''), // OPTIONAL for lazy users
   recommend: z.boolean().default(true),
   tips: z.string().max(500).optional().default(''),
   tags: z.array(z.enum(ALL_REVIEW_TAGS as unknown as [string, ...string[]])).max(5, 'Maximum 5 tags allowed').optional().default([]),
