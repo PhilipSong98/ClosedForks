@@ -73,16 +73,18 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
                   {group.name}
                 </CardTitle>
                 <div className="flex items-center gap-1">
-                  {/* Invite button - visible to all members */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onInviteToGroup(group)}
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100 transition-opacity"
-                    title="Invite friends to this group"
-                  >
-                    <UserPlus className="h-3 w-3" />
-                  </Button>
+                  {/* Invite button - only for owners */}
+                  {group.user_role === 'owner' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onInviteToGroup(group)}
+                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100 transition-opacity"
+                      title="Invite friends to this group"
+                    >
+                      <UserPlus className="h-3 w-3" />
+                    </Button>
+                  )}
                   {/* Edit button - only for owners/admins */}
                   {(group.user_role === 'owner' || group.user_role === 'admin') && (
                     <Button
@@ -195,8 +197,8 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Invite Codes Section */}
-        {isExpanded && (
+        {/* Invite Codes Section - only for owners */}
+        {isExpanded && group.user_role === 'owner' && (
           <GroupInvitesSection
             group={group}
             inviteCodes={inviteCodes}
