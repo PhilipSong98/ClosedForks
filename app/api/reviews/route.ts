@@ -329,18 +329,50 @@ export async function POST(request: NextRequest) {
 
     const json = await request.json();
     const validatedData = reviewSchema.parse(json);
+    
+    let restaurantId: string;
 
-    // Check if restaurant exists
-    const { data: restaurant } = await supabase
-      .from('restaurants')
-      .select('id')
-      .eq('id', validatedData.restaurant_id)
-      .single();
+    // Handle restaurant creation if restaurant_data is provided
+    if (json.restaurant_data && !validatedData.restaurant_id) {
+      // Create restaurant using the find-or-create logic
+      const findOrCreateResponse = await fetch(new URL('/api/restaurants/find-or-create', request.url).toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': request.headers.get('Authorization') || '',
+          'Cookie': request.headers.get('Cookie') || '',
+        },
+        body: JSON.stringify(json.restaurant_data),
+      });
 
-    if (!restaurant) {
+      if (!findOrCreateResponse.ok) {
+        return NextResponse.json(
+          { error: 'Failed to create restaurant' },
+          { status: 500 }
+        );
+      }
+
+      const { restaurant } = await findOrCreateResponse.json();
+      restaurantId = restaurant.id;
+    } else if (validatedData.restaurant_id) {
+      // Verify existing restaurant exists
+      const { data: restaurant } = await supabase
+        .from('restaurants')
+        .select('id')
+        .eq('id', validatedData.restaurant_id)
+        .single();
+
+      if (!restaurant) {
+        return NextResponse.json(
+          { error: 'Restaurant not found' },
+          { status: 404 }
+        );
+      }
+      restaurantId = validatedData.restaurant_id;
+    } else {
       return NextResponse.json(
-        { error: 'Restaurant not found' },
-        { status: 404 }
+        { error: 'Either restaurant_id or restaurant_data must be provided' },
+        { status: 400 }
       );
     }
 
@@ -364,7 +396,7 @@ export async function POST(request: NextRequest) {
     const { data: existingReview } = await supabase
       .from('reviews')
       .select('id')
-      .eq('restaurant_id', validatedData.restaurant_id)
+      .eq('restaurant_id', restaurantId)
       .eq('author_id', user.id)
       .single();
 
@@ -376,10 +408,15 @@ export async function POST(request: NextRequest) {
     }
 
     const reviewData = {
-      ...validatedData,
+      restaurant_id: restaurantId, // Use the determined restaurant ID
+      rating_overall: validatedData.rating_overall,
       // Temporary fallback values for database constraints until migration is applied
       dish: validatedData.dish || 'Quick review',
       review: validatedData.review || 'Quick review - minimal input',
+      recommend: validatedData.recommend,
+      tips: validatedData.tips,
+      tags: validatedData.tags,
+      visit_date: validatedData.visit_date,
       author_id: user.id,
       group_id: userGroup.group_id,
     };

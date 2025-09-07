@@ -70,7 +70,7 @@ export const placeDetailsSchema = z.object({
 
 // New simplified review schema for Lovable UI - optimized for lazy users
 export const reviewSchema = z.object({
-  restaurant_id: z.string().uuid(),
+  restaurant_id: z.string().uuid().optional(), // Optional when restaurant_data is provided
   rating_overall: z.number().min(1).max(5).refine(
     (val) => val * 10 === Math.floor(val * 10), 
     { message: 'Rating must be in tenth-decimal increments (1.0, 1.1, 1.2, 1.3, ..., 4.8, 4.9, 5.0)' }

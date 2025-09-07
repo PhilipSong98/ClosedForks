@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { Restaurant } from '@/types';
 
 interface CreateReviewData {
-  restaurant_id: string;
+  restaurant_id?: string; // Optional when restaurant_data is provided
+  restaurant_data?: Restaurant; // Restaurant data from Google Places when restaurant doesn't exist
   rating_overall: number;
   dish: string;
   review: string;

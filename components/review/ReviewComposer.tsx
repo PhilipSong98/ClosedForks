@@ -110,20 +110,9 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
       });
       return;
     }
-
-    // Ensure we have the restaurant ID (either from database or from Google Places)
-    if (!selectedRestaurant.id) {
-      toast({
-        title: "Error", 
-        description: "Restaurant information is incomplete. Please select a restaurant again.",
-        variant: "destructive",
-      });
-      return;
-    }
     
     // Map the form data to the API format
     const reviewData = {
-      restaurant_id: selectedRestaurant.id,
       rating_overall: data.rating,
       dish: data.dish || '', // Handle optional fields
       review: data.review || '', // Handle optional fields
@@ -132,6 +121,8 @@ const ReviewComposer: React.FC<ReviewComposerProps> = ({
       tags: data.tags || [],
       visit_date: new Date().toISOString(),
       visibility: 'my_circles' as const,
+      // Include restaurant data for creation if it's from Google
+      ...(selectedRestaurant.id ? { restaurant_id: selectedRestaurant.id } : { restaurant_data: selectedRestaurant }),
     };
 
     createReviewMutation.mutate(reviewData, {

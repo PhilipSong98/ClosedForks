@@ -23,7 +23,7 @@ export function RestaurantSelector({ onSelect, selectedRestaurant, className = "
     setError(null);
 
     try {
-      // First get the place details from Google
+      // Only get the place details from Google - don't save to database yet
       const detailsResponse = await fetch('/api/places/details', {
         method: 'POST',
         headers: {
@@ -37,32 +37,14 @@ export function RestaurantSelector({ onSelect, selectedRestaurant, className = "
       }
 
       const { restaurant: restaurantData } = await detailsResponse.json();
-
-      // Then find or create the restaurant in our database
-      const findOrCreateResponse = await fetch('/api/restaurants/find-or-create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(restaurantData),
-      });
-
-      if (!findOrCreateResponse.ok) {
-        throw new Error('Failed to save restaurant');
-      }
-
-      const { restaurant, created, updated } = await findOrCreateResponse.json();
       
-      // Show success message based on action
-      if (created) {
-        console.log('Restaurant added to database');
-      } else if (updated) {
-        console.log('Restaurant updated with Google data');
-      } else {
-        console.log('Restaurant found in database');
-      }
+      // Add a flag to indicate this data comes from Google Places
+      const restaurantWithSource = {
+        ...restaurantData,
+        _isFromGoogle: true, // This helps us identify Google data during review submission
+      };
 
-      onSelect(restaurant);
+      onSelect(restaurantWithSource);
     } catch (err) {
       console.error('Error selecting restaurant:', err);
       setError(err instanceof Error ? err.message : 'Failed to select restaurant');
