@@ -80,11 +80,22 @@ export async function GET(
     let members = undefined;
 
     if (includeMembers) {
-      const { data: membersData, error: membersError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: membersData, error: membersError } = await (supabase as any)
         .rpc('get_group_members', {
           group_id_param: groupId,
           user_id_param: user.id
-        });
+        }) as {
+          data: {
+            member_id: string;
+            user_id: string;
+            role: string;
+            joined_at: string;
+            user_name: string;
+            user_email: string;
+          }[] | null;
+          error: unknown;
+        };
 
       if (!membersError && membersData) {
         members = membersData.map((m: {
