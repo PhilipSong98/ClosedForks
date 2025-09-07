@@ -378,101 +378,35 @@ supabase db push                       # Apply to remote
 - **Smart caching**: Store Google data permanently, refresh periodically
 - **Hero Images**: Cover photos with `getRestaurantPhotoUrl()` utility
 
-### Group System Implementation (September 1, 2025)
 
-**Major Feature**: Complete invite-only group system with database security fixes
+### Recent Bug Fixes & Critical Improvements
 
-- **Invite-Only Groups**: Users join groups via invite codes, creating isolated review communities
-  - **Problem**: Platform was a single network - all users could see all reviews
-  - **Solution**: Implemented group-based access with invite codes linking to specific groups
-  - **Result**: Private groups where reviews are visible only to group members
-  - **Technical**: New `groups` and `user_groups` tables with role-based permissions
+#### **Database Access & RLS Policy Fixes (September 7, 2025)**
+- **Fixed Public Profile 404 Error**: Resolved PGRST116 errors in public profile endpoint
+  - **Problem**: `/api/users/[id]/public-profile` endpoint failing due to RLS policy restrictions on user data access
+  - **Solution**: Created `createServiceClient()` function in `/lib/supabase/server.ts` for secure admin operations that bypass RLS after authentication checks
+  - **Result**: Public profiles now load correctly while maintaining security through proper authentication validation
+  - **Technical**: Service role client pattern enables safe RLS bypassing for legitimate admin queries
 
-- **Group-Scoped Review Feed**: Homepage now shows reviews only from user's groups
-  - **Problem**: Feed showed all reviews regardless of user relationships
-  - **Solution**: Created `get_user_visible_reviews()` security function for group-based filtering
-  - **Result**: Personalized feed showing only reviews from users in shared groups
-  - **Performance**: Efficient queries using join operations on group membership
+- **Fixed User Reviews Display Issue**: Resolved user names showing as "U" in profile reviews
+  - **Problem**: `/api/users/[id]/reviews` endpoint had RLS restrictions preventing proper user data fetching
+  - **Solution**: Applied service role client pattern to enable complete user data retrieval
+  - **Result**: Profile reviews now display actual usernames instead of fallback "U" values
+  - **Security**: Maintains authentication checks while bypassing problematic RLS policies
 
-- **Database Security Model Overhaul**: Fixed RLS recursion issues with security functions
-  - **Problem**: Complex RLS policies caused infinite recursion and 500 errors
-  - **Solution**: Replaced complex policies with simple ones + security functions
-  - **Result**: Stable database operations without recursion, proper access control
-  - **Files**: 4 migration files applied to fix all security and performance issues
+- **Service Role Client Pattern**: Established reusable pattern for admin operations
+  - **Implementation**: New `createServiceClient()` function for endpoints requiring RLS bypass
+  - **Security Model**: Only used after proper authentication validation, never for public access
+  - **Reusability**: Available for future endpoints with similar RLS complexity issues
+  - **Files**: `lib/supabase/server.ts`, `app/api/users/[id]/public-profile/route.ts`, `app/api/users/[id]/reviews/route.ts`
 
-- **Invite Code Group Integration**: Invite codes now create or join specific groups
-  - **Problem**: Invite codes only controlled access, didn't organize users
-  - **Solution**: Enhanced invite system to link codes to groups or auto-create groups
-  - **Result**: Seamless group creation during signup process
-  - **Function**: `use_invite_code_with_group()` handles group assignment logic
-
-### Recent Bug Fixes & UI Improvements
-- **Username Display Fix**: Fixed ReviewCard showing "U" instead of actual usernames
-  - **Problem**: Profile reviews displayed "U" for all users instead of actual names
-  - **Solution**: Fixed author name mapping in `/api/users/[id]/reviews` endpoint
-  - **Result**: Profile page now correctly displays user names in review cards
-  - **File**: `app/api/users/[id]/reviews/route.ts` - Added proper author name field mapping
-
-- **Favorites Search Fix**: Resolved restaurant search not finding results in favorites modal
-  - **Problem**: Search functionality in FavoritesSection wasn't filtering restaurant results
-  - **Solution**: Fixed search filtering logic to properly match restaurant names
-  - **Result**: Users can now successfully search and add restaurants to favorites
-  - **File**: `components/profile/FavoritesSection.tsx` - Corrected search result filtering
-
-- **Restaurant Card Overflow Fix**: Resolved horizontal scrolling in Create Review modal
-  - **Problem**: Restaurant cards with long names/addresses caused modal overflow
-  - **Solution**: Simplified display to show only restaurant name, city, and status
-  - **Result**: Clean, mobile-optimized restaurant selection without scroll issues
-  - **File**: `components/restaurant/RestaurantSelector.tsx` - Removed full address, cuisine type, Google ratings, and Maps links
-
-- **Profile Picture Removal**: Completely removed image upload functionality as requested
-  - **Removed**: Avatar upload API endpoint and related image handling code
-  - **Result**: Clean profile system without image upload complexity
-  - **File**: Deleted `app/api/upload/avatar/route.ts`
-
-- **Mobile Navigation Enhancement**: Implemented professional mobile menu system
-  - **Problem**: SearchFAB overlapping with profile button, inaccessible Restaurants page on mobile
-  - **Solution**: Created MobileMenu component with hamburger icon, repositioned SearchFAB
-  - **Result**: Clean mobile header layout with proper touch targets and no overlapping elements
-  - **Files**: `components/layout/MobileMenu.tsx` (new), `components/layout/Header.tsx`, `components/search/SearchFAB.tsx`
-
-- **Simplified Group Editing**: Removed description field, streamlined to name-only editing
-  - **Problem**: Group editing had unnecessary description field that cluttered the UI
-  - **Solution**: Simplified EditGroupModal to focus only on essential name editing
-  - **Result**: Cleaner, more focused group editing experience for owners/admins
-  - **Files**: `components/groups/EditGroupModal.tsx`, `app/api/groups/[id]/route.ts`, `types/index.ts`
-
-- **Group Invite Code Generation**: Major new feature enabling member-driven growth
-  - **Problem**: Only admins could manage group growth, limiting organic expansion
-  - **Solution**: Any group member can now generate invite codes for their group
-  - **Result**: Democratic group growth with professional invite code sharing interface
-  - **Technical**: New API endpoint, modal component, and mutation hooks
-  - **Features**: 6-digit codes, copy-to-clipboard, usage tracking, mobile-responsive
-  - **Files**: `app/api/groups/[id]/invite-code/route.ts` (new), `components/groups/InviteCodeModal.tsx` (new), `lib/mutations/inviteCode.ts` (new), `app/groups/groups-client.tsx` (updated)
-
-- **Global Navigation Progress Indicator**: Professional page load progress bar for enhanced user experience
-  - **Problem**: Users had no visual feedback during navigation between pages, creating uncertainty
-  - **Solution**: Implemented Safari/YouTube-style horizontal progress bar at top of viewport
-  - **Result**: Professional loading experience with smooth animations and automatic fade-out
-  - **Technical**: NavigationProgress component with NavigationProgressProvider context managing router events
-  - **Features**: Industry-standard timing patterns, blue theme color, high z-index positioning, smooth transitions
-  - **Files**: `components/layout/NavigationProgress.tsx` (new), `components/layout/NavigationProgressProvider.tsx` (new), `app/providers.tsx` (updated), `app/layout.tsx` (updated)
-
-- **Complete Group Creation System**: Fixed missing create group functionality with browser compatibility
-  - **Problem**: Create Group button was non-functional due to missing CreateGroupModal component
-  - **Solution**: Added complete CreateGroupModal with responsive design and API integration
-  - **Result**: Administrators can now successfully create new groups through clean modal interface
-  - **Technical**: New modal component, useCreateGroup mutation hook, proper cache invalidation
-  - **Files**: `components/groups/CreateGroupModal.tsx` (new), `lib/mutations/groups.ts` (updated), `app/groups/groups-client.tsx` (updated)
-
-- **Critical Input Blocking Bug Fix**: Resolved browser extension interference in group modals
-  - **Problem**: Users could only type one character in group name fields before input became unresponsive
-  - **Root Cause**: Browser extension interference (LastPass, 1Password, etc.) + React component recreation
-  - **Solution**: Created ExtensionResistantInput component with comprehensive anti-extension protection
-  - **Result**: All group name inputs now work reliably regardless of browser extensions
-  - **Technical**: Custom input component, stable event handlers with useCallback, FormContent extraction
-  - **Protected Extensions**: LastPass, 1Password, Bitwarden, Dashlane, RoboForm, and others
-  - **Files**: `components/ui/extension-resistant-input.tsx` (new), `components/groups/CreateGroupModal.tsx` (updated), `components/groups/EditGroupModal.tsx` (updated)
+#### **UI & User Experience Improvements**
+- **Mobile Navigation Enhancement**: Professional hamburger menu system with proper touch targets
+- **Restaurant Card Optimization**: Fixed overflow in Create Review modal with simplified display
+- **Group Management System**: Complete create/edit functionality with browser extension protection
+- **Global Navigation Progress**: Safari/YouTube-style horizontal progress bar for page transitions
+- **Extension-Resistant Inputs**: Comprehensive protection against browser extension interference
+- **Liked Posts Collection**: Private profile tab for managing liked reviews with direct unlike functionality
 
 ## 🔐 Authentication - Modern Invite Code System
 
@@ -509,19 +443,30 @@ supabase db push                       # Apply to remote
 3. `supabase db push`
 4. Update types if needed
 
-### Group System Database Migrations (Applied)
+### Applied Database Migrations
+
+#### **Core System Migrations**
+- `20250829233334_reset_and_initialize_database.sql` - Complete database initialization with RLS policies
+- `20250830094836_add_google_places_fields.sql` - Google Places integration fields
+- `20250830154739_update_reviews_schema_for_lovable.sql` - Simplified review schema
+- `20250830180128_add_tags_to_reviews.sql` - Professional tagging system with 35 food-focused tags
+- `20250830203214_invite_code_system.sql` - Modern invite code system with 6-digit codes
+- `20250831203848_add_to_eat_list_table.sql` - Restaurant wishlist system
+- `20250831231918_add_review_likes_system.sql` - Instagram-style like system
+
+#### **Group System Migrations** 
 - `20250901142625_group_system_implementation.sql` - Initial group system with tables and RLS
 - `20250901152334_fix_user_groups_rls_recursion.sql` - Fixed recursive RLS policies
 - `20250901155104_comprehensive_database_fixes.sql` - Security functions and simplified policies
 - `20250901160000_fix_ambiguous_columns_in_functions.sql` - Fixed PostgreSQL column ambiguity
 
-### Performance Optimization Migrations (Applied)
-- `20250903_add_denormalized_aggregates.sql` - Added cached aggregate columns to restaurants table
-- `20250903_add_optimized_functions.sql` - Created optimized database functions returning complete denormalized data
-- `20250903_add_performance_indexes.sql` - Added critical performance indexes for keyset pagination and query optimization
-- `20250906150000_fix_ambiguous_group_id.sql` - Fixed ambiguous column references in optimized functions
-- `20250906150001_fix_restaurant_index.sql` - Fixed index row size exceeded error for production databases
-- `20250906151000_fix_trigger_recursion.sql` - Fixed stack depth limit exceeded error from trigger recursion
+#### **Performance Optimization Migrations**
+- `20250903_add_denormalized_aggregates.sql` - Cached aggregate columns for instant performance
+- `20250903_add_optimized_functions.sql` - Single-query data fetching functions
+- `20250903_add_performance_indexes.sql` - Critical performance indexes for query optimization
+- `20250906150000_fix_ambiguous_group_id.sql` - Fixed column references in optimized functions
+- `20250906150001_fix_restaurant_index.sql` - Fixed production database index issues
+- `20250906151000_fix_trigger_recursion.sql` - Fixed trigger recursion problems
 
 ## 📋 Quick Reference
 
@@ -560,77 +505,11 @@ NEXT_PUBLIC_APP_URL=
 - `POST /api/groups` - Create new group (admin only)
 - `POST /api/groups/[id]/invite-code` - Generate invite code for group (any member)
 
-### Database Performance Optimizations (September 6, 2025)
 
-**Major Feature**: Comprehensive database performance improvements eliminating N+1 query problems
-
-- **Denormalized Aggregate Columns**: Added cached data to restaurants table for instant performance
-  - **Problem**: Homepage feed required 4+ separate queries per page load (restaurants + reviews + stats + user data)
-  - **Solution**: Added `cached_avg_rating`, `cached_review_count`, `cached_tags`, `last_review_at` columns to restaurants
-  - **Result**: 75% reduction in database queries for main feed (4+ queries → 1 query)
-  - **Performance**: Sub-100ms response times for homepage feed with complete data
-
-- **Optimized Database Functions**: Created functions returning complete denormalized data in single queries
-  - **Problem**: Multiple round trips to database for review display with restaurant and user data
-  - **Solution**: `get_reviews_optimized()` function returns complete review data with all joins pre-calculated
-  - **Result**: Eliminated N+1 query patterns across all review endpoints
-  - **Technical**: Single query returns reviews with restaurant stats, user data, and like information
-
-- **Keyset Pagination Performance**: Implemented O(1) pagination replacing inefficient OFFSET queries
-  - **Problem**: OFFSET-based pagination becomes slower with larger datasets (O(n) performance)
-  - **Solution**: Cursor-based pagination using composite indexes on (created_at, id)
-  - **Result**: Consistent fast performance regardless of page depth
-  - **Indexes**: Covering indexes eliminate table lookups for pagination queries
-
-- **Critical Performance Indexes**: Added comprehensive indexing strategy for query optimization
-  - **Problem**: Missing indexes caused slow queries on filtered and paginated data
-  - **Solution**: Composite BTREE and GIN indexes on critical query paths
-  - **Result**: 60-70% faster API response times across all endpoints
-  - **Coverage**: Indexes cover group filtering, date ranges, rating filters, and tag searches
-
-- **Trigger-Based Cache Maintenance**: Automatic updates of denormalized data
-  - **Problem**: Cached aggregate data could become stale when reviews are added/updated
-  - **Solution**: Database triggers automatically update restaurant cache columns on review changes
-  - **Result**: Always-fresh cached data with zero application-level cache invalidation complexity
-  - **Reliability**: Fixed trigger recursion issues ensuring stable cache updates
-
-- **Production Database Compatibility**: Resolved all deployment and scaling issues
-  - **Problem**: Development migrations failed on production due to index size limits and concurrency issues
-  - **Solution**: Optimized index definitions and resolved CREATE INDEX CONCURRENTLY limitations
-  - **Result**: All optimizations successfully deployed and tested in production environment
-  - **Backward Compatibility**: Maintained full API compatibility with fallback mechanisms
-
-### Liked Posts Feature Implementation (September 2, 2025)
-
-**Major Feature**: Private liked posts collection with Instagram-style UX
-
-- **Liked Posts Tab**: Fourth tab in profile page for private liked review collection
-  - **Problem**: Users had no way to revisit reviews they liked for future reference
-  - **Solution**: Added dedicated "Liked Posts" tab showing user's liked reviews with pagination
-  - **Result**: Private collection accessible only to the user, enhancing social engagement
-  - **Technical**: New API endpoint and React Query hooks with group-based security
-
-- **Direct Unlike Functionality**: Unlike reviews directly from liked posts tab
-  - **Problem**: Users had to navigate back to original review to unlike
-  - **Solution**: Integrated heart button with unlike capability directly in liked posts
-  - **Result**: Seamless management of liked content with optimistic updates
-  - **UX**: Consistent heart button behavior matching feed interactions
-
-- **Group-Scoped Security**: Liked posts respects group membership boundaries
-  - **Problem**: Liked posts could reveal reviews from groups user no longer has access to
-  - **Solution**: Applied group security functions to liked posts API endpoint
-  - **Result**: Liked posts automatically filters based on current group memberships
-  - **Performance**: Efficient queries using existing security functions
-
-- **Enhanced Cache Management**: Smart cache invalidation for liked posts removal
-  - **Problem**: Removing likes didn't update liked posts collection in real-time
-  - **Solution**: Enhanced like mutations with cache invalidation for 'user-liked-reviews' query
-  - **Result**: Instant removal from liked posts tab when unliking reviews
-  - **Technical**: React Query cache management with optimistic updates and rollback
 
 ## 🚀 Next Steps
 Ready for photo uploads for reviews, restaurant detail maps, and email notifications!
 
 ---
-**Last Updated**: 2025-09-06  
-**Status**: MVP v1.19 - Database Performance Optimizations with 75% Query Reduction
+**Last Updated**: 2025-09-07  
+**Status**: MVP v1.20 - Service Role Client Pattern & RLS Fixes
