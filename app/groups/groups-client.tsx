@@ -15,9 +15,12 @@ import { usePermissions, PermissionGate } from '@/lib/hooks/usePermissions';
 import { useUserGroups, useGroup } from '@/lib/queries/groups';
 import { useUpdateGroup, useCreateGroup } from '@/lib/mutations/groups';
 import { useGenerateInviteCode } from '@/lib/mutations/inviteCode';
+import { useRevokeInviteCode } from '@/lib/mutations/invites';
+import { useGroupInviteCodes } from '@/lib/queries/invites';
 import { EditGroupModal } from '@/components/groups/EditGroupModal';
 import { InviteCodeModal } from '@/components/groups/InviteCodeModal';
 import { CreateGroupModal } from '@/components/groups/CreateGroupModal';
+import { GroupInvitesSection } from '@/components/groups/GroupInvitesSection';
 import { Group, CreateGroupRequest } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -27,10 +30,12 @@ interface GroupCardProps {
   isExpanded: boolean;
   onEditGroup: (group: Group) => void;
   onInviteToGroup: (group: Group) => void;
+  onRevokeInviteCode: (codeId: string) => Promise<void>;
 }
 
-const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded, onEditGroup, onInviteToGroup }) => {
+const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded, onEditGroup, onInviteToGroup, onRevokeInviteCode }) => {
   const { data: groupDetails, isLoading } = useGroup(group.id, isExpanded);
+  const { data: inviteCodes = [], isLoading: invitesLoading } = useGroupInviteCodes(group.id, isExpanded);
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -189,6 +194,17 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
             )}
           </CollapsibleContent>
         </Collapsible>
+
+        {/* Invite Codes Section */}
+        {isExpanded && (
+          <GroupInvitesSection
+            group={group}
+            inviteCodes={inviteCodes}
+            isLoading={invitesLoading}
+            onRevokeCode={onRevokeInviteCode}
+            onGenerateCode={(groupId) => onInviteToGroup(group)}
+          />
+        )}
       </CardContent>
     </Card>
   );
@@ -206,6 +222,7 @@ const GroupsClient: React.FC = () => {
   const updateGroupMutation = useUpdateGroup();
   const createGroupMutation = useCreateGroup();
   const generateInviteCodeMutation = useGenerateInviteCode();
+  const revokeInviteCodeMutation = useRevokeInviteCode();
 
   const handleViewDetails = (groupId: string) => {
     setExpandedGroupId(expandedGroupId === groupId ? null : groupId);
@@ -248,6 +265,10 @@ const GroupsClient: React.FC = () => {
 
   const handleGenerateInviteCode = async (groupId: string) => {
     return await generateInviteCodeMutation.mutateAsync(groupId);
+  };
+
+  const handleRevokeInviteCode = async (codeId: string) => {
+    await revokeInviteCodeMutation.mutateAsync(codeId);
   };
 
   if (!user) {
@@ -346,6 +367,7 @@ const GroupsClient: React.FC = () => {
                   isExpanded={expandedGroupId === group.id}
                   onEditGroup={handleEditGroup}
                   onInviteToGroup={handleInviteToGroup}
+                  onRevokeInviteCode={handleRevokeInviteCode}
                 />
               ))}
             </div>

@@ -20,8 +20,9 @@ import {
 } from '@/components/ui/sheet';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { Group } from '@/types';
-import { Loader2, Copy, Check, Clock, Users } from 'lucide-react';
+import { Loader2, Copy, Check, Clock, Users, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useGroupInviteCodes } from '@/lib/queries/invites';
 import { formatDistanceToNow } from 'date-fns';
 
 interface InviteCode {
@@ -53,6 +54,11 @@ export function InviteCodeModal({
   const { toast } = useToast();
   const [inviteCode, setInviteCode] = useState<InviteCode | null>(null);
   const [copied, setCopied] = useState(false);
+  const { data: existingCodes = [], isLoading: codesLoading } = useGroupInviteCodes(group.id, isOpen);
+  
+  const activeExistingCodes = existingCodes.filter(code => 
+    code.isActive && code.usesRemaining > 0
+  );
 
   const handleGenerateCode = async () => {
     try {
@@ -111,6 +117,74 @@ export function InviteCodeModal({
           </p>
         </div>
       </div>
+
+      {/* Existing Active Codes */}
+      {!codesLoading && activeExistingCodes.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-lg font-semibold text-gray-900">
+              Active Invite Codes
+            </h4>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              View All
+            </Button>
+          </div>
+          
+          <div className="space-y-3 max-h-40 overflow-y-auto">
+            {activeExistingCodes.slice(0, 2).map((code) => (
+              <div key={code.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-3">
+                  <div className="font-mono text-base font-semibold text-blue-900 bg-white px-2 py-1 rounded border">
+                    {code.code}
+                  </div>
+                  <div className="text-sm text-blue-700">
+                    {code.usesRemaining}/{code.maxUses} uses left
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopyCode(code.code)}
+                  disabled={copiedCode === code.code}
+                  className="shrink-0"
+                >
+                  {copiedCode === code.code ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            ))}
+          </div>
+          
+          {activeExistingCodes.length > 2 && (
+            <p className="text-sm text-gray-600 text-center">
+              and {activeExistingCodes.length - 2} more active codes...
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Warning for multiple active codes */}
+      {!codesLoading && activeExistingCodes.length > 0 && !inviteCode && (
+        <div className="flex items-start gap-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+          <AlertTriangle className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
+          <div>
+            <h5 className="font-medium text-yellow-900 mb-1">
+              You have {activeExistingCodes.length} active invite code{activeExistingCodes.length !== 1 ? 's' : ''}
+            </h5>
+            <p className="text-sm text-yellow-800">
+              Consider reusing existing codes before generating new ones to keep things organized.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Generate or Show Code */}
       {!inviteCode ? (
