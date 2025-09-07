@@ -81,50 +81,31 @@ export async function GET(
 
     if (includeMembers) {
       const { data: membersData, error: membersError } = await supabase
-        .from('user_groups')
-        .select(`
-          id,
-          user_id,
-          group_id,
-          role,
-          joined_at,
-          users:user_id (
-            id,
-            name,
-            full_name,
-            email,
-            avatar_url
-          )
-        `)
-        .eq('group_id', groupId)
-        .order('joined_at', { ascending: false });
+        .rpc('get_group_members', {
+          group_id_param: groupId,
+          user_id_param: user.id
+        });
 
       if (!membersError && membersData) {
         members = membersData.map((m: {
-          id: string;
+          member_id: string;
           user_id: string;
-          group_id: string;
           role: string;
           joined_at: string;
-          users: {
-            id: string;
-            name: string;
-            full_name: string | null;
-            email: string;
-            avatar_url: string | null;
-          };
+          user_name: string;
+          user_email: string;
         }) => ({
-          id: m.id,
+          id: m.member_id,
           user_id: m.user_id,
-          group_id: m.group_id,
+          group_id: groupId,
           role: m.role as GroupRole,
           joined_at: m.joined_at,
           user: {
-            id: m.users.id,
-            name: m.users.name,
-            full_name: m.users.full_name || undefined,
-            email: m.users.email,
-            avatar_url: m.users.avatar_url || undefined,
+            id: m.user_id,
+            name: m.user_name,
+            full_name: undefined, // Not provided by the function
+            email: m.user_email,
+            avatar_url: undefined, // Not provided by the function
           }
         }));
       }
