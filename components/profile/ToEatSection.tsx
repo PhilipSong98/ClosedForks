@@ -255,9 +255,14 @@ const ToEatSection: React.FC<ToEatSectionProps> = ({ showHeader = true }) => {
       {/* No Results */}
       {searchQuery && !isSearching && filteredSearchResults.length === 0 && !searchError && (
         <div className="text-center py-8">
-          <Search className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-          <p className="text-muted-foreground font-medium">No restaurants found</p>
-          <p className="text-sm text-muted-foreground mt-1">
+          <div className="relative mx-auto w-16 h-16 mb-4">
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full" />
+            <div className="absolute inset-1 bg-white rounded-full shadow-sm flex items-center justify-center">
+              <Search className="h-6 w-6 text-gray-500" />
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">No restaurants found</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
             Try a different search term or check the spelling
           </p>
         </div>
@@ -266,9 +271,14 @@ const ToEatSection: React.FC<ToEatSectionProps> = ({ showHeader = true }) => {
       {/* No Search Query */}
       {!searchQuery && (
         <div className="text-center py-8">
-          <Search className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-          <p className="text-muted-foreground font-medium">Start typing to search</p>
-          <p className="text-sm text-muted-foreground mt-1">
+          <div className="relative mx-auto w-16 h-16 mb-4">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full animate-pulse" />
+            <div className="absolute inset-1 bg-white rounded-full shadow-sm flex items-center justify-center">
+              <Search className="h-6 w-6 text-blue-600" />
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Start typing to search</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
             Find restaurants in your network to add to your to-eat list
           </p>
         </div>
