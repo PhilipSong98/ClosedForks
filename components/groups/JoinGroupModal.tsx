@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -36,8 +36,18 @@ export function JoinGroupModal({
   const { toast } = useToast();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   
   const joinGroupMutation = useJoinGroup();
+
+  // Auto-focus first input when modal opens
+  useEffect(() => {
+    if (isOpen && inputRefs.current[0]) {
+      setTimeout(() => {
+        inputRefs.current[0]?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
 
   const handleCodeChange = (value: string) => {
     // Only allow digits and limit to 6 characters
@@ -65,9 +75,7 @@ export function JoinGroupModal({
       });
       
       // Reset form and close modal
-      setCode('');
-      setError('');
-      onOpenChange(false);
+      handleClose();
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to join group';
@@ -78,6 +86,10 @@ export function JoinGroupModal({
   const handleClose = () => {
     setCode('');
     setError('');
+    // Clear all input values
+    inputRefs.current.forEach((input) => {
+      if (input) input.value = '';
+    });
     onOpenChange(false);
   };
 
@@ -103,6 +115,9 @@ export function JoinGroupModal({
               {[0, 1, 2, 3, 4, 5].map((index) => (
                 <div key={index} className="relative">
                   <Input
+                    ref={(el) => {
+                      inputRefs.current[index] = el;
+                    }}
                     type="text"
                     value={code[index] || ''}
                     onChange={(e) => {
@@ -112,15 +127,17 @@ export function JoinGroupModal({
                       
                       // Auto-focus next input
                       if (e.target.value && index < 5) {
-                        const nextInput = e.target.parentElement?.parentElement?.children[index + 1]?.querySelector('input');
-                        nextInput?.focus();
+                        setTimeout(() => {
+                          inputRefs.current[index + 1]?.focus();
+                        }, 0);
                       }
                     }}
                     onKeyDown={(e) => {
                       // Auto-focus previous input on backspace
                       if (e.key === 'Backspace' && !code[index] && index > 0) {
-                        const prevInput = (e.target as HTMLElement).parentElement?.parentElement?.children[index - 1]?.querySelector('input');
-                        prevInput?.focus();
+                        setTimeout(() => {
+                          inputRefs.current[index - 1]?.focus();
+                        }, 0);
                       }
                     }}
                     className="w-12 h-12 text-center text-lg font-mono border-gray-300 focus:border-blue-600 focus:ring-blue-600 bg-gray-50"

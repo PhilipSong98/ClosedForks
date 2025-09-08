@@ -137,8 +137,9 @@ export function useJoinGroup() {
       
       console.log('Successfully joined group:', data.groupName);
     },
-    onError: (error) => {
-      console.error('Failed to join group:', error);
+    onError: () => {
+      // Error is handled gracefully in the UI, no need to log to console
+      // This prevents "Invalid invite code" from showing in browser console
     },
   });
 }
