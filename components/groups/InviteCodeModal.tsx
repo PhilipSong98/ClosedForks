@@ -160,9 +160,9 @@ export function InviteCodeModal({
           
           <div className="space-y-3 max-h-40 overflow-y-auto">
             {activeExistingCodes.slice(0, 2).map((code) => (
-              <div key={code.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="flex items-center gap-3">
-                  <div className="font-mono text-base font-semibold text-blue-900 bg-white px-2 py-1 rounded border">
+              <div key={code.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="font-mono text-base font-semibold text-blue-900 bg-white px-2 py-1 rounded border w-fit">
                     {code.code}
                   </div>
                   <div className="text-sm text-blue-700">
@@ -174,7 +174,7 @@ export function InviteCodeModal({
                   size="sm"
                   onClick={() => handleCopyExistingCode(code.code)}
                   disabled={copiedCode === code.code}
-                  className="shrink-0"
+                  className="shrink-0 w-fit self-start sm:self-center"
                 >
                   {copiedCode === code.code ? (
                     <Check className="h-4 w-4 text-green-600" />

@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { 
   ChevronDown, 
@@ -96,12 +95,12 @@ export function GroupInvitesSection({
   };
 
   const InviteCodeCard = ({ invite }: { invite: InviteCode }) => (
-    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-      <div className="flex items-center gap-4">
-        <div className="font-mono text-lg font-semibold text-gray-900 bg-white px-3 py-2 rounded border">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 bg-gray-50 rounded-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 flex-1 min-w-0">
+        <div className="font-mono text-lg font-semibold text-gray-900 bg-white px-3 py-2 rounded border w-fit">
           {invite.code}
         </div>
-        <div className="flex items-center gap-4 text-sm text-gray-600">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-600">
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
             <span>{invite.usesRemaining}/{invite.maxUses} uses left</span>
@@ -112,7 +111,7 @@ export function GroupInvitesSection({
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         <Button
           variant="outline"
           size="sm"
@@ -205,12 +204,12 @@ export function GroupInvitesSection({
                     </Badge>
                   </h4>
                   {expiredInvites.slice(0, 3).map((invite) => (
-                    <div key={invite.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg opacity-60">
-                      <div className="flex items-center gap-4">
-                        <div className="font-mono text-lg font-semibold text-gray-500 bg-white px-3 py-2 rounded border">
+                    <div key={invite.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 bg-gray-50 rounded-lg opacity-60">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 flex-1 min-w-0">
+                        <div className="font-mono text-lg font-semibold text-gray-500 bg-white px-3 py-2 rounded border w-fit">
                           {invite.code}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-500">
                           <div className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
                             <span>{invite.currentUses}/{invite.maxUses} used</span>
