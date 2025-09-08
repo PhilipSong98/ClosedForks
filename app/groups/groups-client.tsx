@@ -20,6 +20,7 @@ import { useGroupInviteCodes } from '@/lib/queries/invites';
 import { EditGroupModal } from '@/components/groups/EditGroupModal';
 import { InviteCodeModal } from '@/components/groups/InviteCodeModal';
 import { CreateGroupModal } from '@/components/groups/CreateGroupModal';
+import { JoinGroupModal } from '@/components/groups/JoinGroupModal';
 import { GroupInvitesSection } from '@/components/groups/GroupInvitesSection';
 import { Group, CreateGroupRequest } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
@@ -220,6 +221,7 @@ const GroupsClient: React.FC = () => {
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [invitingGroup, setInvitingGroup] = useState<Group | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   const { data: userGroups = [], isLoading: groupsLoading } = useUserGroups();
   const updateGroupMutation = useUpdateGroup();
   const createGroupMutation = useCreateGroup();
@@ -345,7 +347,7 @@ const GroupsClient: React.FC = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button 
-                  onClick={() => router.push('/welcome')}
+                  onClick={() => setShowJoinModal(true)}
                   className="flex items-center gap-2"
                 >
                   <Plus className="h-4 w-4" />
@@ -388,7 +390,7 @@ const GroupsClient: React.FC = () => {
               </p>
               <Button 
                 variant="outline"
-                onClick={() => router.push('/welcome')}
+                onClick={() => setShowJoinModal(true)}
                 className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
@@ -427,6 +429,12 @@ const GroupsClient: React.FC = () => {
         onOpenChange={setShowCreateModal}
         onSave={handleCreateGroup}
         isLoading={createGroupMutation.isPending}
+      />
+
+      {/* Join Group Modal */}
+      <JoinGroupModal
+        isOpen={showJoinModal}
+        onOpenChange={setShowJoinModal}
       />
     </div>
   );

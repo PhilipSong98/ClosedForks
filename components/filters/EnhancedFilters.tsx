@@ -35,8 +35,6 @@ interface EnhancedFiltersProps {
 const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({ 
   filters, 
   onFiltersChange, 
-  reviewCount = 0,
-  filteredCount = 0,
   showAllFilters = false,
   defaultExpanded = false,
   defaultSortBy = 'recent'
@@ -87,85 +85,143 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
       role="region"
       aria-label="Filters"
     >
-      {/* Header with Results Count and Mobile Toggle */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground">
-              {isMobile ? `${filteredCount}/${reviewCount}` : `Showing ${filteredCount} of ${reviewCount} reviews`}
-            </span>
-          </div>
-          {activeFilterCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => { e.stopPropagation(); handleClearAll(); }}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              {isMobile ? `Clear (${activeFilterCount})` : `Clear all (${activeFilterCount})`}
-            </Button>
-          )}
-        </div>
-        
-        {/* Sort Controls and Expand Toggle */}
-        <div className="flex items-center gap-2">
-          {!isMobile && showAllFilters ? (
-            <>
-              <span className="text-sm font-medium text-foreground">Sort:</span>
-              <Select 
-                value={filters.sortBy} 
-                onValueChange={(value) => onFiltersChange({ ...filters, sortBy: value as FilterState['sortBy'] })}
-              >
-                <SelectTrigger className="w-32 h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Recent</SelectItem>
-                  <SelectItem value="rating">Best Rated</SelectItem>
-                  <SelectItem value="price_low">Price: Low</SelectItem>
-                  <SelectItem value="price_high">Price: High</SelectItem>
-                </SelectContent>
-              </Select>
-            </>
-          ) : (
+      {/* Header - Mobile vs Desktop Layouts */}
+      {isMobile ? (
+        /* Mobile: Compact Header with Filter Toggle and Sort Controls */
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
-              className="text-xs"
+              className="text-xs flex items-center gap-2"
             >
-              Filters {isExpanded ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
+              <SlidersHorizontal className="w-4 h-4" />
+              Filters {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               {activeFilterCount > 0 && (
-                <Badge variant="secondary" className="ml-2 text-xs">
+                <Badge variant="secondary" className="ml-1 text-xs">
                   {activeFilterCount}
                 </Badge>
               )}
             </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Sort Controls When Expanded */}
-      {isExpanded && (
-        <div className="flex items-center gap-2 mb-4 pb-3 border-b" onClick={(e) => e.stopPropagation()}>
-          <span className="text-sm font-medium text-foreground">Sort:</span>
-          <Select 
-            value={filters.sortBy} 
-            onValueChange={(value) => onFiltersChange({ ...filters, sortBy: value as FilterState['sortBy'] })}
+            {activeFilterCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => { e.stopPropagation(); handleClearAll(); }}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Clear ({activeFilterCount})
+              </Button>
+            )}
+          </div>
+          
+          {/* Sort Toggle Controls - Mobile */}
+          <div 
+            className="flex items-center gap-1"
+            onClick={(e) => e.stopPropagation()}
           >
-            <SelectTrigger className="w-full h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Recent</SelectItem>
-              <SelectItem value="rating">Best Rated</SelectItem>
-              <SelectItem value="price_low">Price: Low</SelectItem>
-              <SelectItem value="price_high">Price: High</SelectItem>
-            </SelectContent>
-          </Select>
+            <span className="text-sm font-medium text-foreground mr-2">Sort:</span>
+            <ToggleGroup 
+              type="single" 
+              value={filters.sortBy === 'recent' ? 'recent' : 'rating'} 
+              onValueChange={(value) => {
+                if (value) {
+                  onFiltersChange({ ...filters, sortBy: value as FilterState['sortBy'] });
+                }
+              }}
+              className="bg-muted rounded-lg p-0.5"
+            >
+              <ToggleGroupItem 
+                value="recent" 
+                className="px-3 py-1.5 text-xs rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Recent
+              </ToggleGroupItem>
+              <ToggleGroupItem 
+                value="rating" 
+                className="px-3 py-1.5 text-xs rounded-md data-[state=on]:bg-background data-[state=on]:shadow-sm"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Best Rated
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        </div>
+      ) : (
+        /* Desktop: Professional Header with Enhanced Layout */
+        <div className="space-y-4 mb-6">
+          {/* Top Row: Main Controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                  className="text-sm flex items-center gap-2 font-medium px-3 py-2"
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                  Filters {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  {activeFilterCount > 0 && (
+                    <Badge variant="secondary" className="ml-1">
+                      {activeFilterCount}
+                    </Badge>
+                  )}
+                </Button>
+                {activeFilterCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => { e.stopPropagation(); handleClearAll(); }}
+                    className="text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+                  >
+                    Clear all ({activeFilterCount})
+                  </Button>
+                )}
+              </div>
+            </div>
+            
+            {/* Sort Controls - Desktop */}
+            <div 
+              className="flex items-center gap-3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span className="text-sm font-semibold text-foreground">Sort by:</span>
+              <ToggleGroup 
+                type="single" 
+                value={filters.sortBy === 'recent' ? 'recent' : 'rating'} 
+                onValueChange={(value) => {
+                  if (value) {
+                    onFiltersChange({ ...filters, sortBy: value as FilterState['sortBy'] });
+                  }
+                }}
+                className="bg-muted/50 rounded-xl p-1 border border-border/50"
+              >
+                <ToggleGroupItem 
+                  value="recent" 
+                  className="px-4 py-2 text-sm font-medium rounded-lg data-[state=on]:bg-background data-[state=on]:shadow-md data-[state=on]:border data-[state=on]:border-border/20 transition-all"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Recent
+                </ToggleGroupItem>
+                <ToggleGroupItem 
+                  value="rating" 
+                  className="px-4 py-2 text-sm font-medium rounded-lg data-[state=on]:bg-background data-[state=on]:shadow-md data-[state=on]:border data-[state=on]:border-border/20 transition-all"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Best Rated
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+          </div>
+          
+          {/* Separator Line */}
+          {(isExpanded || showAllFilters) && <Separator className="opacity-50" />}
         </div>
       )}
+
 
       {/* Quick Tag Filters */}
       {((!isMobile && showAllFilters) || isExpanded) && (
@@ -346,6 +402,39 @@ const EnhancedFilters: React.FC<EnhancedFiltersProps> = ({
                     <SelectItem value="year">Past year</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <Separator />
+
+              {/* Advanced Sort Options */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-blue-500" />
+                  <label className="text-sm font-medium">Advanced Sorting</label>
+                </div>
+                <ToggleGroup 
+                  type="single" 
+                  value={filters.sortBy} 
+                  onValueChange={(value) => {
+                    if (value) {
+                      onFiltersChange({ ...filters, sortBy: value as FilterState['sortBy'] });
+                    }
+                  }}
+                  className="grid grid-cols-2 gap-1"
+                >
+                  <ToggleGroupItem 
+                    value="price_low" 
+                    className="px-3 py-2 text-xs border data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                  >
+                    Price: Low
+                  </ToggleGroupItem>
+                  <ToggleGroupItem 
+                    value="price_high" 
+                    className="px-3 py-2 text-xs border data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                  >
+                    Price: High
+                  </ToggleGroupItem>
+                </ToggleGroup>
               </div>
 
               <Separator />

@@ -1,6 +1,18 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CreateGroupRequest, UpdateGroupRequest } from '@/types';
 
+interface JoinGroupRequest {
+  code: string;
+}
+
+interface JoinGroupResponse {
+  success: boolean;
+  message?: string;
+  groupId?: string;
+  groupName?: string;
+  error?: string;
+}
+
 export function useUpdateGroup() {
   const queryClient = useQueryClient();
 
@@ -87,6 +99,46 @@ export function useCreateGroup() {
     },
     onError: (error) => {
       console.error('Failed to create group:', error);
+    },
+  });
+}
+
+export function useJoinGroup() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: JoinGroupRequest): Promise<JoinGroupResponse> => {
+      const response = await fetch('/api/groups/join', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      // Handle HTTP errors (401, 500, etc.)
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to join group');
+      }
+
+      const result = await response.json();
+      
+      // Handle business logic errors (invalid code, etc.)
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to join group');
+      }
+
+      return result;
+    },
+    onSuccess: (data) => {
+      // Invalidate and refetch user groups to show the new group
+      queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+      
+      console.log('Successfully joined group:', data.groupName);
+    },
+    onError: (error) => {
+      console.error('Failed to join group:', error);
     },
   });
 }
