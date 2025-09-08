@@ -215,7 +215,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
 
 const GroupsClient: React.FC = () => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { loading: permissionsLoading } = usePermissions();
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
@@ -296,7 +296,7 @@ const GroupsClient: React.FC = () => {
               </p>
             </div>
             {/* Create Group Button - Only visible to Admins */}
-            <PermissionGate capability="create_group">
+            {isAdmin && (
               <Button 
                 onClick={handleShowCreateModal}
                 className="bg-blue-600 hover:bg-blue-700 text-white ml-8"
@@ -304,7 +304,7 @@ const GroupsClient: React.FC = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 Create Group
               </Button>
-            </PermissionGate>
+            )}
           </div>
         </section>
 
