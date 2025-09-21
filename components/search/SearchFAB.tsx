@@ -1,14 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GlobalSearchModal } from "./GlobalSearchModal";
 
 export function SearchFAB() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const hiddenRoutes = ["/welcome", "/signin", "/signup", "/auth/request-magic-link", "/auth/reset-password"];
+  const isHidden = pathname ? hiddenRoutes.some((route) => pathname.startsWith(route)) : false;
 
   useEffect(() => {
+    if (isHidden) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       // Open with "/" or "Cmd/Ctrl+K"
       if (e.key === "/" && !isOpen) {
@@ -26,7 +32,11 @@ export function SearchFAB() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [isHidden, isOpen]);
+
+  if (isHidden) {
+    return null;
+  }
 
   return (
     <>

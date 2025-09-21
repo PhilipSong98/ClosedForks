@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Shield, Star } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { inviteCodeValidationSchema } from '@/lib/validations';
 
 export default function WelcomePage() {
@@ -59,19 +59,19 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#f7f5f9] via-white to-[#bbe2d2] text-slate-900">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[var(--background)] via-white to-[var(--accent)] text-slate-900">
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-28 left-1/2 h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(99,81,216,0.35),transparent_65%)] blur-3xl" />
-        <div className="absolute bottom-[-18%] left-[-10%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(242,95,115,0.28),transparent_70%)] blur-3xl" />
-        <div className="absolute bottom-[-22%] right-[-12%] h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(circle,_rgba(187,226,210,0.28),transparent_70%)] blur-3xl" />
+        <div className="absolute -top-28 left-1/2 h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.35),transparent_65%)] blur-3xl" />
+        <div className="absolute bottom-[-18%] left-[-10%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--secondary-rgb),0.28),transparent_70%)] blur-3xl" />
+        <div className="absolute bottom-[-22%] right-[-12%] h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--accent-rgb),0.28),transparent_70%)] blur-3xl" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.52),transparent_72%)]" />
       </div>
 
       <div className="relative z-10 flex min-h-screen flex-col">
         <header className="flex items-center justify-between px-6 py-6 sm:px-12">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/85 shadow-lg shadow-[rgba(242,95,115,0.2)] backdrop-blur">
-              <Star className="h-6 w-6 text-[#f25f73]" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 shadow-lg shadow-[rgba(var(--secondary-rgb),0.2)] backdrop-blur">
+              <span className="text-xl font-semibold tracking-[0.12em] text-[var(--primary)]">DC</span>
             </div>
             <div className="space-y-0.5">
               <p className="text-xs uppercase tracking-[0.35em] text-slate-500">DineCircle</p>
@@ -80,7 +80,7 @@ export default function WelcomePage() {
           </div>
           <Button
             onClick={() => router.push('/signin')}
-            className="hidden items-center gap-2 rounded-full border border-[#cfc6e9] bg-white/70 px-6 py-3 text-sm font-medium text-[#6351d8] shadow-lg shadow-[#cfc6e9] backdrop-blur transition hover:border-[#b9aedf] hover:bg-white sm:flex"
+            className="hidden items-center gap-2 rounded-full border border-[var(--muted)] bg-white/70 px-6 py-3 text-sm font-medium text-[var(--primary)] shadow-lg shadow-[rgba(var(--primary-rgb),0.2)] backdrop-blur transition hover:border-[rgba(var(--primary-rgb),0.45)] hover:bg-white sm:flex"
           >
             Already a member?
           </Button>
@@ -89,7 +89,7 @@ export default function WelcomePage() {
         <main className="flex flex-1 items-center px-6 pb-12 pt-4 sm:px-12">
           <div className="mx-auto grid w-full max-w-6xl items-start gap-14 lg:grid-cols-[1.05fr_minmax(0,0.95fr)]">
             <div className="space-y-10">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#f5c0c8] bg-white/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[#f25f73] shadow-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(var(--secondary-rgb),0.35)] bg-white/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[var(--secondary)] shadow-sm">
                 Invite Only
               </div>
               <div className="space-y-6">
@@ -101,24 +101,28 @@ export default function WelcomePage() {
                 </p>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-3xl border border-[#cfc6e9] bg-white/75 p-6 shadow-lg shadow-[#cfc6e9] backdrop-blur">
-                  <Shield className="mb-4 h-8 w-8 text-[#6351d8]" />
+                <div className="rounded-3xl border border-[var(--muted)] bg-white/75 p-6 shadow-lg shadow-[rgba(var(--primary-rgb),0.18)] backdrop-blur">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(var(--primary-rgb),0.12)] ring-1 ring-[rgba(var(--primary-rgb),0.2)]">
+                    <span className="text-base font-semibold text-[var(--primary)]">01</span>
+                  </div>
                   <h3 className="text-lg font-semibold text-slate-900">Secure Access</h3>
                   <p className="mt-2 text-sm text-slate-600">Membership is invitation-only to keep every insight authentic and personal.</p>
                 </div>
-                <div className="rounded-3xl border border-[#f5c0c8] bg-white/75 p-6 shadow-lg shadow-[#f5c0c8] backdrop-blur">
-                  <Star className="mb-4 h-8 w-8 text-[#f25f73]" />
+                <div className="rounded-3xl border border-[rgba(var(--secondary-rgb),0.3)] bg-white/75 p-6 shadow-lg shadow-[rgba(var(--secondary-rgb),0.18)] backdrop-blur">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(var(--secondary-rgb),0.12)] ring-1 ring-[rgba(var(--secondary-rgb),0.22)]">
+                    <span className="text-base font-semibold text-[var(--secondary)]">02</span>
+                  </div>
                   <h3 className="text-lg font-semibold text-slate-900">Trusted Reviews</h3>
                   <p className="mt-2 text-sm text-slate-600">Every rating comes from friends, family, and tastemakers you rely on.</p>
                 </div>
               </div>
             </div>
 
-            <Card className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/80 text-slate-900 shadow-2xl shadow-[rgba(242,95,115,0.18)] backdrop-blur-xl">
-              <div className="pointer-events-none absolute -inset-x-10 -top-24 h-64 bg-[radial-gradient(circle,_rgba(99,81,216,0.4),transparent_65%)]" />
+            <Card className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/80 text-slate-900 shadow-2xl shadow-[rgba(var(--secondary-rgb),0.18)] backdrop-blur-xl">
+              <div className="pointer-events-none absolute -inset-x-10 -top-24 h-64 bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.4),transparent_65%)]" />
               <CardContent className="relative space-y-8 p-8 sm:p-10">
                 <div className="space-y-3 text-center sm:text-left">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-[#cfc6e9] bg-white/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#6351d8]">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-[var(--muted)] bg-white/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--primary)]">
                     Access Granted
                   </span>
                   <h2 className="text-3xl font-semibold text-slate-900">Enter your invite code</h2>
@@ -155,18 +159,18 @@ export default function WelcomePage() {
                                   prevInput?.focus();
                                 }
                               }}
-                              className="h-14 w-12 rounded-2xl border-[#d9d6e1] bg-white/80 text-center text-xl font-semibold tracking-widest text-slate-900 placeholder:text-slate-400 focus:border-[#6351d8] focus:ring-[rgba(99,81,216,0.35)] sm:h-16 sm:w-14"
+                              className="h-14 w-12 rounded-2xl border-[var(--muted)] bg-white/80 text-center text-xl font-semibold tracking-widest text-slate-900 placeholder:text-slate-400 focus:border-[var(--primary)] focus:ring-[rgba(var(--primary-rgb),0.35)] sm:h-16 sm:w-14"
                               maxLength={1}
                               autoComplete="off"
                               disabled={isValidating}
                             />
-                            {index === 2 && <div className="absolute -right-2 top-1/2 h-6 w-px -translate-y-1/2 bg-[#cfc6e9]" />}
+                            {index === 2 && <div className="absolute -right-2 top-1/2 h-6 w-px -translate-y-1/2 bg-[rgba(var(--primary-rgb),0.3)]" />}
                           </div>
                         ))}
                       </div>
                     </div>
                     {error && (
-                      <p className="text-center text-sm text-[#f25f73] animate-in fade-in duration-300">
+                      <p className="text-center text-sm text-[var(--secondary)] animate-in fade-in duration-300">
                         {error}
                       </p>
                     )}
@@ -175,7 +179,7 @@ export default function WelcomePage() {
                   <Button
                     type="submit"
                     disabled={code.length !== 6 || isValidating}
-                    className="group flex w-full items-center justify-center gap-2 rounded-full bg-[#6351d8] px-6 py-4 text-base font-semibold text-white shadow-lg shadow-[#cfc6e9] transition hover:bg-[#7d6ef5] disabled:opacity-60"
+                    className="group flex w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-4 text-base font-semibold text-white shadow-lg shadow-[rgba(var(--primary-rgb),0.25)] transition hover:bg-[rgba(var(--primary-rgb),0.9)] disabled:opacity-60"
                   >
                     {isValidating ? (
                       <>
@@ -193,16 +197,16 @@ export default function WelcomePage() {
                   </Button>
                 </form>
 
-                <div className="space-y-4 rounded-2xl border border-[#e5e1ee] bg-white/70 p-5 text-sm text-slate-600">
+                <div className="space-y-4 rounded-2xl border border-[var(--border)] bg-white/70 p-5 text-sm text-slate-600">
                   <p>
                     Don&apos;t have a code? <span className="text-slate-900">Reach out to a friend or family member already inside.</span>
                   </p>
-                  <div className="border-t border-[#e5e1ee] pt-4 text-center sm:text-left">
+                  <div className="border-t border-[var(--border)] pt-4 text-center sm:text-left">
                     <p className="mb-3 text-xs uppercase tracking-[0.3em] text-slate-400">Already a member?</p>
                     <Button
                       variant="outline"
                       onClick={() => router.push('/signin')}
-                      className="w-full rounded-full border-[#cfc6e9] bg-white/60 text-[#6351d8] hover:border-[#b9aedf] hover:bg-white"
+                      className="w-full rounded-full border-[var(--muted)] bg-white/60 text-[var(--primary)] hover:border-[rgba(var(--primary-rgb),0.45)] hover:bg-white"
                     >
                       Sign in here
                     </Button>
