@@ -35,7 +35,11 @@ export async function GET(request: NextRequest) {
         }[] | null;
         error: unknown;
       }>
-    }).rpc('get_user_groups', { user_id_param: user.id });
+    }).rpc('get_user_groups', { 
+      user_id_param: user.id,
+      limit_param: limit,
+      offset_param: offset,
+    });
 
     if (error) {
       console.error('Error fetching user groups:', error);
@@ -46,7 +50,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Format the response to match our GroupsResponse interface
-    const formattedGroups = (groups || []).slice(offset, offset + limit).map((g) => ({
+    const formattedGroups = (groups || []).map((g) => ({
       id: g.group_id,
       name: g.group_name,
       description: g.group_description,

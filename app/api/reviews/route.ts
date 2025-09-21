@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     
     const restaurantId = searchParams.get('restaurant_id');
     const groupId = searchParams.get('group_id');
-    const page = parseInt(searchParams.get('page') || '1');
+    const _page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '15');
     
     // Support keyset pagination (cursor-based) for better performance
@@ -70,69 +70,34 @@ export async function GET(request: NextRequest) {
     const cursorId = searchParams.get('cursor_id');
     
     // Fallback to offset pagination if no cursor provided (for backward compatibility)
-    const offset = cursorCreatedAt ? 0 : (page - 1) * limit;
+    // const offset = cursorCreatedAt ? 0 : (page - 1) * limit; // Not used with optimized functions
 
     let reviews: OptimizedReviewResponse[] = [];
     let error: unknown = null;
 
     if (groupId) {
-      // Use the existing security function for group-specific reviews
-      // TODO: Create optimized version for group reviews in future migration
-      const { data, error: groupReviewsError } = await (supabase as unknown as { rpc: (name: string, params: Record<string, unknown>) => Promise<{ data: Record<string, unknown>[] | null; error: unknown }> })
-        .rpc('get_group_reviews', {
+      // Optimized group reviews with keyset pagination and optional restaurant filter
+      const { data, error: groupReviewsError } = await (supabase as unknown as { rpc: (name: string, params: Record<string, unknown>) => Promise<{ data: OptimizedReviewResponse[] | null; error: unknown }> })
+        .rpc('get_group_reviews_optimized', {
           group_id_param: groupId,
           user_id_param: user.id,
+          cursor_created_at: cursorCreatedAt || null,
+          cursor_id: cursorId || null,
           limit_param: limit,
-          offset_param: offset
+          restaurant_id_filter: restaurantId || null,
         });
-      
-      // Transform the old format to match our expected structure
-      reviews = (data || []).map((review: Record<string, unknown>) => ({
-        review_id: review.review_id as string,
-        restaurant_id: review.restaurant_id as string,
-        author_id: review.author_id as string,
-        rating_overall: review.rating_overall as number,
-        dish: review.dish as string,
-        review_text: review.review_text as string,
-        recommend: review.recommend as boolean,
-        tips: review.tips as string | null,
-        tags: (review.tags as string[]) || [],
-        visit_date: review.visit_date as string,
-        price_per_person: review.price_per_person as number | null,
-        created_at: review.created_at as string,
-        updated_at: review.updated_at as string,
-        like_count: (review.like_count as number) || 0,
-        group_id: review.group_id as string,
-        // These will be filled by the legacy processing below
-        author_name: '',
-        author_full_name: null,
-        author_email: '',
-        author_avatar_url: null,
-        restaurant_name: '',
-        restaurant_city: '',
-        restaurant_address: '',
-        restaurant_price_level: null,
-        restaurant_cuisine: [],
-        restaurant_google_place_id: null,
-        restaurant_google_maps_url: null,
-        restaurant_google_data: null,
-        restaurant_lat: null,
-        restaurant_lng: null,
-        restaurant_avg_rating: 0,
-        restaurant_review_count: 0,
-        is_liked_by_user: false
-      }));
+      reviews = data || [];
       error = groupReviewsError;
     } else {
-      // Use the NEW optimized function for the main feed (eliminates N+1 queries)
+      // Optimized main feed with keyset pagination and optional restaurant filter
       const { data, error: optimizedError } = await (supabase as unknown as { rpc: (name: string, params: Record<string, unknown>) => Promise<{ data: OptimizedReviewResponse[] | null; error: unknown }> })
         .rpc('get_user_feed_optimized', {
           user_id_param: user.id,
           cursor_created_at: cursorCreatedAt || null,
           cursor_id: cursorId || null,
-          limit_param: limit
+          limit_param: limit,
+          restaurant_id_filter: restaurantId || null,
         });
-      
       reviews = data || [];
       error = optimizedError;
     }
@@ -150,92 +115,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Process the reviews - optimized function returns complete data, no additional queries needed!
-    let processedReviews: Record<string, unknown>[] = [];
-    
-    if (groupId && reviews.length > 0) {
-      // LEGACY PATH: Group reviews still need additional processing (N+1 queries)
-      // This maintains backward compatibility while group-optimized function is being developed
-      
-      // Fetch user data for authors
-      const authorIds = reviews.map(review => review.author_id);
-      const { data: users, error: usersError } = await supabase
-        .from('users')
-        .select('id, name, full_name, email, avatar_url')
-        .in('id', authorIds);
-
-      // Fetch restaurant data
-      const restaurantIds = reviews.map(review => review.restaurant_id);
-      const { data: restaurants, error: restaurantsError } = await supabase
-        .from('restaurants')
-        .select('id, name, address, city, cuisine, price_level, google_data, google_place_id, google_maps_url, lat, lng')
-        .in('id', restaurantIds);
-
-      // Get user's like status for each review
-      const reviewIds = reviews.map(review => review.review_id);
-      const { data: userLikes } = await supabase
-        .from('review_likes')
-        .select('review_id')
-        .eq('user_id', user.id)
-        .in('review_id', reviewIds);
-
-      if (!usersError && !restaurantsError && users && restaurants) {
-        // Build review stats for these restaurants
-        const statsMap = new Map<string, { avg_rating: number; review_count: number }>();
-        if (restaurantIds.length > 0) {
-          const { data: restReviews } = await supabase
-            .from('reviews')
-            .select('restaurant_id, rating_overall')
-            .in('restaurant_id', restaurantIds);
-          if (restReviews) {
-            const bucket: Record<string, number[]> = {};
-            for (const row of restReviews as { restaurant_id: string; rating_overall: number }[]) {
-              if (!bucket[row.restaurant_id]) bucket[row.restaurant_id] = [];
-              if (typeof row.rating_overall === 'number') bucket[row.restaurant_id].push(row.rating_overall);
-            }
-            Object.entries(bucket).forEach(([rid, ratings]) => {
-              const count = ratings.length;
-              const avg = count > 0 ? Math.round((ratings.reduce((a, b) => a + b, 0) / count) * 10) / 10 : 0;
-              statsMap.set(rid, { avg_rating: avg, review_count: count });
-            });
-          }
-        }
-
-        const likedReviewIds = new Set((userLikes || []).map((like: { review_id: string }) => like.review_id));
-        
-        // Transform legacy format to expected format
-        processedReviews = reviews.map((review) => ({
-          id: review.review_id,
-          restaurant_id: review.restaurant_id,
-          author_id: review.author_id,
-          rating_overall: review.rating_overall,
-          dish: review.dish,
-          review: review.review_text,
-          recommend: review.recommend,
-          tips: review.tips,
-          tags: review.tags,
-          visit_date: review.visit_date,
-          price_per_person: review.price_per_person,
-          visibility: 'my_circles', // Default for group reviews
-          created_at: review.created_at,
-          updated_at: review.updated_at,
-          like_count: review.like_count || 0,
-          group_id: review.group_id,
-          isLikedByUser: likedReviewIds.has(review.review_id),
-          // Add joined data
-          author: users.find((u: { id: string }) => u.id === review.author_id),
-          restaurant: (() => {
-            const base = restaurants.find((r: { id: string }) => r.id === review.restaurant_id);
-            if (!base) return undefined;
-            const stats = statsMap.get(review.restaurant_id);
-            return stats ? { ...(base as Record<string, unknown>), avg_rating: stats.avg_rating, review_count: stats.review_count } : base;
-          })()
-        }));
-      }
-    } else {
-      // OPTIMIZED PATH: Main feed uses new optimized function - NO additional queries needed!
-      // This eliminates the N+1 query problem completely
-      processedReviews = reviews.map((review: OptimizedReviewResponse) => ({
+    // Process the reviews - optimized functions return complete data
+    const processedReviews: Record<string, unknown>[] = reviews.map((review: OptimizedReviewResponse) => ({
         id: review.review_id,
         restaurant_id: review.restaurant_id,
         author_id: review.author_id,
@@ -247,7 +128,7 @@ export async function GET(request: NextRequest) {
         tags: review.tags || [],
         visit_date: review.visit_date,
         price_per_person: review.price_per_person,
-        visibility: 'my_circles', // All optimized reviews are group-scoped
+        visibility: 'my_circles',
         created_at: review.created_at,
         updated_at: review.updated_at,
         like_count: review.like_count,
@@ -278,7 +159,6 @@ export async function GET(request: NextRequest) {
           review_count: review.restaurant_review_count
         }
       }));
-    }
 
     // For keyset pagination, hasMore is determined by whether we got exactly the requested limit
     // For offset pagination (legacy), use the same logic

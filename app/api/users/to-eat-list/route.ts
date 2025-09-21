@@ -33,7 +33,7 @@ export async function GET() {
       );
     }
 
-    // Get user's to-eat list with restaurant details (without computed fields)
+    // Get user's to-eat list with restaurant details (use cached aggregates)
     const { data: toEatList, error: toEatError } = await supabase
       .from('to_eat_list')
       .select(`
@@ -47,7 +47,10 @@ export async function GET() {
           cuisine,
           price_level,
           google_data,
-          created_at
+          created_at,
+          cached_avg_rating,
+          cached_review_count,
+          cached_tags
         )
       `)
       .eq('user_id', user.id)
@@ -68,61 +71,14 @@ export async function GET() {
       });
     }
 
-    // Get restaurant IDs to fetch reviews for
-    const restaurantIds = toEatList.map((item: ToEatListItem) => item.restaurant_id);
-
-    // Fetch all reviews for these restaurants
-    const { data: reviews, error: reviewsError } = await supabase
-      .from('reviews')
-      .select('id, restaurant_id, rating_overall, tags')
-      .in('restaurant_id', restaurantIds);
-
-    if (reviewsError) {
-      console.error('Error fetching reviews for restaurants:', reviewsError);
-      // Continue without review data rather than failing
-    }
-
-    // Define review interface for type safety
-    interface ReviewData {
-      id: string;
-      restaurant_id: string;
-      rating_overall: number;
-      tags: string[] | null;
-    }
-
-    // Group reviews by restaurant_id
-    const reviewsByRestaurant = (reviews || []).reduce((acc: Record<string, ReviewData[]>, review: ReviewData) => {
-      const restaurantId = review.restaurant_id;
-      if (!acc[restaurantId]) {
-        acc[restaurantId] = [];
-      }
-      acc[restaurantId].push(review);
-      return acc;
-    }, {} as Record<string, ReviewData[]>);
-
-    // Transform the data and compute avg_rating, review_count, and aggregated_tags
+    // Transform data using cached aggregates
     const restaurants = (toEatList || []).map((item: ToEatListItem) => {
-      const restaurant = item.restaurants;
-      const restaurantReviews = reviewsByRestaurant[restaurant.id] || [];
-      
-      // Calculate average rating
-      const ratings = restaurantReviews
-        .map((r: ReviewData) => r.rating_overall)
-        .filter((r: number | undefined) => r != null) as number[];
-      const avg_rating = ratings.length > 0 
-        ? Math.round((ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length) * 10) / 10
-        : 0;
-      
-      // Aggregate unique tags from all reviews
-      const allTags = restaurantReviews
-        .flatMap((r: ReviewData) => r.tags || [])
-        .filter((tag: string, index: number, arr: string[]) => arr.indexOf(tag) === index);
-
+      const restaurant = item.restaurants as Restaurant & { cached_avg_rating?: number; cached_review_count?: number; cached_tags?: string[] };
       return {
-        ...restaurant,
-        avg_rating,
-        review_count: restaurantReviews.length,
-        aggregated_tags: allTags,
+        ...(restaurant as Restaurant),
+        avg_rating: restaurant.cached_avg_rating ?? 0,
+        review_count: restaurant.cached_review_count ?? 0,
+        aggregated_tags: restaurant.cached_tags ?? [],
         savedAt: item.created_at,
       };
     });

@@ -38,7 +38,7 @@ export async function GET(
     // Fetch invite codes for this group
     const { data: inviteCodes, error: inviteError } = await serviceSupabase
       .from('invite_codes')
-      .select('*')
+      .select('id, code, max_uses, current_uses, expires_at, created_at, is_active')
       .eq('group_id', groupId)
       .order('created_at', { ascending: false }) as {
         data: Database['public']['Tables']['invite_codes']['Row'][] | null;

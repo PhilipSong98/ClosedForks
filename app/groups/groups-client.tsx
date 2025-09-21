@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { usePermissions, PermissionGate } from '@/lib/hooks/usePermissions';
+import { usePermissions } from '@/lib/hooks/usePermissions';
 import { useUserGroups, useGroup } from '@/lib/queries/groups';
 import { useUpdateGroup, useCreateGroup } from '@/lib/mutations/groups';
 import { useGenerateInviteCode } from '@/lib/mutations/inviteCode';
@@ -205,7 +205,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
             inviteCodes={inviteCodes}
             isLoading={invitesLoading}
             onRevokeCode={onRevokeInviteCode}
-            onGenerateCode={(groupId) => onInviteToGroup(group)}
+            onGenerateCode={(_groupId) => onInviteToGroup(group)}
           />
         )}
       </CardContent>

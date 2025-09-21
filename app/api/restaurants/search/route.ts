@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         )
       `)
       .or(`name.ilike.%${query}%,city.ilike.%${query}%,address.ilike.%${query}%,cuisine.cs.{${query}}`)
-      .order('avg_rating', { ascending: false })
+      .order('cached_avg_rating', { ascending: false })
       .limit(limit) as { data: Restaurant[] | null; error: Error | null };
 
     if (error) {
