@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Eye, EyeOff, Check, X, ArrowLeft, Users } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, Eye, EyeOff, Check, X, ArrowLeft } from 'lucide-react';
 import { signupSchema } from '@/lib/validations';
 import { InviteCodeSession, SignupFormData } from '@/types';
 
@@ -135,227 +135,260 @@ export default function SignupPage() {
   if (!inviteSession) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-900" />
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Button
-            variant="ghost"
-            onClick={handleGoBack}
-            className="absolute left-4 top-4 text-gray-500 hover:text-gray-700 p-2"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          
-          {/* Logo */}
-          <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Users className="h-8 w-8 text-white" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[var(--background)] via-white to-[var(--accent)]">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-36 right-[-12%] h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.22),transparent_70%)] blur-[150px]" />
+        <div className="absolute bottom-[-18%] left-[-10%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--accent-rgb),0.26),transparent_70%)] blur-3xl" />
+        <div className="absolute top-[35%] left-[35%] h-[32rem] w-[32rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--secondary-rgb),0.22),transparent_70%)] blur-[160px]" />
+      </div>
+
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-12">
+        <div className="mx-auto grid w-full max-w-6xl items-start gap-12 lg:grid-cols-[1.05fr_minmax(0,0.95fr)]">
+          <div className="space-y-8">
+            <Button
+              variant="ghost"
+              onClick={handleGoBack}
+              className="inline-flex items-center gap-2 rounded-full border border-[rgba(var(--secondary-rgb),0.2)] bg-white/70 px-4 py-2 text-sm font-medium text-[var(--secondary)] shadow-sm shadow-[rgba(var(--secondary-rgb),0.18)] backdrop-blur transition hover:border-[rgba(var(--secondary-rgb),0.35)] hover:bg-white"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to invite verification
+            </Button>
+
+            <div className="space-y-6">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(var(--primary-rgb),0.3)] bg-white/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[var(--primary)]">
+                Invite Accepted
+              </span>
+              <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+                Create your DineCircle identity
+              </h1>
+              <p className="max-w-xl text-base text-slate-600 sm:text-lg">
+                You&apos;re moments away from unlocking trusted restaurant intel curated by the people who matter most. Set up your account to start sharing and discovering instantly.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {[
+                'Curated insights from your personal network',
+                'Save dining lists and keep track of invites',
+                'Share thoughtful reviews with rich context',
+                'Cross-device sync keeps every plan aligned',
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="flex items-start gap-3 rounded-3xl border border-[rgba(var(--secondary-rgb),0.22)] bg-white/70 p-4 shadow-sm shadow-[rgba(var(--secondary-rgb),0.16)] backdrop-blur"
+                >
+                  <span className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(var(--secondary-rgb),0.16)] text-[var(--secondary)]">
+                    <Check className="h-4 w-4" />
+                  </span>
+                  <p className="text-sm text-slate-600">{item}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-3xl border border-[rgba(var(--accent-rgb),0.35)] bg-white/70 p-6 shadow-lg shadow-[rgba(var(--accent-rgb),0.2)] backdrop-blur">
+              <h3 className="text-lg font-semibold text-slate-900">Invite details</h3>
+              <p className="mt-2 text-sm text-slate-600">Invite code verified at {new Date(inviteSession.validatedAt).toLocaleDateString()}</p>
+              <p className="text-sm text-slate-500">Code reference: {inviteSession.codeId}</p>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Create Your Account
-          </h1>
-          <p className="text-gray-500">
-            Join DineCircle and share dining experiences
-          </p>
-        </div>
 
-        {/* Signup Card */}
-        <Card className="bg-white border border-gray-200 shadow-sm">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-gray-900 text-xl">
-              Welcome! Let&apos;s get you started
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0 px-6 pb-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* General Error */}
-              {errors.general && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-600 text-sm">{errors.general}</p>
-                </div>
-              )}
-
-              {/* Full Name */}
-              <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-gray-900 font-medium">Full Name</Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  value={formData.fullName}
-                  onChange={(e) => handleInputChange('fullName', e.target.value)}
-                  placeholder="Enter your full name"
-                  className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-gray-900 focus:ring-gray-900"
-                  disabled={isLoading}
-                />
-                {errors.fullName && (
-                  <p className="text-red-600 text-sm">{errors.fullName}</p>
-                )}
+          <Card className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/80 text-slate-900 shadow-2xl shadow-[rgba(var(--secondary-rgb),0.2)] backdrop-blur-xl">
+            <div className="pointer-events-none absolute -inset-x-12 -top-20 h-64 bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.28),transparent_65%)]" />
+            <CardContent className="relative space-y-8 p-8 sm:p-10">
+              <div className="space-y-2 text-center">
+                <h2 className="text-3xl font-semibold text-slate-900">Create your account</h2>
+                <p className="text-sm text-slate-500">
+                  Finalize your credentials to join the conversation.
+                </p>
               </div>
 
-              {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-900 font-medium">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value.toLowerCase())}
-                  placeholder="Enter your email"
-                  className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-gray-900 focus:ring-gray-900"
-                  disabled={isLoading}
-                />
-                {errors.email && (
-                  <p className="text-red-600 text-sm">{errors.email}</p>
-                )}
-              </div>
-
-              {/* Password */}
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-900 font-medium">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                    placeholder="Create a strong password"
-                    className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-gray-900 focus:ring-gray-900 pr-10"
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                
-                {/* Password Strength Indicator */}
-                {formData.password && (
-                  <div className="space-y-2">
-                    <div className="flex space-x-1">
-                      {[1, 2, 3, 4].map(i => (
-                        <div
-                          key={i}
-                          className={`h-1 flex-1 rounded-full transition-colors ${
-                            i <= passwordStrength.score 
-                              ? passwordStrength.strength === 'weak' 
-                                ? 'bg-red-400' 
-                                : passwordStrength.strength === 'medium'
-                                ? 'bg-yellow-400'
-                                : 'bg-green-400'
-                              : 'bg-gray-200'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <div className="text-xs space-y-1">
-                      {Object.entries(passwordStrength.checks).map(([key, passed]) => (
-                        <div key={key} className={`flex items-center space-x-1 ${passed ? 'text-green-600' : 'text-gray-500'}`}>
-                          {passed ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
-                          <span>
-                            {key === 'length' && '8+ characters'}
-                            {key === 'lowercase' && 'Lowercase letter'}
-                            {key === 'uppercase' && 'Uppercase letter'}
-                            {key === 'number' && 'Number'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {errors.general && (
+                  <div className="rounded-2xl border border-[rgba(var(--secondary-rgb),0.28)] bg-[rgba(var(--secondary-rgb),0.12)] p-4 text-center">
+                    <p className="text-sm text-[var(--secondary)]">{errors.general}</p>
                   </div>
                 )}
-                {errors.password && (
-                  <p className="text-red-600 text-sm">{errors.password}</p>
-                )}
-              </div>
 
-              {/* Confirm Password */}
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-gray-900 font-medium">Confirm Password</Label>
-                <div className="relative">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-sm font-medium text-slate-700">Full Name</Label>
                   <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    placeholder="Confirm your password"
-                    className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-gray-900 focus:ring-gray-900 pr-10"
+                    id="fullName"
+                    type="text"
+                    value={formData.fullName}
+                    onChange={(e) => handleInputChange('fullName', e.target.value)}
+                    placeholder="Enter your full name"
+                    className="h-12 rounded-2xl border-[var(--muted)] bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-[var(--primary)] focus:ring-[rgba(var(--primary-rgb),0.35)]"
                     disabled={isLoading}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                  {errors.fullName && (
+                    <p className="text-sm text-[var(--secondary)]">{errors.fullName}</p>
+                  )}
                 </div>
-                {errors.confirmPassword && (
-                  <p className="text-red-600 text-sm">{errors.confirmPassword}</p>
-                )}
-              </div>
 
-              {/* Invite Code (Read-only) */}
-              <div className="space-y-2">
-                <Label htmlFor="inviteCode" className="text-gray-900 font-medium">Invite Code</Label>
-                <Input
-                  id="inviteCode"
-                  type="text"
-                  value={formData.inviteCode}
-                  readOnly
-                  className="bg-green-50 border-green-300 text-green-700 font-mono text-center tracking-widest cursor-not-allowed"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value.toLowerCase())}
+                    placeholder="Enter your email"
+                    className="h-12 rounded-2xl border-[var(--muted)] bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-[var(--primary)] focus:ring-[rgba(var(--primary-rgb),0.35)]"
+                    disabled={isLoading}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-[var(--secondary)]">{errors.email}</p>
+                  )}
+                </div>
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                disabled={isLoading || passwordStrength.score < 3}
-                className="w-full h-12 bg-gray-800 hover:bg-gray-900 text-white font-medium shadow-sm transition-all duration-300"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Creating Account...
-                  </>
-                ) : (
-                  'Create Account'
-                )}
-              </Button>
-            </form>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium text-slate-700">Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onChange={(e) => handleInputChange('password', e.target.value)}
+                        placeholder="Create a strong password"
+                        className="h-12 rounded-2xl border-[var(--muted)] bg-white/80 pr-10 text-slate-900 placeholder:text-slate-400 focus:border-[var(--primary)] focus:ring-[rgba(var(--primary-rgb),0.35)]"
+                        disabled={isLoading}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-[var(--primary)]"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
 
-            {/* Already have account */}
-            <div className="text-center mt-6 pt-4 border-t border-gray-200">
-              <p className="text-gray-500 text-sm">
+                  {formData.password && (
+                    <div className="space-y-2">
+                      <div className="flex space-x-1">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div
+                            key={i}
+                            className={`h-1 flex-1 rounded-full transition-colors ${
+                              i <= passwordStrength.score
+                                ? passwordStrength.strength === 'weak'
+                                  ? 'bg-[var(--secondary)]/60'
+                                  : passwordStrength.strength === 'medium'
+                                  ? 'bg-amber-300'
+                                  : 'bg-emerald-400'
+                                : 'bg-[var(--muted)]'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        {Object.entries(passwordStrength.checks).map(([key, passed]) => (
+                          <div
+                            key={key}
+                            className={`flex items-center space-x-1 ${passed ? 'text-emerald-500' : 'text-slate-400'}`}
+                          >
+                            {passed ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                            <span>
+                              {key === 'length' && '8+ characters'}
+                              {key === 'lowercase' && 'Lowercase letter'}
+                              {key === 'uppercase' && 'Uppercase letter'}
+                              {key === 'number' && 'Number'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {errors.password && (
+                    <p className="text-sm text-[var(--secondary)]">{errors.password}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">Confirm Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={formData.confirmPassword}
+                      onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                      placeholder="Confirm your password"
+                      className="h-12 rounded-2xl border-[var(--muted)] bg-white/80 pr-10 text-slate-900 placeholder:text-slate-400 focus:border-[var(--primary)] focus:ring-[rgba(var(--primary-rgb),0.35)]"
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-[var(--primary)]"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-[var(--secondary)]">{errors.confirmPassword}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="inviteCode" className="text-sm font-medium text-slate-700">Invite Code</Label>
+                  <Input
+                    id="inviteCode"
+                    type="text"
+                    value={formData.inviteCode}
+                    readOnly
+                    className="h-12 rounded-2xl border-[rgba(var(--accent-rgb),0.55)] bg-[rgba(var(--accent-rgb),0.25)] font-mono text-center text-[var(--foreground)] tracking-[0.55em] text-sm uppercase cursor-not-allowed"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading || passwordStrength.score < 3}
+                  className="group flex w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-[rgba(var(--primary-rgb),0.25)] transition hover:bg-[rgba(var(--primary-rgb),0.9)] disabled:opacity-60"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    <>
+                      Create Account
+                      <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <div className="border-t border-[var(--border)] pt-6 text-center text-sm text-slate-500">
                 Already have an account?{' '}
                 <button
                   type="button"
                   onClick={() => router.push('/signin')}
-                  className="text-gray-700 hover:underline font-medium"
+                  className="font-semibold text-[var(--primary)] underline-offset-4 transition hover:underline"
                 >
                   Sign in here
                 </button>
-              </p>
-            </div>
+              </div>
 
-            {/* Terms */}
-            <div className="text-center mt-4">
-              <p className="text-gray-400 text-xs">
+              <div className="text-center text-xs text-slate-400">
                 By creating an account, you agree to our{' '}
-                <span className="text-gray-700 cursor-pointer hover:underline">terms of service</span>
+                <span className="cursor-pointer text-slate-600 underline-offset-4 hover:underline">terms of service</span>
                 {' '}and{' '}
-                <span className="text-gray-700 cursor-pointer hover:underline">privacy policy</span>.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+                <span className="cursor-pointer text-slate-600 underline-offset-4 hover:underline">privacy policy</span>.
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Eye, EyeOff, ArrowLeft, Users } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, Eye, EyeOff, ArrowLeft, Check } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 
 export default function SignInPage() {
@@ -54,123 +54,151 @@ export default function SignInPage() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/welcome')}
-            className="absolute left-4 top-4 text-gray-500 hover:text-gray-700 p-2"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          
-          {/* Logo */}
-          <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Users className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome Back
-          </h1>
-          <p className="text-gray-500">
-            Sign in to your DineCircle account
-          </p>
-        </div>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[var(--background)] via-white to-[var(--accent)]">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-40 left-[-10%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.22),transparent_70%)] blur-3xl" />
+        <div className="absolute top-[20%] right-[-15%] h-[32rem] w-[32rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--secondary-rgb),0.18),transparent_70%)] blur-[140px]" />
+        <div className="absolute bottom-[-20%] left-[25%] h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--accent-rgb),0.26),transparent_70%)] blur-3xl" />
+      </div>
 
-        {/* Sign In Card */}
-        <Card className="bg-white border border-gray-200 shadow-sm">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-gray-900 text-xl">
-              Sign in to your account
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0 pb-6 px-6">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Error Message */}
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-600 text-sm">{error}</p>
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-12">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_minmax(0,0.95fr)]">
+          <div className="space-y-10">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/welcome')}
+              className="inline-flex items-center gap-2 rounded-full border border-[rgba(var(--primary-rgb),0.16)] bg-white/70 px-4 py-2 text-sm font-medium text-[var(--primary)] shadow-sm shadow-[rgba(var(--primary-rgb),0.15)] backdrop-blur transition hover:border-[rgba(var(--primary-rgb),0.3)] hover:bg-white"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to invite
+            </Button>
+
+            <div className="space-y-6">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(var(--secondary-rgb),0.35)] bg-white/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[var(--secondary)]">
+                Welcome Back
+              </span>
+              <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+                Slide back into your private dining circle
+              </h1>
+              <p className="max-w-xl text-base text-slate-600 sm:text-lg">
+                Access the latest recommendations, secret supper spots, and trusted reviews from the people whose taste you rely on most.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {[
+                'Stay current with your circle’s latest picks',
+                'Save favorites and track places to try next',
+                'Exclusive access with invite-only security',
+                'Sync notes across every device instantly',
+              ].map((feature) => (
+                <div
+                  key={feature}
+                  className="flex items-start gap-3 rounded-3xl border border-[rgba(var(--primary-rgb),0.14)] bg-white/70 p-4 shadow-sm shadow-[rgba(var(--primary-rgb),0.12)] backdrop-blur"
+                >
+                  <span className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(var(--primary-rgb),0.12)] text-[var(--primary)]">
+                    <Check className="h-4 w-4" />
+                  </span>
+                  <p className="text-sm text-slate-600">{feature}</p>
                 </div>
-              )}
+              ))}
+            </div>
+          </div>
 
-              {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-900 font-medium">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value.toLowerCase())}
-                  placeholder="Enter your email"
-                  className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-gray-900 focus:ring-gray-900"
-                  disabled={isLoading}
-                  required
-                />
+          <Card className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/80 text-slate-900 shadow-2xl shadow-[rgba(var(--primary-rgb),0.2)] backdrop-blur-xl">
+            <div className="pointer-events-none absolute -inset-x-12 -top-20 h-64 bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.28),transparent_65%)]" />
+            <CardContent className="relative space-y-8 p-8 sm:p-10">
+              <div className="space-y-2 text-center">
+                <h2 className="text-3xl font-semibold text-slate-900">Sign in to your account</h2>
+                <p className="text-sm text-slate-500">
+                  Continue your culinary journey with DineCircle.
+                </p>
               </div>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Error Message */}
+                {error && (
+                  <div className="rounded-2xl border border-[rgba(var(--secondary-rgb),0.28)] bg-[rgba(var(--secondary-rgb),0.12)] p-4 text-center">
+                    <p className="text-sm text-[var(--secondary)]">{error}</p>
+                  </div>
+                )}
 
-              {/* Password */}
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-900 font-medium">Password</Label>
-                <div className="relative">
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email Address</Label>
                   <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                    placeholder="Enter your password"
-                    className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-gray-900 focus:ring-gray-900 pr-10"
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value.toLowerCase())}
+                    placeholder="Enter your email"
+                    className="h-12 rounded-2xl border-[var(--muted)] bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-[var(--primary)] focus:ring-[rgba(var(--primary-rgb),0.35)]"
                     disabled={isLoading}
                     required
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
                 </div>
+
+                {/* Password */}
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-medium text-slate-700">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      placeholder="Enter your password"
+                      className="h-12 rounded-2xl border-[var(--muted)] bg-white/80 pr-10 text-slate-900 placeholder:text-slate-400 focus:border-[var(--primary)] focus:ring-[rgba(var(--primary-rgb),0.35)]"
+                      disabled={isLoading}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-[var(--primary)]"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  disabled={isLoading || !formData.email || !formData.password}
+                  className="group flex w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-[rgba(var(--primary-rgb),0.25)] transition hover:bg-[rgba(var(--primary-rgb),0.9)] disabled:opacity-60"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Signing In...
+                    </>
+                  ) : (
+                    <>
+                      Sign In
+                      <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <div className="text-center text-sm text-slate-500">
+                Forgot your password? Contact an admin for assistance.
               </div>
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                disabled={isLoading || !formData.email || !formData.password}
-                className="w-full h-12 bg-gray-800 hover:bg-gray-900 text-white font-medium shadow-sm transition-all duration-300"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Signing In...
-                  </>
-                ) : (
-                  'Sign In'
-                )}
-              </Button>
-            </form>
-
-            {/* Help Text */}
-            <div className="text-center mt-5">
-              <p className="text-gray-500 text-sm">
-                Forgot your password? Contact an admin for assistance.
-              </p>
-            </div>
-
-            {/* Back to Welcome */}
-            <div className="text-center mt-4 pt-4 border-t border-gray-200">
-              <p className="text-gray-500 text-sm">
+              <div className="text-center pt-2 text-sm text-slate-500">
                 New to our platform?{' '}
                 <button
                   onClick={() => router.push('/welcome')}
-                  className="text-gray-700 hover:underline font-medium"
+                  className="font-semibold text-[var(--primary)] underline-offset-4 transition hover:underline"
                 >
-                  Get an invite code
+                  Request an invite
                 </button>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
