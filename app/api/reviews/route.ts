@@ -272,21 +272,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already reviewed this restaurant in any of their groups
-    const { data: existingReview } = await supabase
-      .from('reviews')
-      .select('id')
-      .eq('restaurant_id', restaurantId)
-      .eq('author_id', user.id)
-      .single();
-
-    if (existingReview) {
-      return NextResponse.json(
-        { error: 'You have already reviewed this restaurant' },
-        { status: 409 }
-      );
-    }
-
     const reviewData = {
       restaurant_id: restaurantId, // Use the determined restaurant ID
       rating_overall: validatedData.rating_overall,

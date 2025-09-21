@@ -28,14 +28,18 @@ export function useCreateReview() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        
-        // Handle specific error cases with better messaging
-        if (response.status === 409 || errorData.error?.includes('already reviewed')) {
-          throw new Error('You have already reviewed this restaurant. Each user can only write one review per restaurant.');
+        let errorMessage = 'Failed to create review';
+
+        try {
+          const errorData = await response.json();
+          if (errorData?.error) {
+            errorMessage = errorData.error;
+          }
+        } catch {
+          // Ignore JSON parsing errors and fall back to the default message
         }
-        
-        throw new Error(errorData.error || 'Failed to create review');
+
+        throw new Error(errorMessage);
       }
 
       return response.json();
