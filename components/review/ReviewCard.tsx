@@ -12,6 +12,7 @@ import { Review } from '@/types';
 import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
 import { ToEatButton } from '@/components/restaurant/ToEatButton';
 import LikeButton from '@/components/ui/LikeButton';
+import { Separator } from '@/components/ui/separator';
 
 interface ReviewCardProps {
   review: Review;
@@ -215,7 +216,11 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
       )}
 
       {/* Actions */}
-      <div className="px-4 pb-2 flex items-center justify-between border-t border-border pt-3">
+      <div className="px-4">
+        <Separator className="bg-border/60" />
+      </div>
+
+      <div className="px-4 pb-2 flex items-center justify-between pt-3">
         <LikeButton
           reviewId={review.id}
           isLiked={review.isLikedByUser || false}
