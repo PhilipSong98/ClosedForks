@@ -67,7 +67,7 @@ export async function GET() {
       console.error('Error fetching review count:', reviewCountError);
     }
 
-    // Get favorite restaurants data if user has favorites
+    // Get favorite restaurants data if user has favorites (use cached aggregates)
     let favoriteRestaurants: RestaurantWithStats[] = [];
     const favoriteIds = profile?.favorite_restaurants;
     
@@ -76,40 +76,22 @@ export async function GET() {
       
       const { data: favorites, error: favoritesError } = await supabase
         .from('restaurants')
-        .select('id, name, address, city, cuisine, price_level, google_data')
+        .select('id, name, address, city, cuisine, price_level, google_data, cached_avg_rating, cached_review_count, cached_tags')
         .in('id', favoriteIds);
 
       if (favoritesError) {
         console.error('Error fetching favorite restaurants:', favoritesError);
       } else if (favorites) {
-        // Compute review stats for these restaurants
-        const { data: favReviews } = await supabase
-          .from('reviews')
-          .select('restaurant_id, rating_overall')
-          .in('restaurant_id', favoriteIds);
-
-        const statsMap = new Map<string, { avg_rating: number; review_count: number }>();
-        if (favReviews) {
-          const bucket: Record<string, number[]> = {};
-          for (const r of favReviews as { restaurant_id: string; rating_overall: number }[]) {
-            if (!bucket[r.restaurant_id]) bucket[r.restaurant_id] = [];
-            if (typeof r.rating_overall === 'number') bucket[r.restaurant_id].push(r.rating_overall);
-          }
-          Object.entries(bucket).forEach(([rid, ratings]) => {
-            const count = ratings.length;
-            const avg = count > 0 ? Math.round((ratings.reduce((a, b) => a + b, 0) / count) * 10) / 10 : 0;
-            statsMap.set(rid, { avg_rating: avg, review_count: count });
-          });
-        }
-
-        // Maintain the order of favorites as stored in the user's profile and attach stats
+        // Maintain the order of favorites as stored in the user's profile and attach cached stats
         favoriteRestaurants = [];
         for (const id of favoriteIds) {
-          const restaurant = favorites.find((fav: Restaurant) => fav.id === id);
+          const restaurant = favorites.find((fav: Restaurant & { cached_avg_rating?: number; cached_review_count?: number }) => fav.id === id);
           if (restaurant) {
-            const stats = statsMap.get(id);
-            const typedRestaurant = restaurant as Restaurant;
-            favoriteRestaurants.push(stats ? { ...typedRestaurant, avg_rating: stats.avg_rating, review_count: stats.review_count } : typedRestaurant);
+            favoriteRestaurants.push({
+              ...(restaurant as Restaurant),
+              avg_rating: (restaurant as Restaurant & { cached_avg_rating?: number }).cached_avg_rating ?? 0,
+              review_count: (restaurant as Restaurant & { cached_review_count?: number }).cached_review_count ?? 0,
+            });
           }
         }
 
@@ -163,7 +145,7 @@ export async function PATCH(request: NextRequest) {
     const { name, favorite_restaurants } = json;
 
     // Build update object with only provided fields
-    const updateData: Record<string, unknown> = {};
+    const updateData: { name?: string; favorite_restaurants?: string[] } = {};
     if (name !== undefined) updateData.name = name;
     if (favorite_restaurants !== undefined) updateData.favorite_restaurants = favorite_restaurants;
 

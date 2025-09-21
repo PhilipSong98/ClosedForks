@@ -55,43 +55,27 @@ export async function GET(
     // Type assertion to ensure profile has the correct shape
     const typedProfile = profile as UserProfile;
 
-    // Load favorite restaurants
+    // Load favorite restaurants (use cached aggregates)
     let favoriteRestaurants: Restaurant[] = [];
     const favoriteIds = Array.isArray(typedProfile.favorite_restaurants) ? typedProfile.favorite_restaurants : [];
     if (favoriteIds.length > 0) {
       const { data: favorites } = await serviceSupabase
         .from('restaurants')
-        .select('id, name, address, city, cuisine, price_level, google_data')
+        .select('id, name, address, city, cuisine, price_level, google_data, cached_avg_rating, cached_review_count, cached_tags')
         .in('id', favoriteIds);
-
-      // Attach stats to favorites
-      const { data: favReviews } = await serviceSupabase
-        .from('reviews')
-        .select('restaurant_id, rating_overall')
-        .in('restaurant_id', favoriteIds);
-
-      const statsMap = new Map<string, { avg_rating: number; review_count: number }>();
-      if (favReviews) {
-        const bucket: Record<string, number[]> = {};
-        for (const r of favReviews as { restaurant_id: string; rating_overall: number }[]) {
-          if (!bucket[r.restaurant_id]) bucket[r.restaurant_id] = [];
-          if (typeof r.rating_overall === 'number') bucket[r.restaurant_id].push(r.rating_overall);
-        }
-        Object.entries(bucket).forEach(([rid, ratings]) => {
-          const count = ratings.length;
-          const avg = count > 0 ? Math.round((ratings.reduce((a, b) => a + b, 0) / count) * 10) / 10 : 0;
-          statsMap.set(rid, { avg_rating: avg, review_count: count });
-        });
-      }
 
       if (favorites) {
         favoriteRestaurants = favoriteIds
           .map((rid: string) => {
-            const base = favorites.find((r: Restaurant) => r.id === rid);
+            const base = favorites.find((r: Record<string, unknown>) => r.id === rid) as Record<string, unknown> | undefined;
             if (!base) return null;
-            const stats = statsMap.get(rid);
-            const restaurant = base as Restaurant;
-            return stats ? { ...restaurant, avg_rating: stats.avg_rating, review_count: stats.review_count } : restaurant;
+            const restaurant = base as unknown as Restaurant & { cached_avg_rating?: number; cached_review_count?: number };
+            return {
+              ...restaurant,
+              // attach cached stats
+              avg_rating: (restaurant.cached_avg_rating ?? 0) as number,
+              review_count: (restaurant.cached_review_count ?? 0) as number,
+            };
           })
           .filter(Boolean) as Restaurant[];
       }

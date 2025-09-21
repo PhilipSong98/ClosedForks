@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       .or(
         `name.ilike.${searchTerm},city.ilike.${searchTerm},address.ilike.${searchTerm}`
       )
-      .order("created_at", { ascending: false })
+      .order("cached_avg_rating", { ascending: false })
       .limit(10) as { data: { id: string; name: string; city: string; address: string; cuisine: string | string[]; created_at: string }[] | null; error: Error | null };
 
     // Log errors but don't fail the request

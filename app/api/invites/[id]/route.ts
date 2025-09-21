@@ -23,7 +23,7 @@ export async function DELETE(
     // First, get the invite code to check permissions
     const { data: inviteCode, error: fetchError } = await serviceSupabase
       .from('invite_codes')
-      .select('*, group_id')
+      .select('id, group_id')
       .eq('id', inviteId)
       .single() as {
         data: Database['public']['Tables']['invite_codes']['Row'] | null;

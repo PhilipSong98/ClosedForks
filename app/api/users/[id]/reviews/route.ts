@@ -52,6 +52,7 @@ export async function GET(
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
+    const cursorCreatedAt = searchParams.get('cursor_created_at');
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -75,7 +76,7 @@ export async function GET(
     let reviewsError = null;
     if (userId === user.id) {
       // Own profile: show all of the user's reviews regardless of group membership
-      const { data, error } = await supabase
+      let query = supabase
         .from('reviews')
         .select(`
           *,
@@ -94,13 +95,18 @@ export async function GET(
           )
         `)
         .eq('author_id', userId)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+        .order('created_at', { ascending: false });
+      if (cursorCreatedAt) {
+        query = query.lt('created_at', cursorCreatedAt);
+      } else {
+        query = query.range(offset, offset + limit - 1);
+      }
+      const { data, error } = await query;
       reviews = data;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       reviewsError = error as any;
     } else if (viewerGroupIds.length > 0) {
-      const { data, error } = await supabase
+      let query = supabase
         .from('reviews')
         .select(`
           *,
@@ -120,8 +126,13 @@ export async function GET(
         `)
         .eq('author_id', userId)
         .in('group_id', viewerGroupIds)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+        .order('created_at', { ascending: false });
+      if (cursorCreatedAt) {
+        query = query.lt('created_at', cursorCreatedAt);
+      } else {
+        query = query.range(offset, offset + limit - 1);
+      }
+      const { data, error } = await query;
       reviews = data;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       reviewsError = error as any;
@@ -180,6 +191,11 @@ export async function GET(
       console.error('Error fetching review count:', countError);
     }
 
+    const hasMore = (formattedReviews || []).length === limit;
+    const nextCursor = hasMore && formattedReviews.length > 0
+      ? { created_at: formattedReviews[formattedReviews.length - 1].created_at, id: formattedReviews[formattedReviews.length - 1].id }
+      : null;
+
     return NextResponse.json({
       reviews: formattedReviews,
       pagination: {
@@ -187,7 +203,9 @@ export async function GET(
         limit,
         total: totalCount || 0,
         totalPages: Math.ceil((totalCount || 0) / limit),
-      }
+      },
+      nextCursor,
+      hasMore
     });
   } catch (error) {
     console.error('Unexpected error:', error);

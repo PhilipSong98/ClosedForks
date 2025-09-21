@@ -16,7 +16,7 @@ interface Restaurant {
   price_level: number | null;
 }
 
-interface Review {
+interface _Review {
   id: string;
   author_id: string;
   restaurant_id: string;
@@ -33,18 +33,8 @@ interface Review {
   restaurants: Restaurant;
 }
 
-interface UserData {
-  id: string;
-  name: string | null;
-  full_name: string | null;
-  email: string;
-  avatar_url: string | null;
-}
-
-interface ReviewLike {
-  created_at: string;
-  reviews: Review;
-}
+// Interfaces removed as they are not used in the optimized implementation
+// The optimized RPC function returns denormalized data directly
 
 // GET /api/users/liked-reviews - Get user's liked reviews
 export async function GET(request: NextRequest) {
@@ -54,7 +44,8 @@ export async function GET(request: NextRequest) {
     
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
-    const offset = (page - 1) * limit;
+    const cursorCreatedAt = searchParams.get('cursor_created_at');
+    const cursorId = searchParams.get('cursor_id');
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -65,33 +56,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get user's liked reviews with restaurant data and review author data
-    // Join review_likes -> reviews -> restaurants
-    // Order by when the user liked the review (most recent likes first)
-    const { data: likedReviews, error: reviewsError } = await supabase
-      .from('review_likes')
-      .select(`
-        created_at,
-        reviews!inner(
-          *,
-          restaurants(
-            id,
-            name,
-            address,
-            city,
-            cuisine,
-            google_data,
-            google_place_id,
-            google_maps_url,
-            lat,
-            lng,
-            price_level
-          )
-        )
-      `)
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1) as { data: ReviewLike[] | null; error: unknown };
+    // Use optimized function with keyset pagination
+    const { data: likedReviews, error: reviewsError } = await (supabase as unknown as {
+      rpc: (name: string, params: Record<string, unknown>) => Promise<{ data: Record<string, unknown>[] | null; error: unknown }>
+    }).rpc('get_user_liked_reviews_optimized', {
+      user_id_param: user.id,
+      cursor_created_at: cursorCreatedAt || null,
+      cursor_id: cursorId || null,
+      limit_param: limit
+    }) as { data: Record<string, unknown>[] | null; error: unknown };
 
     if (reviewsError) {
       console.error('Error fetching liked reviews:', reviewsError);
@@ -101,46 +74,48 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get author data for all the reviews
-    const reviewIds = (likedReviews || []).map(item => item.reviews.author_id);
-    const uniqueAuthorIds = [...new Set(reviewIds)];
-
-    const { data: authorsData, error: authorsError } = await supabase
-      .from('users')
-      .select('id, name, full_name, email, avatar_url')
-      .in('id', uniqueAuthorIds) as { data: UserData[] | null; error: unknown };
-
-    if (authorsError) {
-      console.error('Error fetching authors data:', authorsError);
-    }
-
-    // Create a map for quick author lookup
-    const authorsMap = new Map<string, UserData>();
-    (authorsData || []).forEach((author: UserData) => {
-      authorsMap.set(author.id, author);
-    });
-
-    // Format reviews with author data and add liked date
-    const formattedReviews = (likedReviews || []).map((item: ReviewLike) => {
-      const review = item.reviews;
-      const author = authorsMap.get(review.author_id);
-      
-      return {
-        ...review,
-        restaurant: review.restaurants,
-        author: author ? {
-          id: author.id,
-          name: author.name || author.full_name || author.email || 'Unknown User',
-          full_name: author.full_name,
-          email: author.email,
-          avatar_url: author.avatar_url,
-        } : null,
-        // Mark as liked by current user since these are their liked reviews
-        isLikedByUser: true,
-        // Include when they liked it for potential future use
-        likedAt: item.created_at,
-      };
-    });
+    // Format reviews; optimized RPC returns denormalized author/restaurant and like_created_at
+    const formattedReviews = (likedReviews || []).map((row: Record<string, unknown>) => ({
+      id: row.review_id,
+      restaurant_id: row.restaurant_id,
+      author_id: row.author_id,
+      rating_overall: row.rating_overall,
+      dish: row.dish,
+      review: row.review_text,
+      recommend: row.recommend,
+      tips: row.tips,
+      tags: row.tags,
+      visit_date: row.visit_date,
+      price_per_person: row.price_per_person,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      like_count: row.like_count,
+      group_id: row.group_id,
+      restaurant: {
+        id: row.restaurant_id,
+        name: row.restaurant_name,
+        address: row.restaurant_address,
+        city: row.restaurant_city,
+        cuisine: row.restaurant_cuisine,
+        price_level: row.restaurant_price_level,
+        google_place_id: row.restaurant_google_place_id,
+        google_maps_url: row.restaurant_google_maps_url,
+        google_data: row.restaurant_google_data,
+        lat: row.restaurant_lat,
+        lng: row.restaurant_lng,
+        avg_rating: row.restaurant_avg_rating,
+        review_count: row.restaurant_review_count,
+      },
+      author: {
+        id: row.author_id,
+        name: row.author_name || row.author_full_name || row.author_email || 'Unknown User',
+        full_name: row.author_full_name,
+        email: row.author_email,
+        avatar_url: row.author_avatar_url,
+      },
+      isLikedByUser: true,
+      likedAt: row.like_created_at,
+    }));
 
     // Get total count for pagination
     const { count: totalCount, error: countError } = await supabase
@@ -152,6 +127,15 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching liked reviews count:', countError);
     }
 
+    // Keyset pagination metadata
+    const hasMore = (formattedReviews || []).length === limit;
+    const nextCursor = hasMore && formattedReviews.length > 0
+      ? {
+          created_at: formattedReviews[formattedReviews.length - 1].likedAt,
+          id: formattedReviews[formattedReviews.length - 1].id,
+        }
+      : null;
+
     return NextResponse.json({
       reviews: formattedReviews,
       pagination: {
@@ -159,7 +143,9 @@ export async function GET(request: NextRequest) {
         limit,
         total: totalCount || 0,
         totalPages: Math.ceil((totalCount || 0) / limit),
-      }
+      },
+      nextCursor,
+      hasMore,
     });
   } catch (error) {
     console.error('Unexpected error:', error);

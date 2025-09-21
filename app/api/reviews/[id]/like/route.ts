@@ -40,79 +40,27 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    // Check if user has already liked this review
-    const { data: existingLike, error: likeCheckError } = await supabase
-      .from('review_likes')
-      .select('review_id, user_id')
-      .eq('review_id', reviewId)
-      .eq('user_id', user.id)
-      .single();
+    // Toggle like atomically via RPC
+    const { data: toggleResult, error: toggleError } = await (supabase as unknown as {
+      rpc: (name: string, params: Record<string, unknown>) => Promise<{ data: { is_liked: boolean; like_count: number } | null; error: unknown }>
+    }).rpc('toggle_review_like', {
+      review_id_param: reviewId,
+      user_id_param: user.id
+    });
 
-    if (likeCheckError && likeCheckError.code !== 'PGRST116') {
-      console.error('Error checking existing like:', likeCheckError);
+    if (toggleError || !toggleResult) {
+      console.error('Error toggling like:', toggleError);
       return NextResponse.json(
-        { error: 'Failed to check like status' },
+        { error: 'Failed to toggle like' },
         { status: 500 }
       );
     }
 
-    let isLiked = false;
-    let likeCount = 0;
-
-    if (existingLike) {
-      // Unlike the review
-      const { error: deleteError } = await supabase
-        .from('review_likes')
-        .delete()
-        .eq('review_id', reviewId)
-        .eq('user_id', user.id);
-
-      if (deleteError) {
-        console.error('Error unliking review:', deleteError);
-        return NextResponse.json(
-          { error: 'Failed to unlike review' },
-          { status: 500 }
-        );
-      }
-      isLiked = false;
-    } else {
-      // Like the review
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: insertError } = await (supabase.from('review_likes') as any)
-        .insert({
-          review_id: reviewId,
-          user_id: user.id
-        });
-
-      if (insertError) {
-        console.error('Error liking review:', insertError);
-        return NextResponse.json(
-          { error: 'Failed to like review' },
-          { status: 500 }
-        );
-      }
-      isLiked = true;
-    }
-
-    // Get updated like count
-    const { data: reviewWithCount, error: countError } = await supabase
-      .from('reviews')
-      .select('like_count')
-      .eq('id', reviewId)
-      .single() as { data: ReviewLikeCount | null; error: Error | null };
-
-    if (countError) {
-      console.error('Error fetching like count:', countError);
-    } else if (reviewWithCount) {
-      likeCount = reviewWithCount.like_count || 0;
-    }
-
     return NextResponse.json({
       success: true,
-      isLiked,
-      likeCount,
-      message: isLiked ? 'Review liked' : 'Review unliked'
+      isLiked: toggleResult.is_liked,
+      likeCount: toggleResult.like_count,
+      message: toggleResult.is_liked ? 'Review liked' : 'Review unliked'
     });
 
   } catch (error) {
