@@ -11,13 +11,8 @@ import { RestaurantFeedSkeleton } from '@/components/ui/skeleton-loader';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useInfiniteRestaurants } from '@/lib/queries/restaurants';
 import { useIntersectionObserver } from '@/lib/hooks/useIntersectionObserver';
-import { Restaurant } from '@/types';
 
-interface RestaurantsClientProps {
-  initialRestaurants?: Restaurant[];
-}
-
-const RestaurantsClient: React.FC<RestaurantsClientProps> = () => {
+const RestaurantsClient: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const [filters, setFilters] = useState<FilterState>({
     tags: [],
