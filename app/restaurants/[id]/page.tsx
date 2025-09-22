@@ -1,70 +1,52 @@
 import { createClient } from '@/lib/supabase/server';
 // import { notFound } from 'next/navigation'; // Currently unused
 import RestaurantDetailClient from './restaurant-detail-client';
-import { Restaurant } from '@/types';
+import type { Restaurant, Review } from '@/types';
 
-async function getRestaurant(id: string): Promise<Restaurant | null> {
+async function fetchRestaurantData(restaurantId: string): Promise<{
+  restaurant: Restaurant | null;
+  reviews: Review[];
+}> {
   try {
     const supabase = await createClient();
-    
-    const { data: restaurant, error } = await supabase
-      .from('restaurants')
-      .select('*')
-      .eq('id', id)
-      .single();
 
-    if (error || !restaurant) {
-      console.error('Error fetching restaurant:', error);
-      return null;
+    const [restaurantResponse, reviewsResponse] = await Promise.all([
+      supabase
+        .from('restaurants')
+        .select('*')
+        .eq('id', restaurantId)
+        .single(),
+      supabase
+        .from('reviews')
+        .select('*, author:users(id, name, full_name, email, avatar_url)')
+        .eq('restaurant_id', restaurantId)
+        .order('created_at', { ascending: false }),
+    ]);
+
+    const { data: restaurant, error: restaurantError } = restaurantResponse;
+    if (restaurantError) {
+      console.error('Error fetching restaurant:', restaurantError);
     }
 
-    return restaurant;
+    const { data: reviewsData, error: reviewsError } = reviewsResponse as {
+      data: Review[] | null;
+      error: Error | null;
+    };
+
+    if (reviewsError) {
+      console.error('Error fetching restaurant reviews:', reviewsError);
+    }
+
+    return {
+      restaurant: restaurant ?? null,
+      reviews: reviewsData ?? [],
+    };
   } catch (error) {
-    console.error('Error fetching restaurant:', error);
-    return null;
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getRestaurantReviews(restaurantId: string): Promise<any[]> {
-  try {
-    const supabase = await createClient();
-    
-    // First get the reviews for this restaurant
-    const { data: reviews, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .eq('restaurant_id', restaurantId)
-      .order('created_at', { ascending: false }) as { data: { author_id: string; [key: string]: unknown }[] | null; error: Error | null };
-
-    if (error) {
-      console.error('Error fetching restaurant reviews:', error);
-      return [];
-    }
-
-
-    // If we have reviews, fetch the user data for each one
-    let reviewsWithUsers = reviews || [];
-    if (reviewsWithUsers.length > 0) {
-      const authorIds = reviewsWithUsers.map(review => review.author_id);
-      const { data: users, error: usersError } = await supabase
-        .from('users')
-        .select('id, name, full_name, email, avatar_url')
-        .in('id', authorIds) as { data: { id: string; name: string; full_name: string; email: string; avatar_url?: string }[] | null; error: Error | null };
-
-      if (!usersError && users) {
-        // Map user data to reviews
-        reviewsWithUsers = reviewsWithUsers.map(review => ({
-          ...review,
-          author: users.find(user => user.id === review.author_id)
-        }));
-      }
-    }
-
-    return reviewsWithUsers || [];
-  } catch (error) {
-    console.error('Error fetching reviews:', error);
-    return [];
+    console.error('Unexpected error fetching restaurant data:', error);
+    return {
+      restaurant: null,
+      reviews: [],
+    };
   }
 }
 
@@ -73,16 +55,13 @@ interface RestaurantDetailPageProps {
 }
 
 export default async function RestaurantDetailPage({ params }: RestaurantDetailPageProps) {
-  const resolvedParams = await params;
-  
-  const restaurant = await getRestaurant(resolvedParams.id);
+  const { id } = await params;
+  const { restaurant, reviews } = await fetchRestaurantData(id);
 
   // Temporarily remove notFound() to debug
   // if (!restaurant) {
   //   notFound();
   // }
-
-  const reviews = await getRestaurantReviews(resolvedParams.id);
 
   return (
     <RestaurantDetailClient 

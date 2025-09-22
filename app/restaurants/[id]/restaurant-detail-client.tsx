@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MapPin, ExternalLink, Globe, Phone, Clock, DollarSign } from 'lucide-react';
@@ -25,18 +25,24 @@ export default function RestaurantDetailClient({
 }: RestaurantDetailClientProps) {
   const router = useRouter();
   const { user } = useAuth();
-  const [reviews] = useState<Review[]>(initialReviews);
+  const reviews = initialReviews;
 
   const handleUserClick = (userId: string) => {
     router.push(`/profile/${userId}`);
   };
 
-  // Calculate average rating from private reviews
-  const privateReviews = reviews.filter(review => review.rating_overall);
-  const privateAvgRating = privateReviews.length > 0 
-    ? privateReviews.reduce((sum, review) => sum + review.rating_overall, 0) / privateReviews.length 
-    : 0;
-  const privateReviewCount = privateReviews.length;
+  const { privateAvgRating, privateReviewCount } = useMemo(() => {
+    const filtered = reviews.filter(review => review.rating_overall);
+    if (filtered.length === 0) {
+      return { privateAvgRating: 0, privateReviewCount: 0 };
+    }
+
+    const total = filtered.reduce((sum, review) => sum + review.rating_overall, 0);
+    return {
+      privateAvgRating: total / filtered.length,
+      privateReviewCount: filtered.length,
+    };
+  }, [reviews]);
 
   const googleData = restaurant?.google_data as GooglePlaceData | undefined;
 
