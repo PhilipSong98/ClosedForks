@@ -40,14 +40,6 @@ export default function RestaurantDetailClient({
 
   const googleData = restaurant?.google_data as GooglePlaceData | undefined;
 
-  // Debug: Check if we have data
-  console.log('Restaurant data:', restaurant);
-  console.log('User data:', user);
-  console.log('Reviews data:', reviews);
-  console.log('Private reviews:', privateReviews);
-  console.log('Private average rating:', privateAvgRating);
-  console.log('Private review count:', privateReviewCount);
-
   if (!user) {
     return null; // AuthWrapper will handle this
   }

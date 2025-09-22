@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthWrapper } from "@/components/layout/AuthWrapper";
 import { Providers } from "./providers";
-import { SearchFAB } from "@/components/search/SearchFAB";
 import { NavigationProgress } from "@/components/layout/NavigationProgress";
 
 export const metadata: Metadata = {
@@ -22,7 +21,6 @@ export default function RootLayout({
           <NavigationProgress />
           <AuthWrapper>
             {children}
-            <SearchFAB />
           </AuthWrapper>
         </Providers>
       </body>
