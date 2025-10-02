@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Star } from 'lucide-react';
@@ -13,9 +14,10 @@ import type { Restaurant } from '@/types';
 interface RestaurantCardProps {
   restaurant: Restaurant;
   showToEatButton?: boolean;
+  priority?: boolean;
 }
 
-export function RestaurantCard({ restaurant, showToEatButton = true }: RestaurantCardProps) {
+export function RestaurantCard({ restaurant, showToEatButton = true, priority = false }: RestaurantCardProps) {
   const avgRating = restaurant.avg_rating ?? 0;
   const reviewCount = restaurant.review_count ?? 0;
   const photoUrl = getRestaurantPhotoUrl(restaurant, 400);
@@ -34,6 +36,8 @@ export function RestaurantCard({ restaurant, showToEatButton = true }: Restauran
                   fill
                   className="object-cover transition-transform hover:scale-105"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority={priority}
+                  loading={priority ? undefined : "lazy"}
                 />
               </div>
             ) : (
@@ -144,3 +148,5 @@ export function RestaurantCard({ restaurant, showToEatButton = true }: Restauran
   </div>
   );
 }
+
+export const MemoizedRestaurantCard = memo(RestaurantCard);

@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react';
+import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin } from 'lucide-react';
@@ -18,15 +18,23 @@ interface ReviewCardProps {
   review: Review;
   onUserClick?: (userId: string) => void;
   showRestaurant?: boolean;
+  priority?: boolean;
 }
 
-const ReviewCard: React.FC<ReviewCardProps> = ({ 
-  review, 
+const ReviewCard: React.FC<ReviewCardProps> = ({
+  review,
   onUserClick,
-  showRestaurant = true 
+  showRestaurant = true,
+  priority = false
 }) => {
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const cleaned = name.trim();
+    if (!cleaned) return 'UR';
+    const parts = cleaned.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
   };
 
   const formatTime = (timestamp: string) => {
@@ -52,6 +60,15 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
   // Handle both old and new API response structures
   const restaurant = review.restaurant || review.restaurants;
   const author = review.author || review.users;
+  const legacyAuthorName = (review as unknown as { author_name?: string; author_full_name?: string }).author_name;
+  const legacyAuthorFullName = (review as unknown as { author_full_name?: string }).author_full_name;
+  const displayName =
+    author?.full_name ||
+    author?.name ||
+    legacyAuthorFullName ||
+    legacyAuthorName ||
+    author?.email ||
+    'Unknown reviewer';
 
   const restaurantImage = restaurant?.google_data?.photos?.[0] 
     ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${restaurant.google_data.photos[0].photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY}`
@@ -80,9 +97,9 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
           disabled={!onUserClick}
         >
           <Avatar className="w-10 h-10">
-            <AvatarImage src={author?.avatar_url} />
+            <AvatarImage src={author?.avatar_url ?? undefined} />
             <AvatarFallback className="bg-secondary text-secondary-foreground text-sm">
-              {getInitials(author?.name || author?.email || 'U')}
+              {getInitials(displayName)}
             </AvatarFallback>
           </Avatar>
         </button>
@@ -94,7 +111,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
             disabled={!onUserClick}
           >
             <h3 className="font-medium text-sm text-foreground truncate">
-              {author?.name || author?.email}
+              {displayName}
             </h3>
           </button>
           <p className="text-xs text-muted-foreground">{formatTime(review.created_at)}</p>
@@ -111,12 +128,14 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
             <div className="relative w-full aspect-video overflow-hidden">
               {restaurantImage ? (
                 <>
-                  <Image 
-                    src={restaurantImage} 
+                  <Image
+                    src={restaurantImage}
                     alt={restaurant.name}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority={priority}
+                    loading={priority ? undefined : "lazy"}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 </>
@@ -232,4 +251,4 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
   );
 };
 
-export default ReviewCard;
+export default memo(ReviewCard);

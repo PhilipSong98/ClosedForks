@@ -1,10 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from 'next/dynamic';
 import { usePathname } from "next/navigation";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { GlobalSearchModal } from "./GlobalSearchModal";
+
+const GlobalSearchModal = dynamic(
+  () => import("./GlobalSearchModal").then(mod => ({ default: mod.GlobalSearchModal })),
+  { ssr: false }
+);
 
 export function SearchFAB() {
   const [isOpen, setIsOpen] = useState(false);

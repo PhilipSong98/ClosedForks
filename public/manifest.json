@@ -1,0 +1,11 @@
+{
+  "name": "DineCircle - Restaurant Reviews",
+  "short_name": "DineCircle",
+  "description": "Private restaurant reviews for friends & family",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#7B2C3A",
+  "orientation": "portrait",
+  "icons": []
+}

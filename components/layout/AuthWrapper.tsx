@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { usePathname, useRouter } from 'next/navigation';
-import { SearchFAB } from '@/components/search/SearchFAB';
 import { WriteReviewFAB } from '@/components/layout/WriteReviewFAB';
 
 interface AuthWrapperProps {
@@ -68,7 +67,6 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
   return (
     <div className="min-h-screen bg-background">
       {children}
-      <SearchFAB />
       <WriteReviewFAB />
     </div>
   );

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/layout/Header';
-import EnhancedFilters, { FilterState } from '@/components/filters/EnhancedFilters';
+import SearchFilterBar, { FilterState } from '@/components/filters/SearchFilterBar';
 import ReviewCard from '@/components/review/ReviewCard';
 import { ReviewFeedSkeleton } from '@/components/ui/skeleton-loader';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -226,24 +226,23 @@ const HomeClient: React.FC = () => {
             </div>
           ) : (
             <>
-              <EnhancedFilters 
-                filters={filters}
-                onFiltersChange={setFilters}
-                reviewCount={allReviews.length}
-                filteredCount={filteredReviews.length}
-                showAllFilters={false}
-                defaultExpanded={false}
-                defaultSortBy="recent"
-              />
+              <div className="mb-8">
+                <SearchFilterBar
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  filteredCount={filteredReviews.length}
+                />
+              </div>
 
               {filteredReviews.length > 0 ? (
                 <div className="max-w-lg mx-auto space-y-6">
-                  {filteredReviews.map((review) => (
+                  {filteredReviews.map((review, index) => (
                     <div key={review.id} className="bg-card border border-border rounded-lg shadow-sm">
-                      <ReviewCard 
-                        review={review} 
+                      <ReviewCard
+                        review={review}
                         onUserClick={handleUserClick}
                         showRestaurant={true}
+                        priority={index === 0}
                       />
                     </div>
                   ))}

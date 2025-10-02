@@ -4,8 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/layout/Header';
-import SearchBar from '@/components/search/SearchBar';
-import EnhancedFilters, { FilterState } from '@/components/filters/EnhancedFilters';
+import SearchFilterBar, { FilterState } from '@/components/filters/SearchFilterBar';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { RestaurantFeedSkeleton } from '@/components/ui/skeleton-loader';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -111,34 +110,24 @@ const RestaurantsClient: React.FC = () => {
       
       <main className="container mx-auto px-4 py-8 pb-24">
         {/* Hero Section */}
-        <section className="mb-12">
+        <section className="mb-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-3">
               Discover Restaurants
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Find and explore restaurants in your network. 
+              Find and explore restaurants in your network.
               Add new places or browse recommendations from your circle.
             </p>
           </div>
-          
-          <SearchBar 
-            placeholder="Search restaurants from your network..."
-          />
         </section>
 
-        {/* All Restaurants Section */}
+        {/* Restaurants Section */}
         <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-foreground">
-              All Restaurants from Your Circle
-            </h2>
-          </div>
-
           {/* Show loading skeleton on initial load or auth loading */}
           {showInitialLoading ? (
             <>
-              <div className="mb-8">
+              <div className="max-w-lg mx-auto mb-8">
                 <div className="h-16 bg-gray-100 rounded-lg animate-pulse" /> {/* Filters placeholder */}
               </div>
               <RestaurantFeedSkeleton count={6} />
@@ -175,15 +164,13 @@ const RestaurantsClient: React.FC = () => {
             </div>
           ) : (
             <>
-              <EnhancedFilters 
-                filters={filters}
-                onFiltersChange={setFilters}
-                reviewCount={allRestaurants.length}
-                filteredCount={filteredRestaurants.length}
-                showAllFilters={false}
-                defaultExpanded={false}
-                defaultSortBy="rating"
-              />
+              <div className="mb-8">
+                <SearchFilterBar
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  filteredCount={filteredRestaurants.length}
+                />
+              </div>
 
               {filteredRestaurants.length > 0 ? (
                 <>

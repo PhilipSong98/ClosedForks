@@ -1,12 +1,17 @@
 'use client'
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
-import ReviewComposer from '@/components/review/ReviewComposer';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
+
+const ReviewComposer = dynamic(
+  () => import('@/components/review/ReviewComposer'),
+  { ssr: false }
+);
 
 export function WriteReviewFAB() {
   const [isOpen, setIsOpen] = useState(false);
