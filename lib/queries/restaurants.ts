@@ -163,10 +163,16 @@ export function useRestaurantsWithReviews(options?: { enabled?: boolean }) {
   return combinedData;
 }
 
+interface RestaurantCursor {
+  review_count: number;
+  created_at: string;
+  id: string;
+}
+
 interface RestaurantsResponse {
   restaurants: Restaurant[];
   hasMore: boolean;
-  nextCursor?: number;
+  nextCursor?: RestaurantCursor;
 }
 
 export function useInfiniteRestaurants(options?: {
@@ -174,13 +180,19 @@ export function useInfiniteRestaurants(options?: {
   enabled?: boolean;
 }) {
   const pageSize = options?.pageSize || 15;
-  
+
   return useInfiniteQuery({
-    queryKey: ['restaurants', 'infinite', options],
-    queryFn: async ({ pageParam = 1 }): Promise<RestaurantsResponse> => {
+    queryKey: ['restaurants', 'infinite', pageSize],
+    queryFn: async ({ pageParam }): Promise<RestaurantsResponse> => {
       const params = new URLSearchParams();
-      params.append('page', pageParam.toString());
       params.append('limit', pageSize.toString());
+
+      // Add cursor parameters if we have them
+      if (pageParam) {
+        params.append('cursor_review_count', pageParam.review_count.toString());
+        params.append('cursor_created_at', pageParam.created_at);
+        params.append('cursor_id', pageParam.id);
+      }
 
       const response = await fetch(`/api/restaurants/feed?${params}`, {
         credentials: 'include',
@@ -192,14 +204,14 @@ export function useInfiniteRestaurants(options?: {
         throw new Error('Failed to fetch restaurants');
       }
       const data = await response.json();
-      
+
       return {
         restaurants: data.restaurants || [],
         hasMore: data.hasMore || false,
-        nextCursor: data.hasMore ? pageParam + 1 : undefined,
+        nextCursor: data.nextCursor || undefined,
       };
     },
-    initialPageParam: 1,
+    initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: options?.enabled !== false, // Default to enabled unless explicitly disabled
     staleTime: 5 * 60 * 1000, // 5 minutes
