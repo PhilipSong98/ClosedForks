@@ -7,7 +7,7 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 - 🔐 **Invite-Only Group System** - Exclusive group-based access with 6-digit invite codes that create or join private groups
 - 🍽️ **Smart Restaurant Discovery** - Google Places API integration with autocomplete search
 - ⭐ **Simplified Review System** - Clean, user-friendly single rating with detailed text reviews
-- 🎨 **Instagram-Style Feed** - Single-column social media feed with large images, clean card design, and interactive heart likes
+- 🎨 **Modern Feed Layout** - Single-column social media feed with large images and streamlined like interactions
 - 👥 **Group-Scoped Reviews** - Reviews visible only to users within the same groups
 - 🎯 **Global FAB Interface** - Single floating action button for review creation across all pages
 - 📱 **Mobile-First Design** - Optimized for social media consumption patterns with intuitive navigation
@@ -16,12 +16,13 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 - 🔒 **Secure** - Database security functions with simplified RLS policies
 - 🗺️ **Maps Integration** - Free Google Maps links for directions and venue details
 - 🏷️ **Professional Tag System** - 35 relevant food-focused tags across dishes, cuisine, meal type, and vibe categories
-- 🔍 **Advanced Filter System** - Instagram-level filtering with rating, price, date, and recommendation filters
-- 📋 **To-Eat List (Wishlist)** - Unlimited restaurant bookmarking with blue-themed UI and dedicated management page
-- ❤️ **Instagram-Style Likes** - Heart button interactions with optimistic updates, like counts, and one like per user per review
-- 🔄 **Global Navigation Progress Indicator** - Safari/YouTube-style horizontal progress bar with smooth animations during page navigation
-- ❤️ **Liked Posts Collection** - Private profile tab for managing liked reviews with direct unlike functionality and group-scoped access
-- ⚡ **Database Performance Optimizations** - Comprehensive performance improvements with 75% query reduction, eliminating N+1 patterns and implementing O(1) pagination
+- 🔍 **Airbnb-Style Search & Filters** - Centralized SearchFilterBar with pill-based design and advanced filter dialog
+- 🎨 **Sophisticated Color Palette** - Wine red, sage green, and gold theme for restaurant-appropriate design
+- 📋 **To-Eat List (Wishlist)** - Unlimited restaurant bookmarking with dedicated management page
+- ❤️ **Simplified Like System** - Streamlined heart button using React Query cache, no NaN errors or layout jumps
+- 🔄 **Global Navigation Progress Indicator** - Safari/YouTube-style horizontal progress bar with smooth animations
+- ❤️ **Liked Posts Collection** - Private profile tab for managing liked reviews with direct unlike functionality
+- ⚡ **Database Performance Optimizations** - 75% query reduction, N+1 elimination, and O(1) pagination
 
 ## Tech Stack
 
@@ -36,6 +37,34 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 
 ## Recent Updates
 
+### 🎨 Airbnb-Style UI & New Color Palette (October 2025)
+
+#### ✅ Sophisticated Design System
+- **Wine Red Primary** (#7B2C3A) - Professional burgundy for primary actions and brand elements
+- **Sage Green Secondary** (#6E7F5C) - Natural, calming color for secondary actions
+- **Gold Accent** (#C2A878) - Premium highlights and decorative touches
+- **Clean Backgrounds** (#FAFAFA) - Warm, minimal background for better content focus
+- **Professional Typography** - Improved font hierarchy and spacing
+
+#### ✅ Modern SearchFilterBar
+- **Airbnb-Style Design** - Centralized search and filter controls in elegant pill format
+- **Clickable Search** - Opens GlobalSearchModal with keyboard shortcuts
+- **Filter Pills** - Sort, Tags (with counts), and More Filters in horizontal layout
+- **Popovers & Dialogs** - Tag filters in popovers, full filter dialog for advanced options
+- **Responsive** - Horizontal scroll on mobile, full layout on desktop
+
+#### ✅ Simplified Like System
+- **No More NaN Errors** - Proper validation ensures like counts are always valid numbers
+- **No Layout Jumps** - Stable rendering using props directly from React Query cache
+- **Better Performance** - Removed complex local state management
+- **Fixed Database Function** - Resolved ambiguous column reference in `toggle_review_like`
+- **Haptic Feedback** - Mobile vibration on like for enhanced UX
+
+#### ✅ Restaurant Card Improvements
+- **Better Image Presentation** - Images properly fill card tops
+- **Improved Bookmark Button** - Better placement and visual hierarchy
+- **Cleaner Design** - Enhanced spacing and consistent styling
+
 ### 🔄 Public Profiles, Component Reuse, and Filters (September 2025)
 
 #### ✅ Public Profiles
@@ -44,25 +73,11 @@ A mobile-first, invite-only restaurant review platform for friends & family. Sha
 - Privacy: Email hidden on public profiles; only group‑visible reviews are shown to viewers
 - Own profile: Tabs reordered to `Favorites` (default) | `Recent Reviews` | `Liked Posts` | `To‑Eat List`
 
-#### ✅ Component Reuse Standard
-- Reuse `components/review/ReviewCard.tsx` for all review lists (home feed, own profile, public profile)
-- Reuse `components/restaurant/RestaurantCard.tsx` for all restaurant lists (restaurants page, favorites in both profiles)
-- Backends now attach `avg_rating` and `review_count` to restaurants returned by profile APIs so the same card renders consistently
-- Rule of thumb: Do not fork card UIs; if a page needs more data, extend the API to provide it to the same component
-
-#### ✅ Filters & Sorting
-- Filters module is now clickable: tapping the whole header area toggles expand/collapse on compact views (mobile)
-- Clear button and inner controls stop propagation to prevent accidental collapse
-- Price filter switched to dollar levels: multi‑select `$` | `$$` | `$$$` | `$$$$`
-- Default sort differs per page and resets accordingly when clearing filters:
-  - Home: `Recent`
-  - Restaurants: `Best Rated`
-
-#### ✅ API updates
-- `GET /api/users/[id]/public-profile` (new): lightweight public profile with favorites (including `avg_rating` and `review_count`) and group‑scoped review count
-- `GET /api/users/[id]/reviews`: own profile returns all of your reviews; public view returns only reviews from groups shared with the viewer
-- `GET /api/reviews`: joined restaurants now include `price_level` and computed stats for consistent cards
-- `GET /api/users/profile`: favorites are enriched with `avg_rating` and `review_count`
+#### ✅ Component Reuse & API Updates
+- Reuse `ReviewCard` for all review lists (home, profile, public profile)
+- Reuse `RestaurantCard` for all restaurant lists (restaurants page, favorites)
+- APIs enrich restaurants with `avg_rating` and `review_count` for consistent cards
+- Public profiles show only group-visible reviews for privacy
 
 ### ⚡ Database Performance Optimizations (September 6, 2025)
 
@@ -235,111 +250,38 @@ Complete implementation of private liked posts collection with Instagram-style u
 - **Security Function Integration** - Uses existing `get_user_visible_reviews()` for proper access control
 - **Cache Consistency** - Proper cache invalidation ensures data accuracy across all profile tabs
 
-### 🔧 UI/UX Improvements (August 2025)
+### 🔧 UI/UX Improvements (August-October 2025)
 
-Enhanced user experience with cleaner interfaces and fixed search functionality:
+Enhanced user experience with cleaner interfaces and modern design:
 
-#### **✅ Restaurant Detail Page Enhancements**
-- **Hero Cover Images** - Full-width Google Places photos with professional gradient overlay
-- **Dual Rating Display** - Shows both private network rating and Google rating prominently
-- **Proper Rating Calculation** - Real-time calculation from actual private reviews
-- **Enhanced Sidebar** - Sticky restaurant info with contact details, hours, and action buttons
-- **Grid Layout for Reviews** - Responsive grid display for better visual organization
-- **Responsive Design** - 300px mobile, 400px desktop hero heights with Next.js optimization
-- **Fixed Google Maps Links** - Multiple fallback options for reliable map access
+#### **✅ Restaurant Detail Pages**
+- **Hero Cover Images** - Full-width Google Places photos with gradient overlay
+- **Dual Rating Display** - Private network vs Google ratings comparison
+- **Responsive Design** - Optimized for mobile and desktop viewing
+- **Fixed Google Maps Links** - Reliable map access with fallback options
 
-#### **✅ Search System Improvements**
-- **Private Database Only** - Restaurant search now limited to your private network
-- **Fixed Input Errors** - Resolved React controlled/uncontrolled component warnings
-- **Enhanced Results** - Shows restaurants + restaurants from reviews with deduplication
+#### **✅ Search & Filter Evolution**
+- **Airbnb-Style Interface** - Modern SearchFilterBar with centralized controls
+- **Private Database Search** - Search limited to your group's restaurants
+- **Enhanced Results** - Smart deduplication and better result presentation
 - **Better Error Handling** - Proper fallback values and loading states
 
-#### **✅ Filter System Optimization**
-- **Collapsed by Default** - Both homepage and restaurants page start with collapsed filters
-- **Cleaner Interface** - Reduces visual clutter and improves first impression
-- **Expandable on Demand** - Full functionality available when needed
-- **Consistent Experience** - Same behavior across all pages
+### 🎨 Modern Authentication System (August 2025)
 
-#### **✅ Create Review Modal Optimization**
-- **Restaurant Card Overflow Fix** - Resolved horizontal scrolling issue in Create Review modal
-- **Simplified Display** - Restaurant cards now show only essential information (name, city, status)
-- **Mobile-Optimized** - Removed lengthy content (full address, cuisine type, Google ratings) that caused overflow
-- **Enhanced Width Constraints** - Proper truncation and flex layout for responsive design
+Exclusive invite code system with group-based access:
 
-### 🎨 Modern Authentication System & Clean Design (Latest - August 30, 2025)
+#### **✅ Invite Code System**
+- **6-Digit Codes** - Beautiful landing page with individual digit inputs
+- **Group Assignment** - Invite codes automatically assign users to groups
+- **DineCircle Branding** - "Where Your Circle Dines" consistent across all pages
+- **Test Code** - Use `123456` for development access
 
-Complete redesign of authentication flow with modern, clean aesthetic and invite code system:
-
-#### **✅ Exclusive Invite Code System**
-- **6-Digit Code Entry** - Beautiful landing page with individual digit inputs
-- **Modern Clean Design** - Light gray/white color palette inspired by contemporary apps
-- **DineCircle Branding** - "Where Your Circle Dines" with consistent logo and typography
-- **Test Code Available** - Use `123456` for immediate access during development
-
-#### **🎯 Streamlined User Experience**
-- **Landing Page** (`/welcome`) - Exclusive invite code entry with premium feel
-- **Account Creation** (`/signup`) - Complete form with password strength validation
-- **Member Login** (`/signin`) - Simple email/password authentication (no magic links)
-- **Cross-Navigation** - Smooth transitions between all authentication pages
-
-#### **🔧 Technical Implementation**
-- **Session Management** - Secure 30-minute invite code sessions with validation
-- **Database Schema** - New `invite_codes` and `invite_code_usage` tables with full audit trails
-- **Rate Limiting** - 5 attempts per IP per 15 minutes for security
+#### **🎯 User Experience**
+- **Landing Page** (`/welcome`) - Exclusive invite code entry
+- **Account Creation** (`/signup`) - Complete form with validation
+- **Member Login** (`/signin`) - Simple email/password authentication
 - **Admin Dashboard** - Complete invite code management at `/admin/invite-codes`
-- **Clean Architecture** - Removed magic link complexity, streamlined codebase
 
-#### **🎨 Design System Upgrade**
-- **Color Palette** - Professional gray-50/white backgrounds with gray-800 accents
-- **Typography** - Clean font hierarchy with proper spacing and contrast
-- **Components** - Consistent card design, input styling, and button treatments
-- **Responsive** - Mobile-first design with proper touch targets and accessibility
-
-### 🔍 Private Network Search System (August 2025)
-
-Private database search functionality with enhanced user experience:
-
-#### **✅ Restaurant Page Private Search**
-- **Database-Only Search** - Searches only restaurants and reviews within your private network
-- **Enhanced User Experience** - Proper controlled input handling, no React warnings
-- **Smart Results** - Shows restaurants directly + restaurants mentioned in reviews
-- **Deduplication** - Prevents duplicate restaurant entries in search results
-
-#### **🔧 Technical Improvements**
-- **Fixed Controlled Input Issues** - Resolved React controlled/uncontrolled component warnings
-- **API Integration** - Uses `/api/search` endpoint for consistent private database queries
-- **Error Handling** - Proper fallback values and error states
-- **Performance** - Real-time search with 300ms debouncing
-
-### 🎛️ Enhanced Filter System (Latest - August 30, 2025)
-
-Complete professional upgrade of home page filters from basic cuisine buttons to Instagram-level filtering:
-
-#### **✅ Smart Tag-Based Filtering**
-- **4 Organized Categories** - Popular Dishes (🍽️), Cuisine (🌍), Meal Type (⏰), Atmosphere (✨)
-- **35 Relevant Tags** - From "Pasta" & "Burger" to "Date Night" & "Fine Dining" - no more irrelevant options
-- **Color-Coded System** - Visual category identification with professional color scheme
-- **Smart Management** - Shows "3/5 selected" with one-click clear functionality
-
-#### **🔧 Advanced Filter Controls**
-- **Rating Slider** - Minimum rating filter (0-5 stars) with smooth slider interface
-- **Price Level Filter** - Multi-select `$` | `$$` | `$$$` | `$$$$` (uses restaurant `price_level`; falls back to mapping `price_per_person` on the home feed)
-- **Date Range Options** - All time, Past week, Past month, Past year quick selections
-- **Recommendation Toggle** - Filter to show only recommended places with heart icon
-- **Enhanced Sort Options** - Recent, Best Rated, Price Low→High, Price High→Low
-
-#### **📱 Mobile-First Responsive Design**
-- **Collapsed by Default** - Filters start collapsed on both homepage and restaurants page to reduce clutter
-- **Tap to Expand/Collapse** - The entire filter header area toggles expansion on compact views
-- **Touch-Optimized** - Large tap targets, proper spacing, mobile-friendly interactions
-- **Progressive Enhancement** - Full desktop experience, streamlined mobile experience
-- **Live Results Counter** - Shows "8 of 23 reviews" with real-time filter feedback
-
-#### **🎨 Professional UI/UX**
-- **Advanced Popover** - Secondary filters in clean popup with organized sections
-- **Active Filter Badges** - Visual indicators showing number of active filters
-- **One-Click Clear** - "Clear all (4)" button with smart active filter counting
-- **Visual Tag Selection** - Chip-based interface matching the quality of modern food apps
 
 ### 🎯 Modal-Only Review Creation (August 30, 2025)
 
@@ -718,13 +660,13 @@ Set `NEXT_PUBLIC_ENABLE_MAPS=true` and configure Google API keys to enable:
 │   └── home-client.tsx     # Instagram-style review feed homepage
 ├── components/             # React components
 │   ├── auth/           # Authentication components
-│   ├── filters/        # Enhanced filter system (EnhancedFilters, legacy CuisineFilters)
-│   ├── layout/         # Layout components (Header, AuthWrapper, WriteReviewFAB, MobileMenu, NavigationProgress)
-│   ├── profile/        # Profile components (including ToEatSection, LikedReviews)
-│   ├── restaurant/     # Restaurant-related components (RestaurantSelector, ToEatButton)
+│   ├── filters/        # SearchFilterBar (Airbnb-style), legacy EnhancedFilters
+│   ├── layout/         # Layout components (Header, AuthWrapper, WriteReviewFAB, MobileMenu)
+│   ├── profile/        # Profile components (ToEatSection, LikedReviews)
+│   ├── restaurant/     # Restaurant components (RestaurantSelector, ToEatButton)
 │   ├── review/         # Review components (ReviewComposer, RatingInput)
-│   ├── search/         # Search components (SearchBar, SearchFAB, GlobalSearchModal)
-│   └── ui/             # shadcn/ui components
+│   ├── search/         # Search components (GlobalSearchModal, SearchFAB)
+│   └── ui/             # shadcn/ui components (includes LikeButton)
 ├── lib/                # Utilities and configurations
 │   ├── mutations/      # React Query mutations (including toEatList.ts, likes.ts)
 │   ├── queries/        # React Query data fetching (including toEatList.ts, likes.ts)
@@ -802,7 +744,7 @@ npm run build        # Check TypeScript types during build
 ## Business Rules
 
 1. **Restaurant Duplicates**: Prevented by name+city combination
-2. **Review Limits**: One review per user per restaurant within groups
+2. **Multiple Reviews Allowed**: Users can create multiple reviews per restaurant
 3. **Group-Based Visibility**: Reviews visible only to users in the same groups
 4. **Group Permissions**: Group owners/admins can manage memberships and moderate content
 5. **Invite Code Groups**: Each invite code creates or joins a specific group

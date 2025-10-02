@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import { useLikeReview } from '@/lib/mutations/reviewLikes';
 
@@ -25,10 +25,11 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   const [isPulsing, setIsPulsing] = useState(false);
   const [lastClickTime, setLastClickTime] = useState(0);
   const [hasError, setHasError] = useState(false);
-  const [localLiked, setLocalLiked] = useState(isLiked);
-  const [localCount, setLocalCount] = useState(likeCount);
-  const [isUpdating, setIsUpdating] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Always use props directly - no local state that can get out of sync
+  // Validate to prevent NaN
+  const validLikeCount = typeof likeCount === 'number' && !isNaN(likeCount) ? likeCount : 0;
 
   // Size configurations
   const sizes = {
@@ -49,62 +50,41 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   const handleLikeClick = useCallback((event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    
+
     const now = Date.now();
-    
-    // Debounce with reduced timing (100ms for ultra-responsiveness)
-    if (now - lastClickTime < 100) {
+
+    // Debounce with reduced timing (300ms to prevent double-clicks)
+    if (now - lastClickTime < 300) {
       return;
     }
-    
-    if (disabled || isUpdating) {
+
+    if (disabled || likeReview.isPending) {
       return;
     }
-    
+
     setLastClickTime(now);
     setHasError(false);
-    setIsUpdating(true);
-    
+
     // Clear any existing error timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
-    // INSTANT local optimistic update (0ms delay)
-    const newLikedState = !localLiked;
-    const newCount = newLikedState 
-      ? localCount + 1 
-      : Math.max(0, localCount - 1);
-    
-    setLocalLiked(newLikedState);
-    setLocalCount(newCount);
-    
+
     // Trigger animation and haptic feedback only when liking (not unliking)
-    if (newLikedState) {
+    if (!isLiked) {
       setIsPulsing(true);
       triggerHapticFeedback();
-      
+
       // Reset animation after it completes
       setTimeout(() => setIsPulsing(false), 200);
     }
-    
-    // Execute the mutation
+
+    // Execute the mutation - React Query will handle optimistic updates
     likeReview.mutate(reviewId, {
-      onSuccess: (data) => {
-        // Sync with server response
-        setLocalLiked(data.isLiked);
-        setLocalCount(data.likeCount);
-        setIsUpdating(false);
-      },
       onError: (error) => {
         console.error('Like mutation failed:', error);
-        
-        // Revert local state on error
-        setLocalLiked(isLiked);
-        setLocalCount(likeCount);
         setHasError(true);
-        setIsUpdating(false);
-        
+
         // Clear error state after animation
         timeoutRef.current = setTimeout(() => {
           setHasError(false);
@@ -112,16 +92,12 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       }
     });
   }, [
-    reviewId, 
-    lastClickTime, 
-    disabled, 
-    isUpdating,
-    localLiked,
-    localCount,
-    likeReview, 
-    triggerHapticFeedback,
+    reviewId,
+    lastClickTime,
+    disabled,
     isLiked,
-    likeCount
+    likeReview,
+    triggerHapticFeedback
   ]);
 
   // Keyboard event handler for accessibility
@@ -154,43 +130,40 @@ const LikeButton: React.FC<LikeButtonProps> = ({
         inline-flex items-center justify-center
         ${sizeConfig.container}
         -m-1 rounded-full
-        text-muted-foreground hover:text-red-500 
+        text-muted-foreground hover:text-red-500
         transition-colors duration-200
         disabled:opacity-50 disabled:cursor-not-allowed
         focus:outline-none
         group
-        ${hasError ? 'animate-shake' : ''}
         ${className}
       `}
-      aria-label={localLiked ? 'Unlike this review' : 'Like this review'}
-      aria-pressed={localLiked}
+      aria-label={isLiked ? 'Unlike this review' : 'Like this review'}
+      aria-pressed={isLiked}
       role="button"
       tabIndex={0}
     >
-      <Heart 
+      <Heart
         className={`
           heart
           ${sizeConfig.heart}
-          ${localLiked ? 'liked' : ''}
-          ${isPulsing ? 'animate-heart-pulse' : ''}
-          ${hasError ? 'animate-heart-error' : ''}
-          group-hover:scale-105
+          ${isLiked ? 'liked' : ''}
+          transition-transform duration-150
+          group-hover:scale-110
           group-active:scale-95
-        `} 
+        `}
       />
-      <span 
+      <span
         className={`
-          ${sizeConfig.text} 
-          font-medium 
+          ${sizeConfig.text}
+          font-medium
           transition-colors duration-150 ease-out
-          ${isPulsing && localLiked ? 'animate-count-pulse' : ''}
-          ${hasError ? 'text-red-400' : ''}
           select-none
+          tabular-nums
         `}
         aria-live="polite"
         aria-atomic="true"
       >
-        {localCount}
+        {validLikeCount}
       </span>
     </button>
   );

@@ -141,8 +141,44 @@ export function useLikeReview() {
         like_count: data.likeCount
       };
 
+      // Update infinite queries (like home page feed)
       queryClient.setQueriesData(
-        { 
+        {
+          predicate: (query) => {
+            const key = query.queryKey[0] as string;
+            return key === 'infinite-reviews';
+          }
+        },
+        (oldData: unknown) => {
+          if (!oldData || typeof oldData !== 'object') return oldData;
+
+          // Handle infinite query structure
+          if ('pages' in oldData && Array.isArray((oldData as any).pages)) {
+            return {
+              ...oldData,
+              pages: (oldData as any).pages.map((page: any) => {
+                if (page && typeof page === 'object' && 'reviews' in page && Array.isArray(page.reviews)) {
+                  return {
+                    ...page,
+                    reviews: page.reviews.map((review: ReviewData) => {
+                      if (review.id === reviewId) {
+                        return { ...review, ...serverUpdates };
+                      }
+                      return review;
+                    })
+                  };
+                }
+                return page;
+              })
+            };
+          }
+          return oldData;
+        }
+      );
+
+      // Update regular queries
+      queryClient.setQueriesData(
+        {
           predicate: (query) => {
             const key = query.queryKey[0] as string;
             return key === 'reviews' || key === 'user' || key === 'restaurants';
@@ -154,7 +190,7 @@ export function useLikeReview() {
       // Handle liked reviews list - remove from liked reviews if unliked
       if (!data.isLiked) {
         queryClient.setQueriesData(
-          { 
+          {
             predicate: (query) => {
               const key = query.queryKey.join('-');
               return key.startsWith('user-liked-reviews');
@@ -181,10 +217,10 @@ export function useLikeReview() {
       }
 
       // Background invalidation to ensure fresh data on next fetch
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey[0] as string;
-          return key === 'reviews' || key === 'user' || key === 'restaurants';
+          return key === 'reviews' || key === 'user' || key === 'restaurants' || key === 'infinite-reviews';
         }
       });
     },

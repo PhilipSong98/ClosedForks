@@ -5,13 +5,13 @@ This file provides comprehensive context for AI assistants working on the Restau
 ## 🎯 Project Overview
 
 **What**: Mobile-first, invite-only restaurant review platform for friends & family
-**Goal**: Private group-based network for trusted restaurant recommendations  
-**Status**: Core MVP with Group System - Instagram-style feed + Group-Scoped Reviews + Profile Page + To-Eat List + Group Management
+**Goal**: Private group-based network for trusted restaurant recommendations
+**Status**: Core MVP with Group System - Airbnb-style UI + Group-Scoped Reviews + Profile Page + To-Eat List + Group Management
 
 ### Core Business Rules
 - **Invite-Only Group System**: Users join groups via invite codes, reviews are scoped to groups
 - **Group-Based Visibility**: Reviews visible only to users in the same groups
-- **One review per user per restaurant**: No duplicate reviews within groups
+- **Multiple reviews allowed**: Users can create multiple reviews per restaurant
 - **Group Admin Powers**: Group owners/admins can manage memberships and moderate content
 - **Geographic focus**: City-based restaurant organization
 
@@ -29,7 +29,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] Dedicated restaurants page for discovery
 - [x] Google Places API integration with cost optimization
 - [x] Complete review system with tagging (35 food-focused tags)
-- [x] **Enhanced filtering system** - Collapsed by default, tap‑to‑expand, rating/price‑level/date controls
+- [x] **Airbnb-style search & filter system** - Centralized SearchFilterBar with search, sort, tags, and advanced filters in pill format
 - [x] **Private network search** - Database-only search with proper error handling
 - [x] **Restaurant detail pages** - Dual ratings, sidebar layout, grid reviews
 - [x] Modal-based responsive UI (Sheet mobile, Dialog desktop)
@@ -41,7 +41,7 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Fixed username display** - ReviewCard now shows actual usernames instead of "U"
 - [x] **Fixed favorites search** - Restaurant search in favorites modal now finds results correctly
 - [x] **Mobile navigation improvements** - Professional hamburger menu with proper touch targets and no FAB overlaps
-- [x] **Instagram-style like system** - Heart button interactions with optimistic updates, like counts, and proper database triggers
+- [x] **Simplified like system** - Streamlined LikeButton using React Query cache directly, no NaN errors or layout jumps
 - [x] **Invite-Only Group System** - Users join groups via invite codes, reviews scoped to group membership
 - [x] **Group-Scoped Feed** - Homepage shows reviews from users in the same groups
 - [x] **Complete Group Management System** - Full create/edit functionality with browser extension protection
@@ -53,6 +53,8 @@ This file provides comprehensive context for AI assistants working on the Restau
 - [x] **Join Group Feature** - Users can join existing groups using invite codes with simplified validation flow
 - [x] **Advanced Search Optimization** - Trigram search indexes for full-text search capabilities on restaurants and reviews
 - [x] **Cursor-Based Pagination** - Keyset pagination across all API endpoints for consistent performance at scale
+- [x] **Sophisticated color palette** - Wine red (#7B2C3A), sage green (#6E7F5C), and gold (#C2A878) theme replacing old purple/teal
+- [x] **Modern UI improvements** - Cleaner restaurant cards with better image presentation and bookmark placement
 
 ### Pending Features
 - [ ] Photo upload for reviews
@@ -72,14 +74,14 @@ restaurant/
 │   ├── profile/           # User profile page
 │   └── to-eat/            # To-Eat List page
 ├── components/
-│   ├── filters/           # EnhancedFilters system  
+│   ├── filters/           # SearchFilterBar (Airbnb-style), legacy EnhancedFilters
 │   ├── groups/            # Group management components (CreateGroupModal, EditGroupModal, InviteCodeModal)
 │   ├── layout/            # Header, AuthWrapper, FABs, MobileMenu, NavigationProgress
 │   ├── profile/           # Profile components (includes ToEatSection, LikedReviews)
 │   ├── restaurant/        # Restaurant components (includes ToEatButton)
 │   ├── review/            # ReviewComposer, ReviewCard
-│   ├── search/            # SearchBar, GlobalSearchModal, SearchFAB
-│   └── ui/                # shadcn/ui components
+│   ├── search/            # GlobalSearchModal, SearchFAB
+│   └── ui/                # shadcn/ui components (includes LikeButton)
 ├── lib/
 │   ├── supabase/          # Database clients & middleware
 │   ├── hooks/             # useAuth, useMediaQuery, etc.
@@ -104,7 +106,8 @@ restaurant/
 - `app/home-client.tsx`: Instagram-style feed with filtering
 - `app/restaurants/page.tsx`: Restaurant discovery page with clickable search
 - `app/restaurants/[id]/restaurant-detail-client.tsx`: **UPDATED** - Hero image with gradient overlay
-- `components/filters/EnhancedFilters.tsx`: Professional filter system
+- `components/filters/SearchFilterBar.tsx`: **NEW** - Airbnb-style centralized search and filter bar with pills
+- `components/ui/LikeButton.tsx`: **UPDATED** - Simplified like button using props directly, no local state sync
 - `components/profile/ProfileHeader.tsx`: **NEW** - User stats and profile display
 - `components/profile/EditProfileModal.tsx`: **NEW** - Simple name editing modal
 - `components/profile/RecentReviews.tsx`: **NEW** - User reviews with pagination
@@ -209,11 +212,18 @@ supabase db push                       # Apply to remote
 
 ## 🎨 Current UI Architecture
 
-### Instagram-Style Feed
+### Design System & Color Palette
+- **Wine Red Primary** (#7B2C3A): Primary actions, buttons, links, brand color
+- **Sage Green Secondary** (#6E7F5C): Secondary actions, success states, nature-inspired accents
+- **Gold Accent** (#C2A878): Premium accents, highlights, decorative elements
+- **Light Background** (#FAFAFA): Clean, minimal background with warm undertone
+- **Professional Gray** (#2C2C2C): Text and foreground elements
+
+### Modern Feed Layout
 - **Homepage**: Single-column review feed (max-width: 512px)
-- **ReviewCard**: Large 4:3 images, user headers, inline tips, tag badges, interactive heart button
-- **Like System**: Red filled heart when liked, optimistic updates, real-time like counts
-- **Restaurants Page**: Separated discovery with SearchBar and filters
+- **ReviewCard**: Large 4:3 images, user headers, inline tips, tag badges, streamlined like button
+- **Like System**: Simplified heart button using React Query cache, no NaN errors or layout jumps
+- **Restaurants Page**: Airbnb-style SearchFilterBar with centralized controls
 
 ### Navigation & User Experience
 - **Global Progress Indicator**: Safari/YouTube-style horizontal progress bar at top of viewport during navigation
@@ -259,13 +269,15 @@ supabase db push                       # Apply to remote
 - **API Integration**: All review endpoints use group-aware security functions
 - **Simplified Join Flow**: Streamlined `join_group_with_invite_code()` function without unnecessary audit tracking
 
-### Enhanced Filtering System
-- **Tag-based**: 35 food-focused tags in 4 color-coded categories
-- **Advanced Controls**: Rating slider, price level ($..$$$$) multi-select, date filters, recommendation toggle
-- **Collapsed by Default**: Clean interface on both homepage and restaurants page
-- **Tap-to-Expand**: Entire filter header toggles expansion on compact views
-- **Real-time**: Client-side filtering for instant results
-- **Sort Defaults**: Home → Recent, Restaurants → Best Rated; `Clear all` resets to the page default via `defaultSortBy`
+### Airbnb-Style Search & Filter System
+- **SearchFilterBar Component**: Centralized search and filter controls in pill format
+- **Search Integration**: Clickable search bar opens GlobalSearchModal with keyboard shortcuts
+- **Filter Pills**: Sort, Tags (with badge count), and More Filters buttons in horizontal layout
+- **Tag-based Filtering**: 35 food-focused tags in 4 categories, shown in popovers and full dialog
+- **Advanced Controls**: Rating slider, price level multi-select, all tags in "More Filters" dialog
+- **Responsive Design**: Horizontal scroll on mobile, full layout on desktop
+- **Real-time Filtering**: Client-side filtering for instant results
+- **Visual Feedback**: Active filter counts, selected state styling, clear all functionality
 
 ### Component Reuse Guidelines (Important)
 - Always reuse `components/review/ReviewCard.tsx` for review listings (home feed, profile, public profile)
@@ -310,18 +322,18 @@ supabase db push                       # Apply to remote
 - **Seamless UX**: No manual refresh required, data stays synchronized
 - **Key Components**: `useCreateReview()` mutation, `useRestaurantsWithReviews()` hook
 
-### Instagram-Style Like System
+### Simplified Like System
+- **Streamlined LikeButton Component**: Uses props directly from React Query cache, no local state synchronization
+- **No NaN Errors**: Proper validation ensures like counts are always valid numbers (defaults to 0)
+- **No Layout Jumps**: Stable rendering without visual bouncing or state conflicts
 - **Heart Button Interactions**: Red filled heart when liked, outline when not liked
 - **One Like Per User**: Database constraint prevents duplicate likes per review
-- **Optimistic Updates**: Instant UI feedback with automatic rollback on errors
-- **Like Counts**: Real-time display of total likes with proper pluralization
-- **API Endpoints**: Toggle like/unlike, get like status and count
-- **Database Triggers**: Automatic like_count updates in reviews table
-- **React Query Integration**: Proper cache invalidation and optimistic mutations
-- **TypeScript Support**: Fully typed interfaces with comprehensive error handling
+- **Optimistic Updates**: React Query handles optimistic mutations automatically
+- **Like Counts**: Real-time display with tabular-nums for consistent spacing
+- **Database Function**: `toggle_review_like()` with fixed ambiguous column references
+- **Haptic Feedback**: Mobile vibration on like action for better UX
+- **Accessibility**: Full keyboard support and ARIA labels
 - **Liked Posts Collection**: Private profile tab showing user's liked reviews with direct unlike functionality
-- **Group-Scoped Security**: Liked posts only shows reviews from groups user has access to
-- **Smart Cache Management**: Enhanced like mutations with cache invalidation for liked posts removal
 
 ### User Profile System
 - **Complete Profile Pages**: Accessible at `/profile` with comprehensive user information
@@ -402,6 +414,36 @@ supabase db push                       # Apply to remote
 
 
 ### Recent Bug Fixes & Critical Improvements
+
+#### **UI/UX Enhancements & Database Fixes (October 2, 2025)**
+- **New Color Palette**: Sophisticated wine red, sage green, and gold theme
+  - **Wine Red Primary** (#7B2C3A): Replaced purple with professional burgundy tone
+  - **Sage Green Secondary** (#6E7F5C): Natural, calming secondary color
+  - **Gold Accent** (#C2A878): Premium highlights and decorative elements
+  - **Result**: More sophisticated, restaurant-appropriate design language
+
+- **Airbnb-Style SearchFilterBar**: Centralized search and filter UI component
+  - **Problem**: Old EnhancedFilters component was cluttered and less intuitive
+  - **Solution**: New SearchFilterBar with pill-based design, popovers, and full filter dialog
+  - **Features**: Clickable search bar, sort pills, tag filters with counts, "More Filters" dialog
+  - **Result**: Cleaner, more modern filtering experience matching industry standards
+
+- **Simplified LikeButton Component**: Fixed NaN errors and layout jumps
+  - **Problem**: Complex local state management caused NaN errors and visual bouncing
+  - **Solution**: Streamlined component using props directly from React Query cache
+  - **Features**: Proper number validation, no state synchronization, stable rendering
+  - **Result**: Reliable like button with no visual glitches or layout shifts
+
+- **Fixed toggle_review_like Database Function**: Resolved ambiguous column reference
+  - **Problem**: PostgreSQL error due to ambiguous `like_count` column reference
+  - **Solution**: Added table alias `r` to disambiguate column in query
+  - **Migration**: `20251002191345_fix_toggle_like_ambiguous_column.sql`
+  - **Result**: Like toggle function works reliably without database errors
+
+- **Restaurant Card Improvements**: Cleaner design with better image presentation
+  - **Images Fill Top**: Restaurant images now properly fill card tops
+  - **Better Bookmark Placement**: To-eat bookmark button positioned correctly
+  - **Consistent Styling**: Improved spacing and visual hierarchy
 
 #### **Database Access & RLS Policy Fixes (September 7, 2025)**
 - **Fixed Public Profile 404 Error**: Resolved PGRST116 errors in public profile endpoint
@@ -524,6 +566,9 @@ supabase db push                       # Apply to remote
 - `20250909120000_add_trgm_and_search_indexes.sql` - Trigram search indexes for full-text search capabilities
 - `20250909121000_add_group_reviews_optimized_and_toggle_like.sql` - Optimized group reviews with keyset pagination and atomic like toggle
 - `20250909122000_update_optimized_functions_with_filters_and_groups_pagination.sql` - Enhanced optimized functions with restaurant filtering and pagination
+- `20250921151102_fix_ambiguous_joined_at_in_get_user_groups.sql` - Fixed ambiguous column reference in get_user_groups function
+- `20250922120000_allow_multiple_reviews_per_user_per_restaurant.sql` - Removed unique constraint to allow multiple reviews per user per restaurant
+- `20251002191345_fix_toggle_like_ambiguous_column.sql` - Fixed ambiguous like_count column reference in toggle_review_like function
 
 ## 📋 Quick Reference
 
@@ -569,5 +614,5 @@ NEXT_PUBLIC_APP_URL=
 Ready for photo uploads for reviews, restaurant detail maps, and email notifications!
 
 ---
-**Last Updated**: 2025-09-09  
-**Status**: MVP v1.22 - Join Group Feature & Advanced Search Performance Optimizations
+**Last Updated**: 2025-10-02
+**Status**: MVP v1.23 - Airbnb-Style UI, New Color Palette & Simplified Like System
