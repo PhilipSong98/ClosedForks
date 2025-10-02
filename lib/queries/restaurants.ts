@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, InfiniteData } from '@tanstack/react-query';
 import { Restaurant, Review } from '@/types';
 
 export function useRestaurants(options?: {
@@ -181,9 +181,9 @@ export function useInfiniteRestaurants(options?: {
 }) {
   const pageSize = options?.pageSize || 15;
 
-  return useInfiniteQuery({
+  return useInfiniteQuery<RestaurantsResponse, Error, InfiniteData<RestaurantsResponse>, (string | number)[], RestaurantCursor | undefined>({
     queryKey: ['restaurants', 'infinite', pageSize],
-    queryFn: async ({ pageParam }): Promise<RestaurantsResponse> => {
+    queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams();
       params.append('limit', pageSize.toString());
 

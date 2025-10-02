@@ -10,6 +10,7 @@ import { RestaurantFeedSkeleton } from '@/components/ui/skeleton-loader';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useInfiniteRestaurants } from '@/lib/queries/restaurants';
 import { useIntersectionObserver } from '@/lib/hooks/useIntersectionObserver';
+import type { Restaurant } from '@/types';
 
 const RestaurantsClient: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -54,7 +55,7 @@ const RestaurantsClient: React.FC = () => {
   // Flatten all restaurants from all pages
   const allRestaurants = useMemo(() => {
     if (!data?.pages) return [];
-    return data.pages.flatMap(page => page.restaurants) || [];
+    return (data.pages as Array<{ restaurants: Restaurant[] }>).flatMap(page => page.restaurants) || [];
   }, [data]);
 
   // Filter and sort restaurants
