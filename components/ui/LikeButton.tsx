@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Heart } from 'lucide-react';
 import { useLikeReview } from '@/lib/mutations/reviewLikes';
 
@@ -22,10 +22,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   disabled = false
 }) => {
   const likeReview = useLikeReview();
-  const [isPulsing, setIsPulsing] = useState(false);
   const [lastClickTime, setLastClickTime] = useState(0);
-  const [hasError, setHasError] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Always use props directly - no local state that can get out of sync
   // Validate to prevent NaN
@@ -63,32 +60,16 @@ const LikeButton: React.FC<LikeButtonProps> = ({
     }
 
     setLastClickTime(now);
-    setHasError(false);
 
-    // Clear any existing error timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    // Trigger animation and haptic feedback only when liking (not unliking)
+    // Trigger haptic feedback only when liking (not unliking)
     if (!isLiked) {
-      setIsPulsing(true);
       triggerHapticFeedback();
-
-      // Reset animation after it completes
-      setTimeout(() => setIsPulsing(false), 200);
     }
 
     // Execute the mutation - React Query will handle optimistic updates
     likeReview.mutate(reviewId, {
       onError: (error) => {
         console.error('Like mutation failed:', error);
-        setHasError(true);
-
-        // Clear error state after animation
-        timeoutRef.current = setTimeout(() => {
-          setHasError(false);
-        }, 1000);
       }
     });
   }, [
@@ -107,18 +88,6 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       handleLikeClick(event as unknown as React.MouseEvent);
     }
   }, [handleLikeClick]);
-
-  // Local state is independent after initialization
-  // No syncing with props to prevent bouncing
-
-  // Cleanup timeout on unmount
-  React.useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
 
   return (
     <button

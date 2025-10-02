@@ -152,11 +152,20 @@ export function useLikeReview() {
         (oldData: unknown) => {
           if (!oldData || typeof oldData !== 'object') return oldData;
 
-          // Handle infinite query structure
-          if ('pages' in oldData && Array.isArray((oldData as any).pages)) {
+          // Handle infinite query structure with proper typing
+          interface InfiniteQueryData {
+            pages: Array<{
+              reviews: ReviewData[];
+              [key: string]: unknown;
+            }>;
+            pageParams?: unknown[];
+          }
+
+          if ('pages' in oldData && Array.isArray(oldData.pages)) {
+            const infiniteData = oldData as InfiniteQueryData;
             return {
               ...oldData,
-              pages: (oldData as any).pages.map((page: any) => {
+              pages: infiniteData.pages.map((page) => {
                 if (page && typeof page === 'object' && 'reviews' in page && Array.isArray(page.reviews)) {
                   return {
                     ...page,
