@@ -59,11 +59,11 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[var(--background)] via-white to-[var(--accent)] text-slate-900">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[var(--background)] via-white to-slate-100 text-slate-900">
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-28 left-1/2 h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.35),transparent_65%)] blur-3xl" />
         <div className="absolute bottom-[-18%] left-[-10%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--secondary-rgb),0.28),transparent_70%)] blur-3xl" />
-        <div className="absolute bottom-[-22%] right-[-12%] h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--accent-rgb),0.28),transparent_70%)] blur-3xl" />
+        <div className="absolute bottom-[-22%] right-[-12%] h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(circle,_rgba(148,163,184,0.22),transparent_70%)] blur-3xl" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.52),transparent_72%)]" />
       </div>
 
@@ -118,8 +118,7 @@ export default function WelcomePage() {
               </div>
             </div>
 
-            <Card className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/80 text-slate-900 shadow-2xl shadow-[rgba(var(--secondary-rgb),0.18)] backdrop-blur-xl">
-              <div className="pointer-events-none absolute -inset-x-10 -top-24 h-64 bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.4),transparent_65%)]" />
+            <Card className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white text-slate-900 shadow-2xl shadow-[rgba(var(--secondary-rgb),0.18)]">
               <CardContent className="relative space-y-8 p-8 sm:p-10">
                 <div className="space-y-3 text-center sm:text-left">
                   <span className="inline-flex items-center gap-2 rounded-full border border-[var(--muted)] bg-white/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--primary)]">
@@ -159,7 +158,7 @@ export default function WelcomePage() {
                                   prevInput?.focus();
                                 }
                               }}
-                              className="h-14 w-12 rounded-2xl border-[var(--muted)] bg-white/80 text-center text-xl font-semibold tracking-widest text-slate-900 placeholder:text-slate-400 focus:border-[var(--primary)] focus:ring-[rgba(var(--primary-rgb),0.35)] sm:h-16 sm:w-14"
+                              className="h-14 w-12 rounded-2xl border-2 border-slate-300 bg-slate-50 text-center text-xl font-semibold tracking-widest text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-[var(--primary)] focus:bg-white focus:ring-2 focus:ring-[rgba(var(--primary-rgb),0.2)] sm:h-16 sm:w-14"
                               maxLength={1}
                               autoComplete="off"
                               disabled={isValidating}

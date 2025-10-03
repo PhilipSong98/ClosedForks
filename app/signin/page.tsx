@@ -54,11 +54,11 @@ export default function SignInPage() {
 
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[var(--background)] via-white to-[var(--accent)]">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[var(--background)] via-white to-slate-100">
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-40 left-[-10%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.22),transparent_70%)] blur-3xl" />
         <div className="absolute top-[20%] right-[-15%] h-[32rem] w-[32rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--secondary-rgb),0.18),transparent_70%)] blur-[140px]" />
-        <div className="absolute bottom-[-20%] left-[25%] h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--accent-rgb),0.26),transparent_70%)] blur-3xl" />
+        <div className="absolute bottom-[-20%] left-[25%] h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle,_rgba(148,163,184,0.22),transparent_70%)] blur-3xl" />
       </div>
 
       <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-12">
@@ -105,8 +105,7 @@ export default function SignInPage() {
             </div>
           </div>
 
-          <Card className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/80 text-slate-900 shadow-2xl shadow-[rgba(var(--primary-rgb),0.2)] backdrop-blur-xl">
-            <div className="pointer-events-none absolute -inset-x-12 -top-20 h-64 bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.28),transparent_65%)]" />
+          <Card className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white text-slate-900 shadow-2xl shadow-[rgba(var(--primary-rgb),0.2)]">
             <CardContent className="relative space-y-8 p-8 sm:p-10">
               <div className="space-y-2 text-center">
                 <h2 className="text-3xl font-semibold text-slate-900">Sign in to your account</h2>
@@ -131,7 +130,7 @@ export default function SignInPage() {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value.toLowerCase())}
                     placeholder="Enter your email"
-                    className="h-12 rounded-2xl border-[var(--muted)] bg-white/80 text-slate-900 placeholder:text-slate-400 focus:border-[var(--primary)] focus:ring-[rgba(var(--primary-rgb),0.35)]"
+                    className="h-12 rounded-2xl border-2 border-slate-300 bg-slate-50 text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-[var(--primary)] focus:bg-white focus:ring-2 focus:ring-[rgba(var(--primary-rgb),0.2)]"
                     disabled={isLoading}
                     required
                   />
@@ -147,7 +146,7 @@ export default function SignInPage() {
                       value={formData.password}
                       onChange={(e) => handleInputChange('password', e.target.value)}
                       placeholder="Enter your password"
-                      className="h-12 rounded-2xl border-[var(--muted)] bg-white/80 pr-10 text-slate-900 placeholder:text-slate-400 focus:border-[var(--primary)] focus:ring-[rgba(var(--primary-rgb),0.35)]"
+                      className="h-12 rounded-2xl border-2 border-slate-300 bg-slate-50 pr-10 text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-[var(--primary)] focus:bg-white focus:ring-2 focus:ring-[rgba(var(--primary-rgb),0.2)]"
                       disabled={isLoading}
                       required
                     />
