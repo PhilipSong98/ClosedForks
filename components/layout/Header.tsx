@@ -51,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
             {/* Logo */}
             <Link
               href="/"
-              className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+              className="flex items-center hover:opacity-80 transition-opacity"
             >
               <Image
                 src="/dinecircle-logo.png"
@@ -60,7 +60,6 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
                 height={36}
                 className="object-contain"
               />
-              <span className="text-xl font-bold text-foreground">DineCircle</span>
             </Link>
 
             {/* Navigation Links */}
