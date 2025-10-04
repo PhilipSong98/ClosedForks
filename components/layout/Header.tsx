@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LogOut, User, MapPin, Bookmark, Users } from 'lucide-react';
 import MobileMenu from './MobileMenu';
+import Image from 'next/image';
 
 interface HeaderProps {
   onProfileClick?: () => void;
@@ -48,13 +49,17 @@ const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-8">
             {/* Logo */}
-            <Link 
+            <Link
               href="/"
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
             >
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <div className="w-4 h-4 bg-primary-foreground rounded-sm" />
-              </div>
+              <Image
+                src="/dinecircle-logo.png"
+                alt="DineCircle"
+                width={36}
+                height={36}
+                className="object-contain"
+              />
               <span className="text-xl font-bold text-foreground">DineCircle</span>
             </Link>
 
