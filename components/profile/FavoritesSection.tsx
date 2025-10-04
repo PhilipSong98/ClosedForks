@@ -393,9 +393,9 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
         {!error && favorites.length === 0 ? (
           <div className="text-center py-16">
             <div className="relative mx-auto w-20 h-20 mb-6">
-              <div className="absolute inset-0 bg-gradient-to-br from-red-100 to-pink-100 rounded-full" />
+              <div className="absolute inset-0 bg-[var(--primary)]/10 rounded-full" />
               <div className="absolute inset-2 bg-white rounded-full shadow-sm flex items-center justify-center">
-                <Heart className="h-8 w-8 text-red-500" />
+                <Heart className="h-8 w-8 text-[var(--primary)]" />
               </div>
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -412,7 +412,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
                 {favorites.length}/10 favorites
               </div>
               {favorites.length >= 8 && (
-                <div className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                <div className="text-xs text-[var(--accent)] bg-[var(--accent)]/10 px-2 py-1 rounded-full">
                   {favorites.length >= 10 ? 'Maximum reached' : `${10 - favorites.length} spots left`}
                 </div>
               )}
@@ -489,7 +489,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
           <SheetContent side="bottom" className="h-[85vh]">
             <SheetHeader className="mb-6">
               <SheetTitle className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-red-500" />
+                <Heart className="h-5 w-5 text-[var(--primary)]" />
                 Add to Favorites
               </SheetTitle>
             </SheetHeader>
@@ -503,7 +503,7 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
           <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-red-500" />
+                <Heart className="h-5 w-5 text-[var(--primary)]" />
                 Add to Favorites
               </DialogTitle>
             </DialogHeader>

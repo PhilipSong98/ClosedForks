@@ -256,9 +256,9 @@ const ToEatSection: React.FC<ToEatSectionProps> = ({ showHeader = true }) => {
       {searchQuery && !isSearching && filteredSearchResults.length === 0 && !searchError && (
         <div className="text-center py-8">
           <div className="relative mx-auto w-16 h-16 mb-4">
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full" />
+            <div className="absolute inset-0 bg-slate-100 rounded-full" />
             <div className="absolute inset-1 bg-white rounded-full shadow-sm flex items-center justify-center">
-              <Search className="h-6 w-6 text-gray-500" />
+              <Search className="h-6 w-6 text-slate-500" />
             </div>
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">No restaurants found</h3>
@@ -267,14 +267,14 @@ const ToEatSection: React.FC<ToEatSectionProps> = ({ showHeader = true }) => {
           </p>
         </div>
       )}
-      
+
       {/* No Search Query */}
       {!searchQuery && (
         <div className="text-center py-8">
           <div className="relative mx-auto w-16 h-16 mb-4">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full animate-pulse" />
+            <div className="absolute inset-0 bg-[var(--secondary)]/20 rounded-full animate-pulse" />
             <div className="absolute inset-1 bg-white rounded-full shadow-sm flex items-center justify-center">
-              <Search className="h-6 w-6 text-blue-600" />
+              <Search className="h-6 w-6 text-[var(--secondary)]" />
             </div>
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">Start typing to search</h3>
@@ -374,9 +374,9 @@ const ToEatSection: React.FC<ToEatSectionProps> = ({ showHeader = true }) => {
         {!error && toEatCount === 0 ? (
           <div className="text-center py-16">
             <div className="relative mx-auto w-20 h-20 mb-6">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full" />
+              <div className="absolute inset-0 bg-[var(--secondary)]/20 rounded-full" />
               <div className="absolute inset-2 bg-white rounded-full shadow-sm flex items-center justify-center">
-                <Bookmark className="h-8 w-8 text-blue-600" />
+                <Bookmark className="h-8 w-8 text-[var(--secondary)]" />
               </div>
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -385,10 +385,10 @@ const ToEatSection: React.FC<ToEatSectionProps> = ({ showHeader = true }) => {
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               Save restaurants you want to try to keep track of places you&apos;re excited to visit.
             </p>
-            <Button 
+            <Button
               onClick={() => setAddModalOpen(true)}
               size="lg"
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="bg-[var(--secondary)] hover:bg-[var(--secondary)]/90 text-white"
               disabled={addToEatListMutation.isPending || removeFromToEatListMutation.isPending}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -481,7 +481,7 @@ const ToEatSection: React.FC<ToEatSectionProps> = ({ showHeader = true }) => {
           <SheetContent side="bottom" className="h-[85vh]">
             <SheetHeader className="mb-6">
               <SheetTitle className="flex items-center gap-2">
-                <Bookmark className="h-5 w-5 text-blue-600" />
+                <Bookmark className="h-5 w-5 text-[var(--secondary)]" />
                 Add to To-Eat List
               </SheetTitle>
             </SheetHeader>
@@ -495,7 +495,7 @@ const ToEatSection: React.FC<ToEatSectionProps> = ({ showHeader = true }) => {
           <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Bookmark className="h-5 w-5 text-blue-600" />
+                <Bookmark className="h-5 w-5 text-[var(--secondary)]" />
                 Add to To-Eat List
               </DialogTitle>
             </DialogHeader>

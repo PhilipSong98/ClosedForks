@@ -56,8 +56,8 @@ const LikedReviews: React.FC = () => {
   if (!data || data.reviews.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-red-100 to-pink-100 rounded-full flex items-center justify-center">
-          <Heart className="w-8 h-8 text-red-500" />
+        <div className="w-16 h-16 mx-auto mb-4 bg-[var(--primary)]/10 rounded-full flex items-center justify-center">
+          <Heart className="w-8 h-8 text-[var(--primary)]" />
         </div>
         <h3 className="text-lg font-semibold text-foreground mb-2">
           No liked posts yet
@@ -65,7 +65,7 @@ const LikedReviews: React.FC = () => {
         <p className="text-muted-foreground mb-4">
           Start liking posts to see them here
         </p>
-        <Button asChild>
+        <Button asChild className="bg-[var(--primary)] hover:bg-[var(--primary)]/90">
           <Link href="/">Explore Feed</Link>
         </Button>
       </div>
