@@ -6,7 +6,7 @@ import { useUserReviews } from '@/lib/queries/profile';
 import ReviewCard from '@/components/review/ReviewCard';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 
 interface RecentReviewsProps {
   userId: string;
@@ -79,19 +79,19 @@ const RecentReviews: React.FC<RecentReviewsProps> = ({ userId, title = 'Your Rev
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-foreground">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-slate-900">
           {title}
         </h2>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm text-slate-500">
           {pagination.total} review{pagination.total !== 1 ? 's' : ''}
         </span>
       </div>
 
       <div className="space-y-4">
         {reviews.map((review) => (
-          <div key={review.id} className="border rounded-lg bg-card">
-            <ReviewCard 
+          <div key={review.id} className="border border-slate-200/60 rounded-lg bg-white hover:shadow-sm transition-shadow">
+            <ReviewCard
               review={review}
               showRestaurant={true}
             />
@@ -111,11 +111,11 @@ const RecentReviews: React.FC<RecentReviewsProps> = ({ userId, title = 'Your Rev
             <ChevronLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
-          
-          <span className="text-sm text-muted-foreground px-4">
+
+          <span className="text-sm text-slate-500 px-4">
             Page {currentPage} of {pagination.totalPages}
           </span>
-          
+
           <Button
             variant="outline"
             size="sm"

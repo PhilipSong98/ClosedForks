@@ -373,22 +373,19 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
           </Alert>
         )}
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-red-500" />
-            <h2 className="text-xl font-semibold text-foreground">
-              {title}
-            </h2>
-          </div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-slate-900">
+            {title}
+          </h2>
           {!readOnly && (
-            <Button 
-              variant="outline" 
+            <Button
               size="sm"
               onClick={() => setAddModalOpen(true)}
               disabled={favorites.length >= 10 || updateFavoritesMutation.isPending}
+              className="bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Favorite
+              Add
             </Button>
           )}
         </div>
@@ -404,19 +401,9 @@ const FavoritesSection: React.FC<FavoritesSectionProps> = ({
             <h3 className="text-xl font-semibold text-foreground mb-2">
               No favorites yet
             </h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            <p className="text-muted-foreground max-w-md mx-auto">
               Add restaurants you love to quickly find them later. Build your personal collection of go-to spots.
             </p>
-            {!readOnly && (
-              <Button 
-                onClick={() => setAddModalOpen(true)}
-                size="lg"
-                className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Your First Favorite
-              </Button>
-            )}
           </div>
         ) : (
           <>

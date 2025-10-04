@@ -40,71 +40,75 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true
 
   return (
     <>
-      <Card>
-        <CardContent className="p-4 sm:p-6">
-          <div className="text-center space-y-3 sm:space-y-4">
-            {/* Profile Avatar */}
-            <div className="relative inline-block">
-              <Avatar className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 mx-auto">
+      <Card className="border border-slate-200/60 shadow-sm bg-white">
+        <CardContent className="p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            {/* Profile Avatar - Left side on desktop */}
+            <div className="relative shrink-0">
+              <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-2 border-slate-100">
                 <AvatarImage
                   src={user.avatar_url}
                   alt={`${displayName} profile picture`}
                   className="object-cover"
                 />
-                <AvatarFallback className="text-lg sm:text-xl md:text-2xl">
+                <AvatarFallback className="text-2xl sm:text-3xl bg-[var(--primary)] text-white">
                   {getInitials(displayName)}
                 </AvatarFallback>
               </Avatar>
+              <div className="absolute -bottom-1 -right-1 w-9 h-9 bg-white rounded-full flex items-center justify-center border-2 border-slate-100 shadow-sm">
+                <Calendar className="w-4 h-4 text-slate-500" />
+              </div>
             </div>
 
-            {/* User Info */}
-            <div className="space-y-2">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                {displayName}
-              </h1>
-              {isOwnProfile && (
-                <p className="text-sm sm:text-base text-muted-foreground truncate max-w-xs sm:max-w-none">
-                  {user.email}
+            {/* User Info - Right side on desktop */}
+            <div className="flex-1 text-center sm:text-left space-y-3 w-full">
+              <div className="space-y-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                  {displayName}
+                </h1>
+                {isOwnProfile && (
+                  <p className="text-sm text-slate-500 truncate max-w-xs sm:max-w-none mx-auto sm:mx-0">
+                    {user.email}
+                  </p>
+                )}
+                <p className="text-xs text-slate-400">
+                  Member {memberSince}
                 </p>
+              </div>
+
+              {/* Stats - Simple inline */}
+              <div className="flex items-center justify-center sm:justify-start gap-6 pt-2">
+                <div className="text-center sm:text-left">
+                  <div className="text-2xl font-bold text-[var(--primary)]">
+                    {user.stats.reviewCount}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    Review{user.stats.reviewCount !== 1 ? 's' : ''}
+                  </div>
+                </div>
+                <div className="text-center sm:text-left">
+                  <div className="text-2xl font-bold text-[var(--primary)]">
+                    {user.stats.favoritesCount}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    Favorite{user.stats.favoritesCount !== 1 ? 's' : ''}
+                  </div>
+                </div>
+              </div>
+
+              {/* Edit Profile Button */}
+              {isOwnProfile && (
+                <Button
+                  onClick={() => setEditModalOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 border-slate-200 hover:bg-slate-50"
+                >
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
               )}
-              <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                <Calendar className="w-4 h-4" />
-                <span>Member {memberSince}</span>
-              </div>
             </div>
-
-            {/* Stats */}
-            <div className="flex justify-center gap-6 sm:gap-8 pt-2 sm:pt-4">
-              <div className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-primary">
-                  {user.stats.reviewCount}
-                </div>
-                <div className="text-xs sm:text-sm text-muted-foreground">
-                  Review{user.stats.reviewCount !== 1 ? 's' : ''}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-primary">
-                  {user.stats.favoritesCount}
-                </div>
-                <div className="text-xs sm:text-sm text-muted-foreground">
-                  Favorite{user.stats.favoritesCount !== 1 ? 's' : ''}
-                </div>
-              </div>
-            </div>
-
-            {/* Edit Profile Button */}
-            {isOwnProfile && (
-              <Button 
-                onClick={() => setEditModalOpen(true)}
-                variant="outline"
-                size="sm"
-                className="mt-4"
-              >
-                <Edit2 className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>

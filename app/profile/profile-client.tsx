@@ -81,11 +81,31 @@ export default function ProfileClient() {
           
           {/* Profile Content */}
           <Tabs defaultValue="favorites" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-0 h-auto sm:h-10 p-1">
-              <TabsTrigger value="favorites" className="text-xs sm:text-sm">Favorites</TabsTrigger>
-              <TabsTrigger value="reviews" className="text-xs sm:text-sm">Recent Reviews</TabsTrigger>
-              <TabsTrigger value="liked" className="text-xs sm:text-sm">Liked Posts</TabsTrigger>
-              <TabsTrigger value="to-eat" className="text-xs sm:text-sm">To-Eat List</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-1 bg-slate-100 rounded-lg">
+              <TabsTrigger
+                value="favorites"
+                className="text-xs sm:text-sm rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+              >
+                Favorites
+              </TabsTrigger>
+              <TabsTrigger
+                value="reviews"
+                className="text-xs sm:text-sm rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+              >
+                Reviews
+              </TabsTrigger>
+              <TabsTrigger
+                value="liked"
+                className="text-xs sm:text-sm rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+              >
+                Liked
+              </TabsTrigger>
+              <TabsTrigger
+                value="to-eat"
+                className="text-xs sm:text-sm rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+              >
+                To-Eat
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="favorites" className="mt-6">

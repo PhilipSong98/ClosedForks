@@ -355,21 +355,18 @@ const ToEatSection: React.FC<ToEatSectionProps> = ({ showHeader = true }) => {
         )}
         
 {showHeader && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Bookmark className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-semibold text-foreground">
-                To-Eat List
-              </h2>
-            </div>
-            <Button 
-              variant="outline" 
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-slate-900">
+              To-Eat List
+            </h2>
+            <Button
               size="sm"
               onClick={() => setAddModalOpen(true)}
               disabled={addToEatListMutation.isPending || removeFromToEatListMutation.isPending}
+              className="bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Restaurant
+              Add
             </Button>
           </div>
         )}

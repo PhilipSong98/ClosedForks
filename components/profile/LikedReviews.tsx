@@ -76,22 +76,19 @@ const LikedReviews: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Heart className="w-5 h-5 text-red-500" />
-          <h2 className="text-xl font-semibold text-foreground">
-            Liked Posts
-          </h2>
-        </div>
-        <span className="text-sm text-muted-foreground">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-slate-900">
+          Liked Posts
+        </h2>
+        <span className="text-sm text-slate-500">
           {pagination.total} post{pagination.total !== 1 ? 's' : ''}
         </span>
       </div>
 
       <div className="space-y-4">
         {reviews.map((review) => (
-          <div key={review.id} className="border rounded-lg bg-card">
-            <ReviewCard 
+          <div key={review.id} className="border border-slate-200/60 rounded-lg bg-white hover:shadow-sm transition-shadow">
+            <ReviewCard
               review={review}
               showRestaurant={true}
             />
@@ -111,11 +108,11 @@ const LikedReviews: React.FC = () => {
             <ChevronLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
-          
-          <span className="text-sm text-muted-foreground px-4">
+
+          <span className="text-sm text-slate-500 px-4">
             Page {currentPage} of {pagination.totalPages}
           </span>
-          
+
           <Button
             variant="outline"
             size="sm"
