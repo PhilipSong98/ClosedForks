@@ -87,20 +87,21 @@ export default function WelcomePage() {
         </header>
 
         <main className="flex flex-1 items-center px-6 pb-12 pt-4 sm:px-12">
-          <div className="mx-auto grid w-full max-w-6xl items-start gap-14 lg:grid-cols-[1.05fr_minmax(0,0.95fr)]">
-            <div className="space-y-10">
+          <div className="mx-auto grid w-full max-w-6xl items-start gap-8 lg:gap-14 lg:grid-cols-[1.05fr_minmax(0,0.95fr)]">
+            {/* Mobile: Card comes first, Desktop: Text content first */}
+            <div className="order-2 lg:order-1 space-y-6 lg:space-y-10">
               <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(var(--secondary-rgb),0.35)] bg-white/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[var(--secondary)] shadow-sm">
                 Invite Only
               </div>
-              <div className="space-y-6">
-                <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl md:text-6xl">
+              <div className="space-y-4 lg:space-y-6">
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
                   Step into the Circle
                 </h1>
-                <p className="max-w-xl text-base text-slate-600 sm:text-lg">
-                  Curated recommendations, hidden gems, and trusted reviews from the people whose taste you know best. Your invite code is the key to our private dining universe.
+                <p className="max-w-xl text-sm text-slate-600 sm:text-base lg:text-lg">
+                  Curated recommendations, hidden gems, and trusted reviews from the people whose taste you know best.
                 </p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="hidden lg:grid gap-4 sm:grid-cols-2">
                 <div className="rounded-3xl border border-[var(--muted)] bg-white/75 p-6 shadow-lg shadow-[rgba(var(--primary-rgb),0.18)] backdrop-blur">
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(var(--primary-rgb),0.12)] ring-1 ring-[rgba(var(--primary-rgb),0.2)]">
                     <span className="text-base font-semibold text-[var(--primary)]">01</span>
@@ -118,7 +119,7 @@ export default function WelcomePage() {
               </div>
             </div>
 
-            <Card className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white text-slate-900 shadow-2xl shadow-[rgba(var(--secondary-rgb),0.18)]">
+            <Card className="order-1 lg:order-2 relative overflow-hidden rounded-[28px] border border-white/70 bg-white text-slate-900 shadow-2xl shadow-[rgba(var(--secondary-rgb),0.18)]">
               <CardContent className="relative space-y-8 p-8 sm:p-10">
                 <div className="space-y-3 text-center sm:text-left">
                   <span className="inline-flex items-center gap-2 rounded-full border border-[var(--muted)] bg-white/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--primary)]">

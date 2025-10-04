@@ -62,8 +62,9 @@ export default function SignInPage() {
       </div>
 
       <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-12">
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_minmax(0,0.95fr)]">
-          <div className="space-y-10">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-8 lg:gap-12 lg:grid-cols-[1.05fr_minmax(0,0.95fr)]">
+          {/* Mobile: Card comes first, Desktop: Text content first */}
+          <div className="order-2 lg:order-1 space-y-6 lg:space-y-10">
             <Button
               variant="ghost"
               onClick={() => router.push('/welcome')}
@@ -73,19 +74,19 @@ export default function SignInPage() {
               Back to invite
             </Button>
 
-            <div className="space-y-6">
+            <div className="space-y-4 lg:space-y-6">
               <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(var(--secondary-rgb),0.35)] bg-white/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[var(--secondary)]">
                 Welcome Back
               </span>
-              <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
                 Slide back into your private dining circle
               </h1>
-              <p className="max-w-xl text-base text-slate-600 sm:text-lg">
-                Access the latest recommendations, secret supper spots, and trusted reviews from the people whose taste you rely on most.
+              <p className="max-w-xl text-sm text-slate-600 sm:text-base lg:text-lg">
+                Access the latest recommendations and trusted reviews from the people whose taste you rely on most.
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="hidden lg:grid gap-4 sm:grid-cols-2">
               {[
                 'Stay current with your circle’s latest picks',
                 'Save favorites and track places to try next',
@@ -105,7 +106,7 @@ export default function SignInPage() {
             </div>
           </div>
 
-          <Card className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white text-slate-900 shadow-2xl shadow-[rgba(var(--primary-rgb),0.2)]">
+          <Card className="order-1 lg:order-2 relative overflow-hidden rounded-[28px] border border-white/70 bg-white text-slate-900 shadow-2xl shadow-[rgba(var(--primary-rgb),0.2)]">
             <CardContent className="relative space-y-8 p-8 sm:p-10">
               <div className="space-y-2 text-center">
                 <h2 className="text-3xl font-semibold text-slate-900">Sign in to your account</h2>

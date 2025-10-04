@@ -20,15 +20,15 @@ export default function ProfileClient() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-8 pb-24">
-          <div className="max-w-4xl mx-auto space-y-8">
+        <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 pb-24">
+          <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
             {/* Profile Header Skeleton */}
-            <div className="text-center space-y-4">
-              <Skeleton className="w-32 h-32 rounded-full mx-auto" />
-              <Skeleton className="h-8 w-48 mx-auto" />
-              <div className="flex justify-center gap-8">
-                <Skeleton className="h-12 w-24" />
-                <Skeleton className="h-12 w-24" />
+            <div className="text-center space-y-3 sm:space-y-4">
+              <Skeleton className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full mx-auto" />
+              <Skeleton className="h-6 sm:h-8 w-40 sm:w-48 mx-auto" />
+              <div className="flex justify-center gap-6 sm:gap-8">
+                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" />
+                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" />
               </div>
             </div>
             
@@ -51,7 +51,7 @@ export default function ProfileClient() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-8 pb-24">
+        <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 pb-24">
           <div className="max-w-4xl mx-auto text-center py-12">
             <p className="text-destructive mb-4">Failed to load profile</p>
             <button 
@@ -74,18 +74,18 @@ export default function ProfileClient() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8 pb-24">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 pb-24">
+        <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
           {/* Profile Header */}
           <ProfileHeader user={profile} />
           
           {/* Profile Content */}
           <Tabs defaultValue="favorites" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="favorites">Favorites</TabsTrigger>
-              <TabsTrigger value="reviews">Recent Reviews</TabsTrigger>
-              <TabsTrigger value="liked">Liked Posts</TabsTrigger>
-              <TabsTrigger value="to-eat">To-Eat List</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-0 h-auto sm:h-10 p-1">
+              <TabsTrigger value="favorites" className="text-xs sm:text-sm">Favorites</TabsTrigger>
+              <TabsTrigger value="reviews" className="text-xs sm:text-sm">Recent Reviews</TabsTrigger>
+              <TabsTrigger value="liked" className="text-xs sm:text-sm">Liked Posts</TabsTrigger>
+              <TabsTrigger value="to-eat" className="text-xs sm:text-sm">To-Eat List</TabsTrigger>
             </TabsList>
 
             <TabsContent value="favorites" className="mt-6">

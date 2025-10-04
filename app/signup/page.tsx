@@ -141,16 +141,17 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[var(--background)] via-white to-[var(--accent)]">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[var(--background)] via-white to-slate-100">
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-36 right-[-12%] h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.22),transparent_70%)] blur-[150px]" />
-        <div className="absolute bottom-[-18%] left-[-10%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--accent-rgb),0.26),transparent_70%)] blur-3xl" />
+        <div className="absolute bottom-[-18%] left-[-10%] h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,_rgba(148,163,184,0.22),transparent_70%)] blur-3xl" />
         <div className="absolute top-[35%] left-[35%] h-[32rem] w-[32rem] rounded-full bg-[radial-gradient(circle,_rgba(var(--secondary-rgb),0.22),transparent_70%)] blur-[160px]" />
       </div>
 
       <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-12">
-        <div className="mx-auto grid w-full max-w-6xl items-start gap-12 lg:grid-cols-[1.05fr_minmax(0,0.95fr)]">
-          <div className="space-y-8">
+        <div className="mx-auto grid w-full max-w-6xl items-start gap-8 lg:gap-12 lg:grid-cols-[1.05fr_minmax(0,0.95fr)]">
+          {/* Mobile: Card comes first, Desktop: Text content first */}
+          <div className="order-2 lg:order-1 space-y-6 lg:space-y-8">
             <Button
               variant="ghost"
               onClick={handleGoBack}
@@ -160,19 +161,19 @@ export default function SignupPage() {
               Back to invite verification
             </Button>
 
-            <div className="space-y-6">
+            <div className="space-y-4 lg:space-y-6">
               <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(var(--primary-rgb),0.3)] bg-white/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[var(--primary)]">
                 Invite Accepted
               </span>
-              <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
                 Create your DineCircle identity
               </h1>
-              <p className="max-w-xl text-base text-slate-600 sm:text-lg">
-                You&apos;re moments away from unlocking trusted restaurant intel curated by the people who matter most. Set up your account to start sharing and discovering instantly.
+              <p className="max-w-xl text-sm text-slate-600 sm:text-base lg:text-lg">
+                Set up your account to start sharing and discovering trusted restaurant recommendations.
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="hidden lg:grid gap-4 sm:grid-cols-2">
               {[
                 'Curated insights from your personal network',
                 'Save dining lists and keep track of invites',
@@ -191,15 +192,14 @@ export default function SignupPage() {
               ))}
             </div>
 
-            <div className="rounded-3xl border border-[rgba(var(--accent-rgb),0.35)] bg-white/70 p-6 shadow-lg shadow-[rgba(var(--accent-rgb),0.2)] backdrop-blur">
+            <div className="hidden lg:block rounded-3xl border border-[rgba(var(--accent-rgb),0.35)] bg-white/70 p-6 shadow-lg shadow-[rgba(var(--accent-rgb),0.2)] backdrop-blur">
               <h3 className="text-lg font-semibold text-slate-900">Invite details</h3>
               <p className="mt-2 text-sm text-slate-600">Invite code verified at {new Date(inviteSession.validatedAt).toLocaleDateString()}</p>
               <p className="text-sm text-slate-500">Code reference: {inviteSession.codeId}</p>
             </div>
           </div>
 
-          <Card className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/80 text-slate-900 shadow-2xl shadow-[rgba(var(--secondary-rgb),0.2)] backdrop-blur-xl">
-            <div className="pointer-events-none absolute -inset-x-12 -top-20 h-64 bg-[radial-gradient(circle,_rgba(var(--primary-rgb),0.28),transparent_65%)]" />
+          <Card className="order-1 lg:order-2 relative overflow-hidden rounded-[28px] border border-white/70 bg-white text-slate-900 shadow-2xl shadow-[rgba(var(--secondary-rgb),0.2)]">
             <CardContent className="relative space-y-8 p-8 sm:p-10">
               <div className="space-y-2 text-center">
                 <h2 className="text-3xl font-semibold text-slate-900">Create your account</h2>

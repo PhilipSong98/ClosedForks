@@ -41,17 +41,17 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true
   return (
     <>
       <Card>
-        <CardContent className="p-6">
-          <div className="text-center space-y-4">
+        <CardContent className="p-4 sm:p-6">
+          <div className="text-center space-y-3 sm:space-y-4">
             {/* Profile Avatar */}
             <div className="relative inline-block">
-              <Avatar className="w-32 h-32 mx-auto">
-                <AvatarImage 
-                  src={user.avatar_url} 
+              <Avatar className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 mx-auto">
+                <AvatarImage
+                  src={user.avatar_url}
                   alt={`${displayName} profile picture`}
                   className="object-cover"
                 />
-                <AvatarFallback className="text-2xl">
+                <AvatarFallback className="text-lg sm:text-xl md:text-2xl">
                   {getInitials(displayName)}
                 </AvatarFallback>
               </Avatar>
@@ -59,35 +59,35 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true
 
             {/* User Info */}
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-foreground">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 {displayName}
               </h1>
               {isOwnProfile && (
-                <p className="text-muted-foreground">
+                <p className="text-sm sm:text-base text-muted-foreground truncate max-w-xs sm:max-w-none">
                   {user.email}
                 </p>
               )}
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
                 <span>Member {memberSince}</span>
               </div>
             </div>
 
             {/* Stats */}
-            <div className="flex justify-center gap-8 pt-4">
+            <div className="flex justify-center gap-6 sm:gap-8 pt-2 sm:pt-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-xl sm:text-2xl font-bold text-primary">
                   {user.stats.reviewCount}
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-xs sm:text-sm text-muted-foreground">
                   Review{user.stats.reviewCount !== 1 ? 's' : ''}
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-xl sm:text-2xl font-bold text-primary">
                   {user.stats.favoritesCount}
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-xs sm:text-sm text-muted-foreground">
                   Favorite{user.stats.favoritesCount !== 1 ? 's' : ''}
                 </div>
               </div>
