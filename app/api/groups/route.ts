@@ -89,14 +89,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user has permission to create groups (Admin only)
+    // Check if user has permission to create groups
+    // Allowed: global admins OR users who are admin/owner in any group
+    let canCreate = false;
+
     try {
       await permissionService.ensureCan(user.id, 'create_group');
+      canCreate = true;
     } catch {
+      // Not a global admin, check if they're a group admin/owner
+      const { data: userGroupRoles } = await supabase
+        .from('user_groups')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['admin', 'owner']);
+
+      canCreate = !!(userGroupRoles && userGroupRoles.length > 0);
+    }
+
+    if (!canCreate) {
       return NextResponse.json(
-        { 
-          error: 'Insufficient permissions', 
-          message: 'Only administrators can create new groups'
+        {
+          error: 'Insufficient permissions',
+          message: 'Only administrators and group admins can create new groups'
         },
         { status: 403 }
       );
