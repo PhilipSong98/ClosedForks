@@ -61,7 +61,8 @@ export function useCreateReview() {
       // Targeted invalidation: Only invalidate what's affected
 
       // 1. Invalidate the feed (new review should appear)
-      queryClient.invalidateQueries({ queryKey: ['infinite-reviews'] });
+      // The feed uses queryKey: ['reviews', 'infinite', {...}], so invalidate all 'reviews' queries
+      queryClient.invalidateQueries({ queryKey: ['reviews'] });
 
       // 2. Invalidate only the specific restaurant's data (aggregates changed)
       if (restaurantId) {
