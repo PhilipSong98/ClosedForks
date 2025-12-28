@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import HomeClient from './home-client';
+import { ReviewFeedSkeleton } from '@/components/ui/skeleton-loader';
 
 export const metadata: Metadata = {
   title: 'Home - DineCircle',
@@ -7,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <HomeClient />;
+  return (
+    <Suspense fallback={<ReviewFeedSkeleton count={3} />}>
+      <HomeClient />
+    </Suspense>
+  );
 }

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Restaurant } from '@/types';
+import { QUERY_KEYS } from '@/lib/config/reactQueryConfig';
 
 interface CreateReviewData {
   restaurant_id?: string; // Optional when restaurant_data is provided
@@ -14,11 +15,21 @@ interface CreateReviewData {
   visibility: 'my_circles';
 }
 
+interface CreateReviewResponse {
+  review: {
+    id: string;
+    restaurant_id: string;
+    author_id: string;
+    [key: string]: unknown;
+  };
+  restaurant?: Restaurant;
+}
+
 export function useCreateReview() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (reviewData: CreateReviewData) => {
+    mutationFn: async (reviewData: CreateReviewData): Promise<CreateReviewResponse> => {
       const response = await fetch('/api/reviews', {
         method: 'POST',
         headers: {
@@ -44,11 +55,39 @@ export function useCreateReview() {
 
       return response.json();
     },
-    onSuccess: () => {
-      // Invalidate and refetch reviews data
-      queryClient.invalidateQueries({ queryKey: ['reviews'] });
-      // Also invalidate restaurants data since it includes review aggregations
-      queryClient.invalidateQueries({ queryKey: ['restaurants'] });
+    onSuccess: (data, variables) => {
+      const restaurantId = data.review?.restaurant_id || variables.restaurant_id;
+
+      // Targeted invalidation: Only invalidate what's affected
+
+      // 1. Invalidate the feed (new review should appear)
+      queryClient.invalidateQueries({ queryKey: ['infinite-reviews'] });
+
+      // 2. Invalidate only the specific restaurant's data (aggregates changed)
+      if (restaurantId) {
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.restaurants.detail(restaurantId)
+        });
+        // Also invalidate restaurant-specific reviews
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.reviews.byRestaurant(restaurantId)
+        });
+      }
+
+      // 3. Invalidate restaurant feed (aggregates may have changed)
+      queryClient.invalidateQueries({ queryKey: ['infinite-restaurants'] });
+
+      // 4. Invalidate user's own reviews list
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey;
+          // Match user review queries but not all reviews
+          return key[0] === 'user' && key[1] === 'reviews';
+        }
+      });
+    },
+    onError: (error) => {
+      console.error('Failed to create review:', error);
     },
   });
 }

@@ -39,10 +39,16 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://maps.googleapis.com" />
       </head>
       <body className={`${inter.variable} antialiased`}>
+        {/* Skip to main content link for keyboard navigation */}
+        <a href="#main-content" className="skip-to-content">
+          Skip to main content
+        </a>
         <Providers>
           <NavigationProgress />
           <AuthWrapper>
-            {children}
+            <main id="main-content">
+              {children}
+            </main>
           </AuthWrapper>
         </Providers>
       </body>
