@@ -63,49 +63,48 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
   return (
     <Card className="h-full group">
       <CardHeader className="pb-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center shrink-0">
               <Users className="h-6 w-6 text-blue-600" />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
                 <CardTitle className="text-lg font-semibold text-gray-900 truncate">
                   {group.name}
                 </CardTitle>
-                <div className="flex items-center gap-1">
-                  {/* Invite button - only for owners */}
-                  {group.user_role === 'owner' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onInviteToGroup(group)}
-                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100 transition-opacity"
-                      title="Invite friends to this group"
-                    >
-                      <UserPlus className="h-3 w-3" />
-                    </Button>
-                  )}
-                  {/* Edit button - only for owners/admins */}
-                  {(group.user_role === 'owner' || group.user_role === 'admin') && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEditGroup(group)}
-                      className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100 transition-opacity"
-                      title="Edit group name"
-                    >
-                      <Edit2 className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
+                <Badge className={`${getRoleColor(group.user_role || 'member')} flex items-center gap-1 shrink-0`}>
+                  {getRoleIcon(group.user_role || 'member')}
+                  {group.user_role || 'member'}
+                </Badge>
               </div>
+              {/* Action buttons - for owners and admins */}
+              {(group.user_role === 'owner' || group.user_role === 'admin') && (
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onInviteToGroup(group)}
+                    className="h-7 px-2 hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700 text-xs"
+                    title="Invite friends to this group"
+                  >
+                    <UserPlus className="h-3.5 w-3.5 mr-1" />
+                    Invite
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEditGroup(group)}
+                    className="h-7 px-2 hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700 text-xs"
+                    title="Edit group name"
+                  >
+                    <Edit2 className="h-3.5 w-3.5 mr-1" />
+                    Edit
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
-          <Badge className={`${getRoleColor(group.user_role || 'member')} flex items-center gap-1 shrink-0`}>
-            {getRoleIcon(group.user_role || 'member')}
-            {group.user_role || 'member'}
-          </Badge>
         </div>
       </CardHeader>
 
@@ -198,8 +197,8 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Invite Codes Section - only for owners */}
-        {isExpanded && group.user_role === 'owner' && (
+        {/* Invite Codes Section - for owners and admins */}
+        {isExpanded && (group.user_role === 'owner' || group.user_role === 'admin') && (
           <GroupInvitesSection
             group={group}
             inviteCodes={inviteCodes}
@@ -295,9 +294,9 @@ const GroupsClient: React.FC = () => {
                 Manage your dining circles and see who you&apos;re sharing meals with.
               </p>
             </div>
-            {/* Create Group Button - Only visible to Admins */}
-            {isAdmin && (
-              <Button 
+            {/* Create Group Button - visible to global admins and group admins/owners */}
+            {(isAdmin || userGroups.some(g => g.user_role === 'admin' || g.user_role === 'owner')) && (
+              <Button
                 onClick={handleShowCreateModal}
                 className="bg-blue-600 hover:bg-blue-700 text-white ml-8"
               >

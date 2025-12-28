@@ -17,6 +17,8 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  // Acknowledge Turbopack is default in Next.js 16 (plugins may add webpack config)
+  turbopack: {},
   images: {
     remotePatterns: [
       {

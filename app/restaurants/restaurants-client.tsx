@@ -1,27 +1,24 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, memo } from 'react';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/layout/Header';
-import SearchFilterBar, { FilterState } from '@/components/filters/SearchFilterBar';
+import SearchFilterBar from '@/components/filters/SearchFilterBar';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { RestaurantFeedSkeleton } from '@/components/ui/skeleton-loader';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useInfiniteRestaurants } from '@/lib/queries/restaurants';
 import { useIntersectionObserver } from '@/lib/hooks/useIntersectionObserver';
+import { useFilterParams } from '@/lib/hooks/useFilterParams';
 import type { Restaurant } from '@/types';
+import { filterAndSortRestaurants } from '@/lib/utils/filtering';
 
 const RestaurantsClient: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
-  const [filters, setFilters] = useState<FilterState>({
-    tags: [],
-    minRating: 0,
-    priceLevels: [],
-    dateRange: 'all',
-    recommendedOnly: false,
-    sortBy: 'rating'
-  });
+
+  // Use URL-synced filters - default sort by rating for restaurants
+  const { filters, setFilters } = useFilterParams('rating');
 
   // Use infinite query for progressive loading
   // Only enable the query when user is authenticated
@@ -58,44 +55,11 @@ const RestaurantsClient: React.FC = () => {
     return (data.pages as Array<{ restaurants: Restaurant[] }>).flatMap(page => page.restaurants) || [];
   }, [data]);
 
-  // Filter and sort restaurants
-  const filteredRestaurants = allRestaurants
-    .filter(restaurant => {
-      // Tag filter (from aggregated tags)
-      if (filters.tags.length > 0) {
-        const restaurantTags = restaurant.aggregated_tags || [];
-        const hasTagMatch = filters.tags.some(tag => restaurantTags.includes(tag));
-        if (!hasTagMatch) return false;
-      }
-
-      // Rating filter
-      if (filters.minRating > 0 && (restaurant.avg_rating || 0) < filters.minRating) {
-        return false;
-      }
-
-      // Price level filter ($ - $$$$)
-      if (filters.priceLevels.length > 0) {
-        if (!restaurant.price_level || !filters.priceLevels.includes(restaurant.price_level as number)) {
-          return false;
-        }
-      }
-
-      return true;
-    })
-    .sort((a, b) => {
-      switch (filters.sortBy) {
-        case 'recent':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'rating':
-          return (b.avg_rating || 0) - (a.avg_rating || 0);
-        case 'price_low':
-          return (a.price_level || 0) - (b.price_level || 0);
-        case 'price_high':
-          return (b.price_level || 0) - (a.price_level || 0);
-        default:
-          return (b.avg_rating || 0) - (a.avg_rating || 0);
-      }
-    });
+  // Memoized filter and sort - only recalculates when dependencies change
+  const filteredRestaurants = useMemo(
+    () => filterAndSortRestaurants(allRestaurants, filters),
+    [allRestaurants, filters]
+  );
 
   if (!user) {
     return null; // AuthWrapper will handle this
@@ -236,4 +200,4 @@ const RestaurantsClient: React.FC = () => {
   );
 };
 
-export default RestaurantsClient;
+export default memo(RestaurantsClient);

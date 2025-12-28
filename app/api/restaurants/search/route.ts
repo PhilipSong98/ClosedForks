@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { Restaurant } from '@/types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,18 +14,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Search restaurants that have at least one review
-    // This ensures we only show restaurants with user-generated content
+    // Use cached_review_count instead of INNER JOIN to avoid duplicate rows
     const { data: restaurants, error } = await supabase
       .from('restaurants')
-      .select(`
-        *,
-        reviews!inner (
-          id
-        )
-      `)
+      .select('*')
+      .gt('cached_review_count', 0)
       .or(`name.ilike.%${query}%,city.ilike.%${query}%,address.ilike.%${query}%,cuisine.cs.{${query}}`)
       .order('cached_avg_rating', { ascending: false })
-      .limit(limit) as { data: Restaurant[] | null; error: Error | null };
+      .limit(limit);
 
     if (error) {
       console.error('Error searching restaurants:', error);
@@ -36,18 +31,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Remove duplicate restaurants (from inner join) and format response
-    const uniqueRestaurants = restaurants?.reduce((acc, restaurant) => {
-      if (!acc.find(r => r.id === restaurant.id)) {
-        // Remove the reviews array since we only used it for filtering
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-        const { reviews: _reviews, ...restaurantData } = restaurant as any;
-        acc.push(restaurantData);
-      }
-      return acc;
-    }, [] as Restaurant[]) || [];
-
-    return NextResponse.json({ restaurants: uniqueRestaurants });
+    return NextResponse.json({ restaurants: restaurants || [] });
   } catch (error) {
     console.error('Unexpected error:', error);
     return NextResponse.json(

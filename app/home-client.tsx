@@ -1,29 +1,26 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/layout/Header';
-import SearchFilterBar, { FilterState } from '@/components/filters/SearchFilterBar';
+import SearchFilterBar from '@/components/filters/SearchFilterBar';
 import ReviewCard from '@/components/review/ReviewCard';
 import { ReviewFeedSkeleton } from '@/components/ui/skeleton-loader';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useInfiniteReviews } from '@/lib/queries/reviews';
 import { useIntersectionObserver } from '@/lib/hooks/useIntersectionObserver';
+import { useFilterParams } from '@/lib/hooks/useFilterParams';
 import { Review } from '@/types';
+import { filterAndSortReviews, getDateCutoffs } from '@/lib/utils/filtering';
 
 const HomeClient: React.FC = () => {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const [filters, setFilters] = useState<FilterState>({
-    tags: [],
-    minRating: 0,
-    priceLevels: [],
-    dateRange: 'all',
-    recommendedOnly: false,
-    sortBy: 'recent'
-  });
+
+  // Use URL-synced filters for shareable links and browser back/forward support
+  const { filters, setFilters } = useFilterParams('recent');
 
   // Use infinite query for progressive loading
   // Only enable the query when user is authenticated
@@ -60,95 +57,19 @@ const HomeClient: React.FC = () => {
     return (data.pages as { reviews: Review[] }[]).flatMap(page => page.reviews) || [];
   }, [data]);
 
-  const handleUserClick = (userId: string) => {
+  // Memoize event handler to prevent unnecessary re-renders
+  const handleUserClick = useCallback((userId: string) => {
     router.push(`/profile/${userId}`);
-  };
+  }, [router]);
 
-  // Filter and sort reviews
-  const mapPriceToLevel = (price?: number | null) => {
-    if (price == null) return undefined;
-    if (price <= 25) return 1;
-    if (price <= 50) return 2;
-    if (price <= 100) return 3;
-    return 4;
-  };
+  // Pre-calculate date cutoffs (recalculate only when dateRange changes)
+  const dateCutoffs = useMemo(() => getDateCutoffs(), []);
 
-  const filteredReviews = allReviews
-    .filter(review => {
-      // Tag filter
-      if (filters.tags.length > 0) {
-        const reviewTags = review.tags || [];
-        const hasTagMatch = filters.tags.some(tag => reviewTags.includes(tag));
-        if (!hasTagMatch) return false;
-      }
-
-      // Rating filter
-      if (filters.minRating > 0 && review.rating_overall < filters.minRating) {
-        return false;
-      }
-
-      // Price level filter ($ - $$$$)
-      if (filters.priceLevels.length > 0) {
-        const levelFromRestaurant = review.restaurant?.price_level as number | undefined;
-        const levelFromPrice = mapPriceToLevel(review.price_per_person);
-        const priceLevel = levelFromRestaurant || levelFromPrice;
-        if (!priceLevel || !filters.priceLevels.includes(priceLevel)) {
-          return false;
-        }
-      }
-
-      // Date range filter
-      if (filters.dateRange !== 'all') {
-        const reviewDate = new Date(review.created_at);
-        const now = new Date();
-        const cutoffDate = new Date();
-        
-        switch (filters.dateRange) {
-          case 'week':
-            cutoffDate.setDate(now.getDate() - 7);
-            break;
-          case 'month':
-            cutoffDate.setMonth(now.getMonth() - 1);
-            break;
-          case 'year':
-            cutoffDate.setFullYear(now.getFullYear() - 1);
-            break;
-        }
-        
-        if (reviewDate < cutoffDate) {
-          return false;
-        }
-      }
-
-      // Recommended only filter
-      if (filters.recommendedOnly && !review.recommend) {
-        return false;
-      }
-
-      return true;
-    })
-    .sort((a, b) => {
-      switch (filters.sortBy) {
-        case 'recent':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'rating':
-          return b.rating_overall - a.rating_overall;
-        case 'price_low':
-          {
-            const aLevel = (a.restaurant?.price_level as number | undefined) ?? mapPriceToLevel(a.price_per_person) ?? 0;
-            const bLevel = (b.restaurant?.price_level as number | undefined) ?? mapPriceToLevel(b.price_per_person) ?? 0;
-            return aLevel - bLevel;
-          }
-        case 'price_high':
-          {
-            const aLevel = (a.restaurant?.price_level as number | undefined) ?? mapPriceToLevel(a.price_per_person) ?? 0;
-            const bLevel = (b.restaurant?.price_level as number | undefined) ?? mapPriceToLevel(b.price_per_person) ?? 0;
-            return bLevel - aLevel;
-          }
-        default:
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      }
-    });
+  // Memoized filter and sort - only recalculates when dependencies change
+  const filteredReviews = useMemo(
+    () => filterAndSortReviews(allReviews, filters, dateCutoffs),
+    [allReviews, filters, dateCutoffs]
+  );
 
   if (!user) {
     return null; // AuthWrapper will handle this
@@ -291,4 +212,4 @@ const HomeClient: React.FC = () => {
   );
 };
 
-export default HomeClient;
+export default memo(HomeClient);

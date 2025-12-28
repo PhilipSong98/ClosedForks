@@ -225,12 +225,20 @@ export function useLikeReview() {
         );
       }
 
-      // Background invalidation to ensure fresh data on next fetch
+      // Targeted background invalidation - only invalidate specific queries that need fresh data
+      // The cache was already updated optimistically, so this is just for eventual consistency
+      queryClient.invalidateQueries({
+        queryKey: ['infinite-reviews'],
+        refetchType: 'none', // Don't refetch immediately, just mark as stale
+      });
+
+      // Mark user liked reviews as stale (will refetch on next access)
       queryClient.invalidateQueries({
         predicate: (query) => {
-          const key = query.queryKey[0] as string;
-          return key === 'reviews' || key === 'user' || key === 'restaurants' || key === 'infinite-reviews';
-        }
+          const key = query.queryKey.join('-');
+          return key.startsWith('user-liked-reviews');
+        },
+        refetchType: 'none',
       });
     },
   });

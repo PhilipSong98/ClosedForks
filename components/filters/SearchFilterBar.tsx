@@ -1,6 +1,6 @@
 'use client'
 
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Search, SlidersHorizontal, Tag, Star, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -60,14 +60,15 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
     (filters.dateRange !== 'all' ? 1 : 0) +
     (filters.recommendedOnly ? 1 : 0);
 
-  const toggleTag = (tag: string) => {
+  // Memoized to prevent unnecessary re-renders of child components
+  const toggleTag = useCallback((tag: string) => {
     const newTags = filters.tags.includes(tag)
       ? filters.tags.filter(t => t !== tag)
       : [...filters.tags, tag];
     onFiltersChange({ ...filters, tags: newTags });
-  };
+  }, [filters, onFiltersChange]);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     onFiltersChange({
       tags: [],
       minRating: 0,
@@ -77,7 +78,7 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
       sortBy: filters.sortBy,
     });
     setMoreFiltersOpen(false);
-  };
+  }, [filters.sortBy, onFiltersChange]);
 
   return (
     <div className="w-full max-w-4xl mx-auto">

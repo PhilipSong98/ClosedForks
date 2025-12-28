@@ -131,17 +131,22 @@ export default function WelcomePage() {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6" aria-describedby="invite-code-help">
                   <div className="space-y-3">
-                    <label className="block text-center text-sm font-medium text-slate-600 sm:text-left">
+                    <label id="invite-code-label" className="block text-center text-sm font-medium text-slate-600 sm:text-left">
                       Six digits, your passport in.
                     </label>
-                    <div className="flex justify-center sm:justify-start">
+                    <p id="invite-code-help" className="sr-only">
+                      Enter your 6-digit invite code. Each input accepts one digit.
+                    </p>
+                    <div className="flex justify-center sm:justify-start" role="group" aria-labelledby="invite-code-label">
                       <div className="flex gap-3">
                         {[0, 1, 2, 3, 4, 5].map((index) => (
                           <div key={index} className="relative">
                             <Input
                               type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
                               value={code[index] || ''}
                               onChange={(e) => {
                                 const newCode = code.split('');
@@ -163,14 +168,17 @@ export default function WelcomePage() {
                               maxLength={1}
                               autoComplete="off"
                               disabled={isValidating}
+                              aria-label={`Invite code digit ${index + 1} of 6`}
+                              aria-invalid={error ? 'true' : undefined}
+                              aria-describedby={error ? 'invite-code-error' : undefined}
                             />
-                            {index === 2 && <div className="absolute -right-2 top-1/2 h-6 w-px -translate-y-1/2 bg-[rgba(var(--primary-rgb),0.3)]" />}
+                            {index === 2 && <div className="absolute -right-2 top-1/2 h-6 w-px -translate-y-1/2 bg-[rgba(var(--primary-rgb),0.3)]" aria-hidden="true" />}
                           </div>
                         ))}
                       </div>
                     </div>
                     {error && (
-                      <p className="text-center text-sm text-[var(--secondary)] animate-in fade-in duration-300">
+                      <p id="invite-code-error" role="alert" className="text-center text-sm text-[var(--secondary)] animate-in fade-in duration-300">
                         {error}
                       </p>
                     )}
