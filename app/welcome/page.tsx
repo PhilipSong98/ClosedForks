@@ -158,6 +158,17 @@ export default function WelcomePage() {
                                   nextInput?.focus();
                                 }
                               }}
+                              onPaste={(e) => {
+                                e.preventDefault();
+                                const pastedData = e.clipboardData.getData('text');
+                                const numericValue = pastedData.replace(/\D/g, '').slice(0, 6);
+                                handleCodeChange(numericValue);
+
+                                // Focus the appropriate input after paste
+                                const targetIndex = Math.min(numericValue.length, 5);
+                                const inputs = e.currentTarget.parentElement?.parentElement?.querySelectorAll('input');
+                                inputs?.[targetIndex]?.focus();
+                              }}
                               onKeyDown={(e) => {
                                 if (e.key === 'Backspace' && !code[index] && index > 0) {
                                   const prevInput = (e.target as HTMLElement).parentElement?.parentElement?.children[index - 1]?.querySelector('input');
