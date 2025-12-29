@@ -74,8 +74,11 @@ export async function GET(
 
     let reviews = null;
     let reviewsError = null;
+    let hasVisibility = false; // Track if viewer can see profile user's reviews
+
     if (userId === user.id) {
       // Own profile: show all of the user's reviews regardless of group membership
+      hasVisibility = true;
       let query = supabase
         .from('reviews')
         .select(`
@@ -106,36 +109,54 @@ export async function GET(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       reviewsError = error as any;
     } else if (viewerGroupIds.length > 0) {
-      let query = supabase
-        .from('reviews')
-        .select(`
-          *,
-          restaurants(
-            id,
-            name,
-            address,
-            city,
-            cuisine,
-            google_data,
-            google_place_id,
-            google_maps_url,
-            lat,
-            lng,
-            price_level
-          )
-        `)
-        .eq('author_id', userId)
-        .in('group_id', viewerGroupIds)
-        .order('created_at', { ascending: false });
-      if (cursorCreatedAt) {
-        query = query.lt('created_at', cursorCreatedAt);
+      // AUTHOR-BASED VISIBILITY: Check if profile user shares any group with viewer
+      // If they share a group, show ALL their reviews (not filtered by group_id)
+      const { data: profileUserGroups } = await supabase
+        .from('user_groups')
+        .select('group_id')
+        .eq('user_id', userId);
+      const profileUserGroupIds = (profileUserGroups || []).map((g: { group_id: string }) => g.group_id);
+
+      // Check if there's any overlap between viewer's groups and profile user's groups
+      const sharedGroups = viewerGroupIds.filter(gid => profileUserGroupIds.includes(gid));
+
+      if (sharedGroups.length === 0) {
+        // No shared groups - can't see any reviews
+        reviews = [];
       } else {
-        query = query.range(offset, offset + limit - 1);
+        // Shared groups exist - show ALL reviews from this user
+        hasVisibility = true;
+        let query = supabase
+          .from('reviews')
+          .select(`
+            *,
+            restaurants(
+              id,
+              name,
+              address,
+              city,
+              cuisine,
+              google_data,
+              google_place_id,
+              google_maps_url,
+              lat,
+              lng,
+              price_level
+            )
+          `)
+          .eq('author_id', userId)
+          // REMOVED: .in('group_id', viewerGroupIds) - author-based visibility means ALL reviews
+          .order('created_at', { ascending: false });
+        if (cursorCreatedAt) {
+          query = query.lt('created_at', cursorCreatedAt);
+        } else {
+          query = query.range(offset, offset + limit - 1);
+        }
+        const { data, error } = await query;
+        reviews = data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        reviewsError = error as any;
       }
-      const { data, error } = await query;
-      reviews = data;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      reviewsError = error as any;
     } else {
       reviews = [];
     }
@@ -176,16 +197,17 @@ export async function GET(
     }));
 
     // Get total count for pagination
-    const { count: totalCount, error: countError } = userId === user.id
-      ? await supabase
-          .from('reviews')
-          .select('*', { count: 'exact', head: true })
-          .eq('author_id', userId)
-      : await supabase
-          .from('reviews')
-          .select('*', { count: 'exact', head: true })
-          .eq('author_id', userId)
-          .in('group_id', viewerGroupIds.length > 0 ? viewerGroupIds : ['00000000-0000-0000-0000-000000000000']);
+    // AUTHOR-BASED VISIBILITY: If viewer has visibility, count ALL reviews (not filtered by group_id)
+    let totalCount = 0;
+    let countError = null;
+    if (hasVisibility) {
+      const result = await supabase
+        .from('reviews')
+        .select('*', { count: 'exact', head: true })
+        .eq('author_id', userId);
+      totalCount = result.count || 0;
+      countError = result.error;
+    }
 
     if (countError) {
       console.error('Error fetching review count:', countError);
