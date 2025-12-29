@@ -57,7 +57,7 @@ CREATE TABLE users (
 
 -- Restaurants table
 CREATE TABLE restaurants (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     address TEXT NOT NULL,
     city TEXT NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE restaurants (
 
 -- Reviews table
 CREATE TABLE reviews (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     restaurant_id UUID REFERENCES restaurants(id) ON DELETE CASCADE,
     author_id UUID REFERENCES users(id) ON DELETE CASCADE,
     rating_overall INTEGER CHECK (rating_overall >= 1 AND rating_overall <= 5),
@@ -95,7 +95,7 @@ CREATE TABLE reviews (
 
 -- Invites table
 CREATE TABLE invites (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     inviter_id UUID REFERENCES users(id) ON DELETE CASCADE,
     code TEXT UNIQUE NOT NULL,
     email TEXT,
@@ -106,7 +106,7 @@ CREATE TABLE invites (
 
 -- Review photos table
 CREATE TABLE review_photos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     review_id UUID REFERENCES reviews(id) ON DELETE CASCADE,
     path TEXT NOT NULL,
     width INTEGER NOT NULL,
@@ -115,7 +115,7 @@ CREATE TABLE review_photos (
 
 -- Reports table
 CREATE TABLE reports (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     review_id UUID REFERENCES reviews(id) ON DELETE CASCADE,
     reporter_id UUID REFERENCES users(id) ON DELETE CASCADE,
     reason TEXT NOT NULL,

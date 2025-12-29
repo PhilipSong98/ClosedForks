@@ -19,7 +19,7 @@ WHERE full_name IS NULL;
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS invite_codes (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT UNIQUE NOT NULL CHECK (LENGTH(code) = 6 AND code ~ '^[0-9]{6}$'),
     description TEXT, -- Optional description for the code (e.g., "Initial family invite")
     max_uses INTEGER DEFAULT 1, -- How many times this code can be used
@@ -42,7 +42,7 @@ CHECK (current_uses <= max_uses);
 
 -- Track who used which invite codes
 CREATE TABLE IF NOT EXISTS invite_code_usage (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     invite_code_id UUID REFERENCES invite_codes(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     used_at TIMESTAMPTZ DEFAULT NOW(),

@@ -15,7 +15,7 @@ ADD COLUMN IF NOT EXISTS first_login_completed BOOLEAN DEFAULT false;
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS magic_link_requests (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT NOT NULL,
     status TEXT DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT NOW()

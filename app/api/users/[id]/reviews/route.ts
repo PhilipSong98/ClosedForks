@@ -111,7 +111,9 @@ export async function GET(
     } else if (viewerGroupIds.length > 0) {
       // AUTHOR-BASED VISIBILITY: Check if profile user shares any group with viewer
       // If they share a group, show ALL their reviews (not filtered by group_id)
-      const { data: profileUserGroups } = await supabase
+      // Use service client to bypass RLS (users can only see their own group memberships)
+      const serviceSupabaseForGroups = createServiceClient();
+      const { data: profileUserGroups } = await serviceSupabaseForGroups
         .from('user_groups')
         .select('group_id')
         .eq('user_id', userId);
@@ -125,8 +127,9 @@ export async function GET(
         reviews = [];
       } else {
         // Shared groups exist - show ALL reviews from this user
+        // Use service client to bypass RLS recursion (reviews RLS depends on user_groups RLS)
         hasVisibility = true;
-        let query = supabase
+        let query = serviceSupabaseForGroups
           .from('reviews')
           .select(`
             *,

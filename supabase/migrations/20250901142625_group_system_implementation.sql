@@ -6,7 +6,7 @@
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS groups (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL CHECK (LENGTH(name) >= 1 AND LENGTH(name) <= 100),
     description TEXT,
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS groups (
 CREATE TYPE group_role AS ENUM ('owner', 'admin', 'member');
 
 CREATE TABLE IF NOT EXISTS user_groups (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     group_id UUID REFERENCES groups(id) ON DELETE CASCADE,
     role group_role DEFAULT 'member',
