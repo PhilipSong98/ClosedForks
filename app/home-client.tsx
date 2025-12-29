@@ -12,6 +12,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { useInfiniteReviews } from '@/lib/queries/reviews';
 import { useIntersectionObserver } from '@/lib/hooks/useIntersectionObserver';
 import { useFilterParams } from '@/lib/hooks/useFilterParams';
+import { usePullToRefresh } from '@/lib/hooks/usePullToRefresh';
 import { Review } from '@/types';
 import { filterAndSortReviews, getDateCutoffs } from '@/lib/utils/filtering';
 
@@ -71,6 +72,16 @@ const HomeClient: React.FC = () => {
     [allReviews, filters, dateCutoffs]
   );
 
+  // Pull-to-refresh for mobile
+  const handleRefresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
+
+  const { pullDistance, isRefreshing, handlers } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80
+  });
+
   if (!user) {
     return null; // AuthWrapper will handle this
   }
@@ -80,9 +91,28 @@ const HomeClient: React.FC = () => {
   const showInitialLoading = authLoading || (isLoading && !hasPages);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen bg-background overflow-auto"
+      onTouchStart={handlers.onTouchStart}
+      onTouchMove={handlers.onTouchMove}
+      onTouchEnd={handlers.onTouchEnd}
+    >
       <Header />
-      
+
+      {/* Pull-to-refresh indicator */}
+      <div
+        className="flex justify-center items-center overflow-hidden transition-all duration-200"
+        style={{ height: pullDistance > 0 || isRefreshing ? Math.max(pullDistance, isRefreshing ? 48 : 0) : 0 }}
+      >
+        <div className={`flex items-center gap-2 text-muted-foreground ${isRefreshing ? 'animate-pulse' : ''}`}>
+          <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} style={{
+            transform: `rotate(${pullDistance * 2}deg)`,
+            opacity: Math.min(pullDistance / 80, 1)
+          }} />
+          {isRefreshing && <span className="text-sm">Refreshing...</span>}
+        </div>
+      </div>
+
       <main className="container mx-auto px-4 py-8 pb-24">
         {/* Hero Section */}
         <section className="mb-8">

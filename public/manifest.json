@@ -7,5 +7,7 @@
   "background_color": "#FAFAFA",
   "theme_color": "#7B2C3A",
   "orientation": "portrait",
-  "icons": []
+  "icons": [
+    { "src": "/dinecircle-logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }
