@@ -19,6 +19,14 @@ interface UserProfile {
   avatar_url: string | null;
   favorite_restaurants: string[] | null;
   created_at: string | null;
+  followers_count: number | null;
+  following_count: number | null;
+}
+
+interface FollowStatus {
+  isFollowing: boolean;
+  hasPendingRequest: boolean;
+  isFollower: boolean;
 }
 
 export async function GET(
@@ -40,10 +48,10 @@ export async function GET(
     // This is safe since we've already verified the user is authenticated
     const serviceSupabase = createServiceClient();
     
-    // Fetch target user's basic profile
+    // Fetch target user's basic profile including follow counts
     const { data: profile, error: profileError } = await serviceSupabase
       .from('users')
-      .select('id, name, full_name, email, avatar_url, favorite_restaurants, created_at')
+      .select('id, name, full_name, email, avatar_url, favorite_restaurants, created_at, followers_count, following_count')
       .eq('id', id)
       .single();
 
@@ -99,6 +107,25 @@ export async function GET(
       reviewCount = count || 0;
     }
 
+    // Get follow status between viewer and target user
+    let followStatus: FollowStatus = {
+      isFollowing: false,
+      hasPendingRequest: false,
+      isFollower: false
+    };
+
+    // Only fetch follow status if viewing someone else's profile
+    if (user.id !== id) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: followStatusData } = await (supabase.rpc as any)('get_follow_status', {
+        target_user_id: id
+      });
+
+      if (followStatusData) {
+        followStatus = followStatusData as FollowStatus;
+      }
+    }
+
     return NextResponse.json({
       profile: {
         id: typedProfile.id,
@@ -115,6 +142,10 @@ export async function GET(
           reviewCount,
           favoritesCount: favoriteIds.length,
         },
+        // Follow system fields
+        followers_count: typedProfile.followers_count || 0,
+        following_count: typedProfile.following_count || 0,
+        followStatus,
       }
     });
   } catch (error) {

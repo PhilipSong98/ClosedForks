@@ -6,7 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import EditProfileModal from './EditProfileModal';
-import { User, PublicProfile } from '@/types';
+import { FollowButton } from './FollowButton';
+import { FollowersModal } from './FollowersModal';
+import { FollowingModal } from './FollowingModal';
+import { User, PublicProfile, FollowStatus } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ProfileHeaderProps {
@@ -15,18 +18,30 @@ interface ProfileHeaderProps {
       reviewCount: number;
       favoritesCount: number;
     };
-  }) | PublicProfile;
+    followers_count?: number;
+    following_count?: number;
+  }) | (PublicProfile & {
+    followStatus?: FollowStatus;
+  });
   isOwnProfile?: boolean;
+  currentUserId?: string;
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true, currentUserId }) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [followersModalOpen, setFollowersModalOpen] = useState(false);
+  const [followingModalOpen, setFollowingModalOpen] = useState(false);
 
   const displayName = (
     isOwnProfile
       ? (user.full_name || user.name || user.email || 'User')
       : (user.full_name || user.name || 'User')
   ).trim();
+
+  // Get follow counts and status
+  const followersCount = user.followers_count || 0;
+  const followingCount = user.following_count || 0;
+  const followStatus = 'followStatus' in user ? user.followStatus : undefined;
 
   const getInitials = (value: string) => {
     const safe = (value || '').trim();
@@ -77,7 +92,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true
               </div>
 
               {/* Stats - Simple inline */}
-              <div className="flex items-center justify-center sm:justify-start gap-6 pt-2">
+              <div className="flex items-center justify-center sm:justify-start gap-4 sm:gap-6 pt-2 flex-wrap">
                 <div className="text-center sm:text-left">
                   <div className="text-2xl font-bold text-[var(--primary)]">
                     {user.stats.reviewCount}
@@ -94,32 +109,80 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true
                     Favorite{user.stats.favoritesCount !== 1 ? 's' : ''}
                   </div>
                 </div>
+                {/* Followers - Clickable */}
+                <button
+                  onClick={() => setFollowersModalOpen(true)}
+                  className="text-center sm:text-left hover:opacity-70 transition-opacity"
+                >
+                  <div className="text-2xl font-bold text-[var(--primary)]">
+                    {followersCount}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    Follower{followersCount !== 1 ? 's' : ''}
+                  </div>
+                </button>
+                {/* Following - Clickable */}
+                <button
+                  onClick={() => setFollowingModalOpen(true)}
+                  className="text-center sm:text-left hover:opacity-70 transition-opacity"
+                >
+                  <div className="text-2xl font-bold text-[var(--primary)]">
+                    {followingCount}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    Following
+                  </div>
+                </button>
               </div>
 
-              {/* Edit Profile Button */}
-              {isOwnProfile && (
-                <Button
-                  onClick={() => setEditModalOpen(true)}
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 border-slate-200 hover:bg-slate-50"
-                >
-                  <Edit2 className="w-4 h-4 mr-2" />
-                  Edit Profile
-                </Button>
-              )}
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 mt-2">
+                {isOwnProfile ? (
+                  <Button
+                    onClick={() => setEditModalOpen(true)}
+                    variant="outline"
+                    size="sm"
+                    className="border-slate-200 hover:bg-slate-50"
+                  >
+                    <Edit2 className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                ) : followStatus && (
+                  <FollowButton
+                    targetUserId={user.id}
+                    isFollowing={followStatus.isFollowing}
+                    hasPendingRequest={followStatus.hasPendingRequest}
+                    isFollower={followStatus.isFollower}
+                    size="default"
+                  />
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {isOwnProfile && 'role' in user && (
-        <EditProfileModal 
+        <EditProfileModal
           open={editModalOpen}
           onOpenChange={setEditModalOpen}
           user={user}
         />
       )}
+
+      {/* Followers/Following Modals */}
+      <FollowersModal
+        userId={user.id}
+        isOpen={followersModalOpen}
+        onOpenChange={setFollowersModalOpen}
+        currentUserId={currentUserId}
+      />
+      <FollowingModal
+        userId={user.id}
+        isOpen={followingModalOpen}
+        onOpenChange={setFollowingModalOpen}
+        currentUserId={currentUserId}
+      />
     </>
   );
 };

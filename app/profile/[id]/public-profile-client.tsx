@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/layout/Header';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import RecentReviews from '@/components/profile/RecentReviews';
@@ -16,31 +17,24 @@ interface PublicProfileClientProps {
 
 export default function PublicProfileClient({ userId }: PublicProfileClientProps) {
   const { user, loading: authLoading } = useAuth();
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const [profile, setProfile] = React.useState<PublicProfile | null>(null);
 
-  React.useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`/api/users/${userId}/public-profile`, {
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-        });
-        if (!res.ok) {
-          throw new Error(`Failed to load profile: ${res.status}`);
-        }
-        const data = await res.json();
-        setProfile(data.profile);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Failed to load profile');
-      } finally {
-        setLoading(false);
+  // Use React Query so optimistic updates work for follow actions
+  const { data, isLoading: loading, error } = useQuery({
+    queryKey: ['public-profile', userId],
+    queryFn: async () => {
+      const res = await fetch(`/api/users/${userId}/public-profile`, {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to load profile: ${res.status}`);
       }
-    };
-    if (userId) fetchProfile();
-  }, [userId]);
+      return res.json();
+    },
+    enabled: !!userId && !authLoading && !!user,
+  });
+
+  const profile = data?.profile as PublicProfile | undefined;
 
   if (authLoading || loading) {
     return (
@@ -59,13 +53,15 @@ export default function PublicProfileClient({ userId }: PublicProfileClientProps
   }
 
   if (!user) return null;
-  if (error || !profile) {
+
+  const errorMessage = error instanceof Error ? error.message : error ? String(error) : null;
+  if (errorMessage || !profile) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-8 pb-24">
           <div className="max-w-4xl mx-auto text-center py-12">
-            <p className="text-destructive mb-2">{error || 'Profile not found'}</p>
+            <p className="text-destructive mb-2">{errorMessage || 'Profile not found'}</p>
           </div>
         </main>
       </div>
@@ -77,7 +73,7 @@ export default function PublicProfileClient({ userId }: PublicProfileClientProps
       <Header />
       <main className="container mx-auto px-4 py-8 pb-24">
         <div className="max-w-4xl mx-auto space-y-8">
-          <ProfileHeader user={profile} isOwnProfile={false} />
+          <ProfileHeader user={profile} isOwnProfile={user.id === userId} currentUserId={user.id} />
 
           {/* Content: Tabs for Favorites (default) and Recent Reviews (read-only) */}
           <Tabs defaultValue="favorites" className="w-full">

@@ -11,6 +11,8 @@ interface UserProfile {
   favorite_restaurants: string[] | null;
   created_at: string;
   updated_at: string;
+  followers_count: number | null;
+  following_count: number | null;
 }
 
 interface Restaurant {
@@ -101,6 +103,13 @@ export async function GET() {
       console.log('No favorite restaurants found for user');
     }
 
+    // Get pending follow requests count for notification badge
+    const { count: pendingRequestsCount } = await supabase
+      .from('follow_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('target_id', user.id)
+      .eq('status', 'pending');
+
     return NextResponse.json({
       profile: {
         id: profile.id,
@@ -116,6 +125,10 @@ export async function GET() {
           favoritesCount: favoriteIds?.length || 0,
         },
         favoriteRestaurants,
+        // Follow system fields
+        followers_count: profile.followers_count || 0,
+        following_count: profile.following_count || 0,
+        pending_requests_count: pendingRequestsCount || 0,
       }
     });
   } catch (error) {

@@ -9,6 +9,7 @@ import RecentReviews from '@/components/profile/RecentReviews';
 import LikedReviews from '@/components/profile/LikedReviews';
 import FavoritesSection from '@/components/profile/FavoritesSection';
 import ToEatSection from '@/components/profile/ToEatSection';
+import FollowRequestsSection from '@/components/profile/FollowRequestsSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -77,8 +78,11 @@ export default function ProfileClient() {
       <main className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 pb-24">
         <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
           {/* Profile Header */}
-          <ProfileHeader user={profile} />
-          
+          <ProfileHeader user={profile} currentUserId={user.id} />
+
+          {/* Follow Requests Section (only shown if there are pending requests) */}
+          <FollowRequestsSection />
+
           {/* Profile Content */}
           <Tabs defaultValue="favorites" className="w-full">
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto p-1 bg-slate-100 rounded-lg">

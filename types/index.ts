@@ -12,6 +12,9 @@ export interface User {
   is_admin_user?: boolean;
   first_login_completed?: boolean;
   session_expires_at?: string;
+  // Follow system fields
+  followers_count?: number;
+  following_count?: number;
 }
 
 // Public profile interface that excludes sensitive fields like role
@@ -27,6 +30,10 @@ export interface PublicProfile {
     reviewCount: number;
     favoritesCount: number;
   };
+  // Follow system fields
+  followers_count?: number;
+  following_count?: number;
+  followStatus?: FollowStatus;
 }
 
 export interface Restaurant {
@@ -510,4 +517,69 @@ export interface GroupWithRBAC extends Group {
   can_invite: boolean;
   can_manage_roles: boolean;
   can_delete: boolean;
+}
+
+// ============================================================================
+// FOLLOWING SYSTEM TYPES
+// ============================================================================
+
+// Follow status between current user and target user
+export interface FollowStatus {
+  isFollowing: boolean;
+  hasPendingRequest: boolean;
+  isFollower: boolean;
+}
+
+// Follow request (pending approval)
+export interface FollowRequest {
+  id: string;
+  requester_id: string;
+  target_id: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  updated_at: string;
+  requester?: Pick<User, 'id' | 'name' | 'full_name' | 'avatar_url'>;
+}
+
+// User info in follower/following lists
+export interface UserFollowInfo {
+  follow_id: string;
+  user_id: string;
+  user_name: string;
+  user_full_name: string | null;
+  user_avatar_url: string | null;
+  followed_at: string;
+  is_following_back?: boolean;
+  is_followed_by_viewer?: boolean;
+}
+
+// Follow action response
+export interface FollowActionResponse {
+  success: boolean;
+  message: string;
+  error?: string;
+  status?: 'following' | 'requested' | 'none';
+}
+
+// Followers/Following list response
+export interface FollowListResponse {
+  users: UserFollowInfo[];
+  hasMore: boolean;
+  nextCursor?: {
+    created_at: string;
+    id: string;
+  };
+}
+
+// Pending follow requests response
+export interface FollowRequestsResponse {
+  requests: {
+    request_id: string;
+    requester_id: string;
+    requester_name: string;
+    requester_full_name: string | null;
+    requester_avatar_url: string | null;
+    requested_at: string;
+  }[];
+  count: number;
 }
