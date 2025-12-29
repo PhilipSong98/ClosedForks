@@ -151,48 +151,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For invite-based signups, we can attempt auto sign-in
-    // since we know the invite code was valid
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (signInError) {
-      console.error('Auto sign-in failed:', signInError);
-      
-      // Check if it's an email confirmation issue
-      if (signInError.message?.includes('email_not_confirmed')) {
-        // For invite-based signups, try to confirm the email programmatically
-        try {
-          // This is a workaround - in production you might want to handle this differently
-          return NextResponse.json({
-            success: true,
-            message: 'Account created successfully. Please check your email to confirm your account, then sign in.',
-            autoSignIn: false
-          });
-        } catch (confirmError) {
-          console.error('Email confirmation failed:', confirmError);
-        }
-      }
-      
-      return NextResponse.json({
-        success: true,
-        message: 'Account created successfully. Please sign in.',
-        autoSignIn: false
-      });
-    }
-
+    // Return success - client will handle sign-in
     return NextResponse.json({
       success: true,
       message: 'Account created successfully!',
-      autoSignIn: true,
       user: {
         id: authData.user.id,
         email: authData.user.email,
         full_name: fullName,
       },
-      group_id: creationResult?.group_id // Include group information
+      group_id: creationResult?.group_id
     });
 
   } catch (error) {

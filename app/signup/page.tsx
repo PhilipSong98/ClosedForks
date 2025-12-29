@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Eye, EyeOff, Check, X, ArrowLeft } from 'lucide-react';
 import { signupSchema } from '@/lib/validations';
 import { InviteCodeSession, SignupFormData } from '@/types';
+import { supabase } from '@/lib/supabase/client';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState<SignupFormData>({
@@ -111,11 +112,17 @@ export default function SignupPage() {
       // Clear session data
       sessionStorage.removeItem('inviteCodeSession');
 
-      // Show success and redirect
-      if (result.autoSignIn) {
+      // Sign in on the client side (browser handles session automatically)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (!signInError) {
         router.push('/');
       } else {
-        // If auto sign-in failed, redirect to sign-in page
+        // Fallback to signin page if client sign-in fails
+        console.error('Client-side sign-in failed:', signInError);
         router.push('/signin?message=Account created successfully. Please sign in.');
       }
 
