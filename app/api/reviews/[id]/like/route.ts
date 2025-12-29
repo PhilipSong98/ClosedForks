@@ -41,14 +41,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Toggle like atomically via RPC
+    // Note: RPC functions returning TABLE return an array of rows
     const { data: toggleResult, error: toggleError } = await (supabase as unknown as {
-      rpc: (name: string, params: Record<string, unknown>) => Promise<{ data: { is_liked: boolean; like_count: number } | null; error: unknown }>
+      rpc: (name: string, params: Record<string, unknown>) => Promise<{ data: Array<{ is_liked: boolean; like_count: number }> | null; error: unknown }>
     }).rpc('toggle_review_like', {
       review_id_param: reviewId,
       user_id_param: user.id
     });
 
-    if (toggleError || !toggleResult) {
+    if (toggleError || !toggleResult || toggleResult.length === 0) {
       console.error('Error toggling like:', toggleError);
       return NextResponse.json(
         { error: 'Failed to toggle like' },
@@ -56,11 +57,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
+    // Extract the first (and only) row from the result
+    const result = toggleResult[0];
+
     return NextResponse.json({
       success: true,
-      isLiked: toggleResult.is_liked,
-      likeCount: toggleResult.like_count,
-      message: toggleResult.is_liked ? 'Review liked' : 'Review unliked'
+      isLiked: result.is_liked,
+      likeCount: result.like_count,
+      message: result.is_liked ? 'Review liked' : 'Review unliked'
     });
 
   } catch (error) {
