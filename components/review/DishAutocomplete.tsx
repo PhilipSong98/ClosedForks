@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { debounce } from 'lodash';
-import { Utensils, Loader2, Star } from 'lucide-react';
+import { Utensils, Loader2, Star, X, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import type { DishSuggestion } from '@/types';
@@ -29,9 +29,11 @@ export function DishAutocomplete({
   const [suggestions, setSuggestions] = useState<DishSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isSelectedFromDropdown, setIsSelectedFromDropdown] = useState(false);
 
   // Track the last selected value to prevent re-showing dropdown after selection
   const justSelectedRef = useRef<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -93,6 +95,14 @@ export function DishAutocomplete({
   }, [value, restaurantId, debouncedSearch]);
 
   const handleInputChange = (newValue: string) => {
+    // If user types while a chip is shown, clear everything and start fresh
+    if (isSelectedFromDropdown) {
+      setIsSelectedFromDropdown(false);
+      onChange('');
+      // Focus the input after clearing
+      setTimeout(() => inputRef.current?.focus(), 0);
+      return;
+    }
     onChange(newValue);
   };
 
@@ -102,7 +112,14 @@ export function DishAutocomplete({
     onChange(dish.dish_name);
     setShowDropdown(false);
     setSuggestions([]);
+    setIsSelectedFromDropdown(true);
     onSelect?.(dish);
+  };
+
+  const handleClearSelection = () => {
+    setIsSelectedFromDropdown(false);
+    onChange('');
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   const handleInputBlur = () => {
@@ -117,6 +134,13 @@ export function DishAutocomplete({
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // If chip is shown and user presses backspace or any character, clear it
+    if (isSelectedFromDropdown && (e.key === 'Backspace' || e.key === 'Delete')) {
+      e.preventDefault();
+      handleClearSelection();
+      return;
+    }
+
     if (e.key === 'Enter') {
       e.preventDefault();
       // If dropdown is open with suggestions, select the first one
@@ -131,24 +155,46 @@ export function DishAutocomplete({
   return (
     <div className={`relative ${className}`}>
       <div className="relative">
-        <Input
-          type="text"
-          value={value}
-          onChange={(e) => handleInputChange(e.target.value)}
-          onBlur={handleInputBlur}
-          onFocus={handleInputFocus}
-          onKeyDown={handleInputKeyDown}
-          placeholder={placeholder}
-          disabled={disabled}
-          className="pr-10 border-0 bg-gray-50 rounded-xl"
-        />
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-          ) : (
-            <Utensils className="h-4 w-4 text-gray-400" />
-          )}
-        </div>
+        {isSelectedFromDropdown && value ? (
+          // Chip UI for selected dish
+          <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
+            <Check className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+            <span className="text-sm font-medium text-amber-800 truncate flex-1">
+              {value}
+            </span>
+            <button
+              type="button"
+              onClick={handleClearSelection}
+              disabled={disabled}
+              className="flex-shrink-0 p-0.5 rounded-full hover:bg-amber-200 text-amber-600 hover:text-amber-800 transition-colors"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : (
+          // Regular input
+          <>
+            <Input
+              ref={inputRef}
+              type="text"
+              value={value}
+              onChange={(e) => handleInputChange(e.target.value)}
+              onBlur={handleInputBlur}
+              onFocus={handleInputFocus}
+              onKeyDown={handleInputKeyDown}
+              placeholder={placeholder}
+              disabled={disabled}
+              className="pr-10 border-0 bg-gray-50 rounded-xl"
+            />
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+              ) : (
+                <Utensils className="h-4 w-4 text-gray-400" />
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {showDropdown && suggestions.length > 0 && (
