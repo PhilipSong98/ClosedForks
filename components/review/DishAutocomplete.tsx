@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { debounce } from 'lodash';
 import { Utensils, Loader2, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,9 @@ export function DishAutocomplete({
   const [suggestions, setSuggestions] = useState<DishSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  // Track the last selected value to prevent re-showing dropdown after selection
+  const justSelectedRef = useRef<string | null>(null);
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -71,6 +74,12 @@ export function DishAutocomplete({
 
   // Effect to trigger search when input changes
   useEffect(() => {
+    // Skip search if this value was just selected from the dropdown
+    if (justSelectedRef.current === value.trim()) {
+      justSelectedRef.current = null; // Reset for next time
+      return;
+    }
+
     if (value.trim() && restaurantId) {
       debouncedSearch(value.trim(), restaurantId);
     } else {
@@ -88,6 +97,8 @@ export function DishAutocomplete({
   };
 
   const handleSelect = (dish: DishSuggestion) => {
+    // Mark this value as just selected to prevent re-triggering search
+    justSelectedRef.current = dish.dish_name.trim();
     onChange(dish.dish_name);
     setShowDropdown(false);
     setSuggestions([]);
@@ -141,7 +152,7 @@ export function DishAutocomplete({
       </div>
 
       {showDropdown && suggestions.length > 0 && (
-        <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto shadow-lg">
+        <Card className="absolute top-full left-0 z-50 mt-1 max-h-48 overflow-y-auto shadow-lg min-w-[280px] w-max">
           <div className="py-1">
             {suggestions.map((dish, index) => (
               <div
@@ -149,20 +160,20 @@ export function DishAutocomplete({
                 className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
                 onClick={() => handleSelect(dish)}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center space-x-2 flex-shrink-0">
                     <Utensils className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                     <span className="font-medium text-sm text-gray-900">
                       {dish.dish_name}
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2 text-xs text-gray-500">
+                  <div className="flex items-center space-x-2 text-xs text-gray-500 flex-shrink-0">
                     <div className="flex items-center">
                       <Star className="h-3 w-3 text-amber-400 fill-amber-400 mr-0.5" />
                       <span>{dish.avg_rating.toFixed(1)}</span>
                     </div>
                     <span className="text-gray-300">•</span>
-                    <span>{dish.rating_count} {dish.rating_count === 1 ? 'rating' : 'ratings'}</span>
+                    <span className="whitespace-nowrap">{dish.rating_count} {dish.rating_count === 1 ? 'rating' : 'ratings'}</span>
                   </div>
                 </div>
               </div>
