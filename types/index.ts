@@ -80,6 +80,31 @@ export interface GooglePlaceData {
   price_level?: number;
 }
 
+// ============================================================================
+// DISH RATING SYSTEM TYPES
+// ============================================================================
+
+// Individual dish rating within a review
+export interface DishRating {
+  id?: string;
+  dish_name: string;
+  rating: number;
+}
+
+// Aggregated dish statistics for a restaurant
+export interface DishAggregate {
+  dish_name: string;
+  avg_rating: number;
+  rating_count: number;
+}
+
+// Dish autocomplete suggestion
+export interface DishSuggestion {
+  dish_name: string;
+  avg_rating: number;
+  rating_count: number;
+}
+
 export interface Review {
   id: string;
   restaurant_id: string;
@@ -92,15 +117,17 @@ export interface Review {
   value?: number;
   text?: string; // Legacy review text
   // New simplified review fields (Lovable format)
-  dish?: string;
+  dish?: string; // Legacy single dish field (deprecated)
   review?: string; // New review text field
-  recommend?: boolean;
-  tips?: string;
+  recommend?: boolean; // Legacy field
+  tips?: string; // Legacy field
+  // Dish-level ratings (new system)
+  dish_ratings?: DishRating[];
   // Common fields
   visit_date: string;
   price_per_person?: number;
   visibility: 'my_circles' | 'public';
-  tags?: string[]; // Array of tags for categorization and filtering
+  tags?: string[]; // Legacy: Array of tags for categorization and filtering
   created_at: string;
   updated_at: string;
   // Like system fields

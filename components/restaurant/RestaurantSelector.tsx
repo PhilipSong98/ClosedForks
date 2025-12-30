@@ -23,7 +23,7 @@ export function RestaurantSelector({ onSelect, selectedRestaurant, className = "
     setError(null);
 
     try {
-      // Only get the place details from Google - don't save to database yet
+      // Get the place details from Google
       const detailsResponse = await fetch('/api/places/details', {
         method: 'POST',
         headers: {
@@ -37,14 +37,29 @@ export function RestaurantSelector({ onSelect, selectedRestaurant, className = "
       }
 
       const { restaurant: restaurantData } = await detailsResponse.json();
-      
-      // Add a flag to indicate this data comes from Google Places
-      const restaurantWithSource = {
-        ...restaurantData,
-        _isFromGoogle: true, // This helps us identify Google data during review submission
-      };
 
-      onSelect(restaurantWithSource);
+      // Save to database immediately to get a database ID
+      // This enables dish autocomplete to work right away
+      const findOrCreateResponse = await fetch('/api/restaurants/find-or-create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(restaurantData),
+      });
+
+      if (findOrCreateResponse.ok) {
+        const { restaurant } = await findOrCreateResponse.json();
+        // Restaurant now has a database `id` for dish autocomplete
+        onSelect(restaurant);
+      } else {
+        // Fallback: pass without ID (autocomplete won't work but review can still be created)
+        console.warn('Failed to save restaurant to database, falling back to Google data');
+        onSelect({
+          ...restaurantData,
+          _isFromGoogle: true,
+        } as Restaurant);
+      }
     } catch (err) {
       console.error('Error selecting restaurant:', err);
       setError(err instanceof Error ? err.message : 'Failed to select restaurant');

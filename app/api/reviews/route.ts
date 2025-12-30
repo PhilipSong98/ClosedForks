@@ -194,10 +194,16 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Type for dish rating input
+interface DishRatingInput {
+  dish_name: string;
+  rating: number;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -209,7 +215,7 @@ export async function POST(request: NextRequest) {
 
     const json = await request.json();
     const validatedData = reviewSchema.parse(json);
-    
+
     let restaurantId: string;
 
     // Handle restaurant creation if restaurant_data is provided
@@ -272,20 +278,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Prepare review data
+    // For dish field: use first dish name from dish_ratings if available, else legacy dish field
+    const dishRatings = validatedData.dish_ratings as DishRatingInput[] | undefined;
+    const firstDishName = dishRatings?.[0]?.dish_name || validatedData.dish || '';
+
     const reviewData = {
-      restaurant_id: restaurantId, // Use the determined restaurant ID
+      restaurant_id: restaurantId,
       rating_overall: validatedData.rating_overall,
-      // Temporary fallback values for database constraints until migration is applied
-      dish: validatedData.dish || 'Quick review',
-      review: validatedData.review || 'Quick review - minimal input',
-      recommend: validatedData.recommend,
-      tips: validatedData.tips,
-      tags: validatedData.tags,
+      // Use first dish name for legacy compatibility
+      dish: firstDishName || 'Quick review',
+      review: validatedData.review || '',
+      // Legacy fields - keep for backward compatibility
+      recommend: validatedData.recommend ?? true,
+      tips: validatedData.tips || '',
+      tags: validatedData.tags || [],
       visit_date: validatedData.visit_date,
       author_id: user.id,
       group_id: userGroup.group_id,
     };
-    
+
     // Insert review - bypassing TypeScript strict checking due to RLS policy type inference issues
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: review, error } = await (supabase.from('reviews') as any)
@@ -301,7 +313,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ review }, { status: 201 });
+    // Insert dish ratings if provided
+    let insertedDishRatings: { dish_name: string; rating: number }[] = [];
+    if (dishRatings && dishRatings.length > 0) {
+      const dishRatingsData = dishRatings.map((dr: DishRatingInput) => ({
+        review_id: review.id,
+        restaurant_id: restaurantId,
+        dish_name: dr.dish_name.trim(),
+        dish_name_normalized: dr.dish_name.trim().toLowerCase(),
+        rating: dr.rating,
+      }));
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: dishRatingsResult, error: dishRatingsError } = await (supabase.from('dish_ratings') as any)
+        .insert(dishRatingsData)
+        .select('id, dish_name, rating');
+
+      if (dishRatingsError) {
+        // Log but don't fail - dish_ratings table might not exist yet
+        console.warn('Failed to insert dish ratings (table may not exist):', dishRatingsError);
+      } else {
+        insertedDishRatings = dishRatingsResult || [];
+      }
+    }
+
+    // Return review with dish_ratings
+    return NextResponse.json({
+      review: {
+        ...review,
+        dish_ratings: insertedDishRatings,
+      }
+    }, { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(

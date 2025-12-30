@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Star, Edit3, Plus, Minus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,18 +10,27 @@ interface PrecisionRatingSelectorProps {
   onChange: (rating: number) => void;
   disabled?: boolean;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  compact?: boolean; // Compact mode for inline use (hides description, +/- buttons, and instructions)
 }
 
 const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
   value,
   onChange,
   disabled = false,
-  size = 'lg'
+  size = 'lg',
+  compact = false
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempValue, setTempValue] = useState(value.toString());
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const starsContainerRef = useRef<HTMLDivElement>(null);
+
+  // Store onChange in a ref to avoid re-registering event listeners
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   const sizeConfig = {
     sm: { star: 'h-6 w-6', text: 'text-lg' },
@@ -125,24 +134,24 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
   };
 
   // Global event handlers for smooth dragging
-  React.useEffect(() => {
+  useEffect(() => {
     const handleGlobalMouseMove = (event: MouseEvent) => {
       if (!isDragging || disabled) return;
-      
-      // Find the stars container to calculate position
-      const starsContainer = document.querySelector('[data-stars-container]') as HTMLElement;
+
+      // Use ref to get the correct stars container for this component instance
+      const starsContainer = starsContainerRef.current;
       if (!starsContainer) return;
-      
+
       const rect = starsContainer.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const containerWidth = rect.width;
       const starWidth = containerWidth / 5;
       const starIndex = Math.floor(x / starWidth);
       const positionWithinStar = (x % starWidth) / starWidth;
-      
+
       if (starIndex >= 0 && starIndex < 5) {
         const preciseRating = Math.max(1.0, Math.min(5.0, Math.round((starIndex + positionWithinStar) * 10) / 10));
-        onChange(preciseRating);
+        onChangeRef.current(preciseRating);
         setHoverRating(preciseRating);
       }
     };
@@ -156,21 +165,22 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
     const handleGlobalTouchMove = (event: TouchEvent) => {
       if (!isDragging || disabled) return;
       event.preventDefault();
-      
+
       const touch = event.touches[0];
-      const starsContainer = document.querySelector('[data-stars-container]') as HTMLElement;
+      // Use ref to get the correct stars container for this component instance
+      const starsContainer = starsContainerRef.current;
       if (!starsContainer) return;
-      
+
       const rect = starsContainer.getBoundingClientRect();
       const x = touch.clientX - rect.left;
       const containerWidth = rect.width;
       const starWidth = containerWidth / 5;
       const starIndex = Math.floor(x / starWidth);
       const positionWithinStar = (x % starWidth) / starWidth;
-      
+
       if (starIndex >= 0 && starIndex < 5) {
         const preciseRating = Math.max(1.0, Math.min(5.0, Math.round((starIndex + positionWithinStar) * 10) / 10));
-        onChange(preciseRating);
+        onChangeRef.current(preciseRating);
         setHoverRating(preciseRating);
       }
     };
@@ -180,7 +190,7 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
       document.addEventListener('mouseup', handleGlobalMouseUp);
       document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
       document.addEventListener('touchend', handleGlobalMouseUp);
-      
+
       return () => {
         document.removeEventListener('mousemove', handleGlobalMouseMove);
         document.removeEventListener('mouseup', handleGlobalMouseUp);
@@ -188,7 +198,7 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
         document.removeEventListener('touchend', handleGlobalMouseUp);
       };
     }
-  }, [isDragging, disabled, onChange]);
+  }, [isDragging, disabled]);
 
   // Render interactive stars
   const renderInteractiveStars = () => {
@@ -196,9 +206,9 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
     const displayRating = value;
     
     return (
-      <div 
+      <div
+        ref={starsContainerRef}
         className="flex items-center gap-1 select-none touch-none"
-        data-stars-container
       >
         {[0, 1, 2, 3, 4].map((starIndex) => {
           const fillPercentage = Math.max(0, Math.min(100, (displayRating - starIndex) * 100));
@@ -239,6 +249,43 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
     );
   };
 
+  // Compact mode: just stars and rating value inline
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2">
+        {/* Interactive Stars - compact */}
+        <div className="flex items-center">
+          {renderInteractiveStars()}
+        </div>
+
+        {/* Rating value - editable */}
+        {isEditing ? (
+          <Input
+            type="number"
+            value={tempValue}
+            onChange={handleEditChange}
+            onBlur={handleEditComplete}
+            onKeyDown={handleEditKeyDown}
+            min="1.0"
+            max="5.0"
+            step="0.1"
+            className="w-16 h-8 text-center font-bold text-sm"
+            autoFocus
+          />
+        ) : (
+          <button
+            onClick={handleEditStart}
+            disabled={disabled}
+            className="text-sm font-bold text-amber-600 hover:text-amber-700 transition-colors min-w-[2.5rem]"
+          >
+            {value.toFixed(1)}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Full mode: stars, +/- buttons, description, instructions
   return (
     <div className="flex flex-col items-center space-y-6">
       {/* Interactive Stars */}
@@ -246,7 +293,7 @@ const PrecisionRatingSelector: React.FC<PrecisionRatingSelectorProps> = ({
         <div className="flex items-center justify-center py-4 px-4">
           {renderInteractiveStars()}
         </div>
-        
+
         {/* Rating labels for reference */}
         <div className="flex justify-between text-xs text-muted-foreground mt-2 w-full max-w-xs px-2">
           <span>1</span>

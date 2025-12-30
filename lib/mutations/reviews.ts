@@ -2,13 +2,22 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Restaurant } from '@/types';
 import { QUERY_KEYS } from '@/lib/config/reactQueryConfig';
 
+// Dish rating for the new system
+interface DishRatingInput {
+  dish_name: string;
+  rating: number;
+}
+
 interface CreateReviewData {
   restaurant_id?: string; // Optional when restaurant_data is provided
   restaurant_data?: Restaurant; // Restaurant data from Google Places when restaurant doesn't exist
   rating_overall: number;
-  dish: string;
+  // New dish ratings system
+  dish_ratings?: DishRatingInput[];
   review: string;
-  recommend: boolean;
+  // Legacy fields - optional for backward compatibility
+  dish?: string;
+  recommend?: boolean;
   tips?: string;
   tags?: string[];
   visit_date: string;

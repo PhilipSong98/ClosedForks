@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CUISINES, ALL_REVIEW_TAGS } from '@/constants';
+import { CUISINES } from '@/constants';
 
 export const googlePlaceDataSchema = z.object({
   formatted_address: z.string(),
@@ -68,21 +68,55 @@ export const placeDetailsSchema = z.object({
   placeId: z.string().min(1),
 });
 
-// New simplified review schema for Lovable UI - optimized for lazy users
+// ============================================================================
+// DISH RATING SCHEMAS
+// ============================================================================
+
+// Schema for individual dish rating
+export const dishRatingSchema = z.object({
+  dish_name: z.string()
+    .min(1, 'Dish name is required')
+    .max(100, 'Dish name must be less than 100 characters')
+    .transform((val) => val.trim()),
+  rating: z.number()
+    .min(1, 'Rating must be at least 1')
+    .max(5, 'Rating must be at most 5')
+    .refine(
+      (val) => val * 10 === Math.floor(val * 10),
+      { message: 'Rating must be in tenth-decimal increments (1.0, 1.1, ..., 5.0)' }
+    ),
+});
+
+// Schema for dish autocomplete query
+export const dishAutocompleteSchema = z.object({
+  restaurant_id: z.string().uuid('Invalid restaurant ID'),
+  query: z.string().max(100).optional().default(''),
+});
+
+// ============================================================================
+// REVIEW SCHEMAS
+// ============================================================================
+
+// New review schema with dish-level ratings
 export const reviewSchema = z.object({
   restaurant_id: z.string().uuid().optional(), // Optional when restaurant_data is provided
   rating_overall: z.number().min(1).max(5).refine(
-    (val) => val * 10 === Math.floor(val * 10), 
+    (val) => val * 10 === Math.floor(val * 10),
     { message: 'Rating must be in tenth-decimal increments (1.0, 1.1, 1.2, 1.3, ..., 4.8, 4.9, 5.0)' }
   ), // Main rating with tenth-decimal precision
-  dish: z.string().max(200).optional().default(''), // OPTIONAL for lazy users
-  review: z.string().max(1000).optional().default(''), // OPTIONAL for lazy users
-  recommend: z.boolean().default(true),
-  tips: z.string().max(500).optional().default(''),
-  tags: z.array(z.enum(ALL_REVIEW_TAGS as unknown as [string, ...string[]])).max(5, 'Maximum 5 tags allowed').optional().default([]),
+  // New dish-level ratings (required, at least 1 dish)
+  dish_ratings: z.array(dishRatingSchema)
+    .min(1, 'At least one dish rating is required')
+    .max(10, 'Maximum 10 dishes per review')
+    .optional(), // Optional for backward compatibility with legacy reviews
+  review: z.string().max(1000).optional().default(''), // Review text
   visit_date: z.string().refine((date) => !isNaN(Date.parse(date)), 'Invalid date').default(() => new Date().toISOString()),
   visibility: z.enum(['my_circles', 'public']).default('my_circles'),
-  // Legacy fields - optional for backward compatibility
+  // Legacy fields - kept for backward compatibility
+  dish: z.string().max(200).optional().default(''), // Legacy single dish field
+  recommend: z.boolean().optional(), // Legacy field
+  tips: z.string().max(500).optional().default(''), // Legacy field
+  tags: z.array(z.string()).max(5).optional().default([]), // Legacy field
   food: z.number().int().min(1).max(5).optional(),
   service: z.number().int().min(1).max(5).optional(),
   vibe: z.number().int().min(1).max(5).optional(),
@@ -185,3 +219,7 @@ export type PlaceDetailsInput = z.infer<typeof placeDetailsSchema>;
 export type InviteCodeValidationInput = z.infer<typeof inviteCodeValidationSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type InviteCodeCreationInput = z.infer<typeof inviteCodeCreationSchema>;
+
+// Dish rating system exports
+export type DishRatingInput = z.infer<typeof dishRatingSchema>;
+export type DishAutocompleteInput = z.infer<typeof dishAutocompleteSchema>;

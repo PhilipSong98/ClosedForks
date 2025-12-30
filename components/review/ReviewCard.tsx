@@ -3,12 +3,12 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin } from 'lucide-react';
+import { MapPin, Star } from 'lucide-react';
 import { StarRating } from '@/components/ui/StarRating';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-import { Review } from '@/types';
+import { Review, DishRating } from '@/types';
 import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
 import { ToEatButton } from '@/components/restaurant/ToEatButton';
 import LikeButton from '@/components/ui/LikeButton';
@@ -84,8 +84,35 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
   const rating = review.rating_overall || 5;
   // Handle both empty values and temporary fallback values from API
   const reviewText = review.review && review.review !== 'Quick review - minimal input' ? (review.review || review.text || '') : '';
-  const dish = review.dish && review.dish !== 'Quick review' ? review.dish : '';
+  const legacyDish = review.dish && review.dish !== 'Quick review' ? review.dish : '';
   const tips = review.tips || '';
+
+  // Get dish ratings (new system) or fall back to legacy single dish
+  const dishRatings: DishRating[] = review.dish_ratings || [];
+  const hasDishRatings = dishRatings.length > 0;
+
+  // Helper to render dish ratings inline
+  const renderDishRatings = () => {
+    if (hasDishRatings) {
+      return (
+        <div className="flex flex-wrap items-center gap-2">
+          {dishRatings.map((dr, index) => (
+            <span key={index} className="inline-flex items-center text-sm">
+              <span className="font-medium text-foreground">{dr.dish_name}</span>
+              <Star className="w-3 h-3 text-amber-400 fill-amber-400 mx-0.5" />
+              <span className="text-amber-600 font-medium">{dr.rating.toFixed(1)}</span>
+              {index < dishRatings.length - 1 && <span className="text-muted-foreground mx-1">•</span>}
+            </span>
+          ))}
+        </div>
+      );
+    }
+    // Fall back to legacy single dish display
+    if (legacyDish) {
+      return <span className="text-sm font-medium text-primary">Dish: {legacyDish}</span>;
+    }
+    return null;
+  };
 
   return (
     <div className="p-4">
@@ -175,12 +202,17 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
           
           {/* Restaurant Info Below Image */}
           <div className="px-4 pt-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
                 <StarRating rating={rating} size="sm" showNumber={true} />
               </div>
-              <span className="text-sm font-medium text-primary">Dish: {dish}</span>
             </div>
+            {/* Dish Ratings */}
+            {(hasDishRatings || legacyDish) && (
+              <div className="mt-2">
+                {renderDishRatings()}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -189,14 +221,15 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
       {/* Rating and Dish */}
       {!showRestaurant && (
         <div className="px-4 mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <StarRating rating={rating} size="sm" showNumber={true} />
-            </div>
-            {dish && dish !== 'Not specified' && (
-              <span className="text-sm font-medium text-primary">Dish: {dish}</span>
-            )}
+          <div className="flex items-center space-x-2 mb-2">
+            <StarRating rating={rating} size="sm" showNumber={true} />
           </div>
+          {/* Dish Ratings */}
+          {(hasDishRatings || legacyDish) && (
+            <div className="mt-2">
+              {renderDishRatings()}
+            </div>
+          )}
         </div>
       )}
 
