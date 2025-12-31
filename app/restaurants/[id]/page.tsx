@@ -66,6 +66,8 @@ interface OptimizedReviewResponse {
   restaurant_avg_rating: number;
   restaurant_review_count: number;
   is_liked_by_user: boolean;
+  // Dish ratings for multiple dishes per review
+  dish_ratings: Array<{ id: string; dish_name: string; rating: number }> | null;
 }
 
 async function fetchRestaurantData(restaurantId: string): Promise<{
@@ -126,6 +128,8 @@ async function fetchRestaurantData(restaurantId: string): Promise<{
           group_id: r.group_id,
           visibility: 'my_circles' as const,
           isLikedByUser: r.is_liked_by_user,
+          // Include dish ratings for multiple dishes per review
+          dish_ratings: r.dish_ratings || [],
           author: {
             id: r.author_id,
             name: r.author_name,

@@ -19,13 +19,13 @@ interface OptimizedReviewResponse {
   updated_at: string;
   like_count: number;
   group_id: string;
-  
+
   // Denormalized author data
   author_name: string;
   author_full_name: string | null;
   author_email: string;
   author_avatar_url: string | null;
-  
+
   // Denormalized restaurant data
   restaurant_name: string;
   restaurant_city: string;
@@ -37,13 +37,16 @@ interface OptimizedReviewResponse {
   restaurant_google_data: object | null;
   restaurant_lat: number | null;
   restaurant_lng: number | null;
-  
+
   // Pre-calculated restaurant stats
   restaurant_avg_rating: number;
   restaurant_review_count: number;
-  
+
   // User-specific data
   is_liked_by_user: boolean;
+
+  // Dish ratings for multiple dishes per review
+  dish_ratings: Array<{ id: string; dish_name: string; rating: number }> | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -134,6 +137,8 @@ export async function GET(request: NextRequest) {
         like_count: review.like_count,
         group_id: review.group_id,
         isLikedByUser: review.is_liked_by_user,
+        // Dish ratings for multiple dishes per review
+        dish_ratings: review.dish_ratings || [],
         // Denormalized data already included - no additional queries needed!
         author: {
           id: review.author_id,
