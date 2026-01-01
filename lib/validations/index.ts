@@ -159,6 +159,23 @@ export const userUpdateSchema = z.object({
   avatar_url: z.string().url().optional(),
 });
 
+// Profile update schema (used in /api/users/profile PATCH)
+export const profileUpdateSchema = z.object({
+  name: z.string()
+    .min(1, 'Name cannot be empty')
+    .max(100, 'Name must be less than 100 characters')
+    .transform((val) => val.trim())
+    .optional(),
+  full_name: z.string()
+    .min(1, 'Full name cannot be empty')
+    .max(150, 'Full name must be less than 150 characters')
+    .transform((val) => val.trim())
+    .optional(),
+  favorite_restaurants: z.array(
+    z.string().uuid('Invalid restaurant ID')
+  ).max(10, 'Maximum 10 favorite restaurants allowed').optional(),
+});
+
 // ============================================================================
 // INVITE CODE VALIDATION SCHEMAS
 // ============================================================================
@@ -223,3 +240,6 @@ export type InviteCodeCreationInput = z.infer<typeof inviteCodeCreationSchema>;
 // Dish rating system exports
 export type DishRatingInput = z.infer<typeof dishRatingSchema>;
 export type DishAutocompleteInput = z.infer<typeof dishAutocompleteSchema>;
+
+// Profile update exports
+export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;

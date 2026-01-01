@@ -23,7 +23,7 @@ import { Group } from '@/types';
 import { Loader2, Copy, Check, Clock, Users, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useGroupInviteCodes } from '@/lib/queries/invites';
-import { formatDistanceToNow } from 'date-fns';
+import { formatTimeAgo } from '@/lib/utils';
 
 interface InviteCode {
   id: string;
@@ -287,7 +287,7 @@ export function InviteCodeModal({
               <div>
                 <p className="text-xs text-gray-500">Expires</p>
                 <p className="font-semibold text-gray-900">
-                  {formatDistanceToNow(new Date(inviteCode.expiresAt), { addSuffix: true })}
+                  {formatTimeAgo(new Date(inviteCode.expiresAt), { addSuffix: true })}
                 </p>
               </div>
             </div>

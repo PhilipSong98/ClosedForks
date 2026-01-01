@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Restaurant } from '@/types';
-import { QUERY_KEYS } from '@/lib/config/reactQueryConfig';
 
 // Dish rating for the new system
 interface DishRatingInput {
@@ -75,12 +74,13 @@ export function useCreateReview() {
 
       // 2. Invalidate only the specific restaurant's data (aggregates changed)
       if (restaurantId) {
+        // Use actual query keys: ['restaurant', id] not QUERY_KEYS pattern
         queryClient.invalidateQueries({
-          queryKey: QUERY_KEYS.restaurants.detail(restaurantId)
+          queryKey: ['restaurant', restaurantId]
         });
-        // Also invalidate restaurant-specific reviews
+        // Also invalidate restaurant list queries (aggregates changed)
         queryClient.invalidateQueries({
-          queryKey: QUERY_KEYS.reviews.byRestaurant(restaurantId)
+          queryKey: ['restaurants']
         });
       }
 

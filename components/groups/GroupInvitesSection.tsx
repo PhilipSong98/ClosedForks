@@ -17,7 +17,7 @@ import {
   Plus
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
+import { formatTimeAgo } from '@/lib/utils';
 import { Group } from '@/types';
 
 interface InviteCode {
@@ -107,7 +107,7 @@ export function GroupInvitesSection({
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>Expires {formatDistanceToNow(new Date(invite.expiresAt), { addSuffix: true })}</span>
+            <span>Expires {formatTimeAgo(new Date(invite.expiresAt), { addSuffix: true })}</span>
           </div>
         </div>
       </div>

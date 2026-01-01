@@ -64,11 +64,11 @@ export async function PUT(
     // Check if user is admin
     const { data: userData } = await supabase
       .from('users')
-      .select('role')
+      .select('is_admin_user')
       .eq('id', user.id)
-      .single() as { data: { role: string } | null; error: Error | null };
+      .single() as { data: { is_admin_user: boolean | null } | null; error: Error | null };
 
-    if (userData?.role !== 'admin') {
+    if (!userData?.is_admin_user) {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
         { status: 403 }
@@ -129,11 +129,11 @@ export async function DELETE(
 
     const { data: userData } = await supabase
       .from('users')
-      .select('role')
+      .select('is_admin_user')
       .eq('id', user.id)
-      .single() as { data: { role: string } | null; error: Error | null };
+      .single() as { data: { is_admin_user: boolean | null } | null; error: Error | null };
 
-    if (userData?.role !== 'admin') {
+    if (!userData?.is_admin_user) {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
         { status: 403 }

@@ -16,8 +16,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [] }, { headers });
   }
 
+  // Validate query length to prevent abuse
+  if (query.length > 100) {
+    return NextResponse.json({ results: [], error: "Query too long" }, { headers, status: 400 });
+  }
+
   try {
     const supabase = await createClient();
+
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401, headers }
+      );
+    }
+
     const searchTerm = `%${query}%`;
     
     console.log("Search query:", query);

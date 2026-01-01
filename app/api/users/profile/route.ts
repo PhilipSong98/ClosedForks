@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { profileUpdateSchema } from '@/lib/validations';
 
 // Define types for the database responses
 interface UserProfile {
@@ -144,7 +145,7 @@ export async function GET() {
 export async function PATCH(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -155,11 +156,25 @@ export async function PATCH(request: NextRequest) {
     }
 
     const json = await request.json();
-    const { name, favorite_restaurants } = json;
+
+    // Validate input
+    const validation = profileUpdateSchema.safeParse(json);
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: 'Invalid input',
+          details: validation.error.issues.map(i => i.message).join(', ')
+        },
+        { status: 400 }
+      );
+    }
+
+    const { name, full_name, favorite_restaurants } = validation.data;
 
     // Build update object with only provided fields
-    const updateData: { name?: string; favorite_restaurants?: string[] } = {};
+    const updateData: { name?: string; full_name?: string; favorite_restaurants?: string[] } = {};
     if (name !== undefined) updateData.name = name;
+    if (full_name !== undefined) updateData.full_name = full_name;
     if (favorite_restaurants !== undefined) updateData.favorite_restaurants = favorite_restaurants;
 
     // Update user profile - using type assertion due to Supabase RLS type inference issues

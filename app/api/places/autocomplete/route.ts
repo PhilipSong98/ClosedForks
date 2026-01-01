@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-// import { createClient } from '@/lib/supabase/server'; // Currently unused
+import { createClient } from '@/lib/supabase/server';
 import { placesAutocompleteSchema } from '@/lib/validations';
 
 // Google Places API types
@@ -15,15 +15,15 @@ interface GooglePlacePrediction {
 
 export async function POST(request: NextRequest) {
   try {
-    // TODO: Re-enable authentication after testing
-    // const supabase = await createClient();
-    // const { data: { user }, error: authError } = await supabase.auth.getUser();
-    // if (authError || !user) {
-    //   return NextResponse.json(
-    //     { error: 'Unauthorized' },
-    //     { status: 401 }
-    //   );
-    // }
+    // Authenticate user
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
 
     const json = await request.json();
     const { input, sessionToken } = placesAutocompleteSchema.parse(json);

@@ -62,7 +62,7 @@
   --secondary: #6E7F5C;
   --secondary-foreground: #FFFFFF;
   --muted: #F9F9F9;
-  --muted-foreground: #888888;
+  --muted-foreground: #6B6B6B; /* Changed from #888888 for WCAG AA 4.5:1 contrast */
   --accent: #C2A878;
   --accent-foreground: #2C2C2C;
   --destructive: #8C1C2B;
@@ -71,7 +71,7 @@
   --ring: #7B2C3A;
   --success: #6E7F5C;
   --warning: #C2A878;
-  --info: #888888;
+  --info: #6B6B6B; /* Changed from #888888 for WCAG AA compliance */
   --primary-rgb: 123, 44, 58;
   --secondary-rgb: 110, 127, 92;
   --accent-rgb: 194, 168, 120;
@@ -81,7 +81,7 @@
   --chart-1: #7B2C3A;
   --chart-2: #6E7F5C;
   --chart-3: #C2A878;
-  --chart-4: #888888;
+  --chart-4: #6B6B6B; /* Changed from #888888 for WCAG AA compliance */
   --chart-5: #2C2C2C;
   --sidebar: #FFFFFF;
   --sidebar-foreground: #2C2C2C;

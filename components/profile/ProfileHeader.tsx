@@ -10,7 +10,7 @@ import { FollowButton } from './FollowButton';
 import { FollowersModal } from './FollowersModal';
 import { FollowingModal } from './FollowingModal';
 import { User, PublicProfile, FollowStatus } from '@/types';
-import { formatDistanceToNow } from 'date-fns';
+import { getInitials, formatTimeAgo } from '@/lib/utils';
 
 interface ProfileHeaderProps {
   user: (User & {
@@ -43,15 +43,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile = true
   const followingCount = user.following_count || 0;
   const followStatus = 'followStatus' in user ? user.followStatus : undefined;
 
-  const getInitials = (value: string) => {
-    const safe = (value || '').trim();
-    if (!safe) return 'U';
-    // If looks like an email, use first letter before @
-    const source = safe.includes('@') ? safe.split('@')[0] : safe;
-    return source.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
-  };
-
-  const memberSince = formatDistanceToNow(new Date(user.created_at), { addSuffix: true });
+  const memberSince = formatTimeAgo(new Date(user.created_at), { addSuffix: true });
 
   return (
     <>

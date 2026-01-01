@@ -21,22 +21,13 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FollowButton } from './FollowButton';
 import { Loader2, Users } from 'lucide-react';
+import { getInitials } from '@/lib/utils';
 
 interface FollowersModalProps {
   userId: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   currentUserId?: string;
-}
-
-function getInitials(name: string): string {
-  const cleaned = name?.trim() || '';
-  if (!cleaned) return 'U';
-  const parts = cleaned.split(/\s+/).filter(Boolean);
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
 export function FollowersModal({ userId, isOpen, onOpenChange, currentUserId }: FollowersModalProps) {

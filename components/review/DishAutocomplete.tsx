@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { debounce } from 'lodash';
 import { Utensils, Loader2, Star, X, Check } from 'lucide-react';
+import { debounce } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import type { DishSuggestion } from '@/types';

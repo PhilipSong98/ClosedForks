@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Group, GroupMember } from '@/types';
-import { formatDistanceToNow } from 'date-fns';
+import { formatTimeAgo } from '@/lib/utils';
 
 interface GroupInfoHeaderProps {
   group: Group;
@@ -65,7 +65,7 @@ export function GroupInfoHeader({
           </div>
           {group.created_at && (
             <div>
-              Created {formatDistanceToNow(new Date(group.created_at), { addSuffix: true })}
+              Created {formatTimeAgo(new Date(group.created_at), { addSuffix: true })}
             </div>
           )}
         </div>
@@ -106,7 +106,7 @@ export function GroupInfoHeader({
                           {member.user.full_name || member.user.name}
                         </p>
                         <p className="text-sm text-gray-600">
-                          Joined {formatDistanceToNow(new Date(member.joined_at), { addSuffix: true })}
+                          Joined {formatTimeAgo(new Date(member.joined_at), { addSuffix: true })}
                         </p>
                       </div>
                     </div>

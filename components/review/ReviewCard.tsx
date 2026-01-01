@@ -7,12 +7,12 @@ import { MapPin, Star } from 'lucide-react';
 import { StarRating } from '@/components/ui/StarRating';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow } from 'date-fns';
 import { Review, DishRating } from '@/types';
 import { REVIEW_TAGS, TAG_CATEGORY_CONFIG } from '@/constants';
 import { ToEatButton } from '@/components/restaurant/ToEatButton';
 import LikeButton from '@/components/ui/LikeButton';
 import { Separator } from '@/components/ui/separator';
+import { getInitials, formatTimeAgo } from '@/lib/utils';
 
 interface ReviewCardProps {
   review: Review;
@@ -27,19 +27,9 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
   showRestaurant = true,
   priority = false
 }) => {
-  const getInitials = (name: string) => {
-    const cleaned = name.trim();
-    if (!cleaned) return 'UR';
-    const parts = cleaned.split(/\s+/).filter(Boolean);
-    if (parts.length === 1) {
-      return parts[0].slice(0, 2).toUpperCase();
-    }
-    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-  };
-
   const formatTime = (timestamp: string) => {
     try {
-      return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+      return formatTimeAgo(new Date(timestamp), { addSuffix: true });
     } catch {
       return new Date(timestamp).toLocaleDateString();
     }

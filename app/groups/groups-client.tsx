@@ -23,7 +23,7 @@ import { CreateGroupModal } from '@/components/groups/CreateGroupModal';
 import { JoinGroupModal } from '@/components/groups/JoinGroupModal';
 import { GroupInvitesSection } from '@/components/groups/GroupInvitesSection';
 import { Group, CreateGroupRequest } from '@/types';
-import { formatDistanceToNow } from 'date-fns';
+import { formatTimeAgo } from '@/lib/utils';
 
 interface GroupCardProps {
   group: Group;
@@ -118,7 +118,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
             {group.created_at && (
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                <span>Created {formatDistanceToNow(new Date(group.created_at), { addSuffix: true })}</span>
+                <span>Created {formatTimeAgo(new Date(group.created_at), { addSuffix: true })}</span>
               </div>
             )}
           </div>
@@ -175,7 +175,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onViewDetails, isExpanded,
                           {member.user.full_name || member.user.name}
                         </p>
                         <p className="text-xs text-gray-600">
-                          Joined {formatDistanceToNow(new Date(member.joined_at), { addSuffix: true })}
+                          Joined {formatTimeAgo(new Date(member.joined_at), { addSuffix: true })}
                         </p>
                       </div>
                     </div>

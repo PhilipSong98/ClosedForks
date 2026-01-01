@@ -13,6 +13,7 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet';
 import { Menu, User, MapPin, LogOut, Bookmark, Users } from 'lucide-react';
+import { getInitials } from '@/lib/utils';
 
 interface MobileMenuProps {
   onProfileClick?: () => void;
@@ -22,10 +23,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ onProfileClick }) => {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
 
   const handleProfileClick = () => {
     setIsOpen(false);

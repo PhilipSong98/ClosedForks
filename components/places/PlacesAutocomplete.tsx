@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { debounce } from 'lodash';
 import { MapPin, Loader2 } from 'lucide-react';
+import { debounce } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 

@@ -16,6 +16,7 @@ import {
 import { LogOut, User, MapPin, Bookmark, Users } from 'lucide-react';
 import MobileMenu from './MobileMenu';
 import Image from 'next/image';
+import { getInitials } from '@/lib/utils';
 
 interface HeaderProps {
   onProfileClick?: () => void;
@@ -24,10 +25,6 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onProfileClick }) => {
   const { user, signOut } = useAuth();
   const router = useRouter();
-
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
 
   const handleProfileClick = () => {
     if (onProfileClick) {
